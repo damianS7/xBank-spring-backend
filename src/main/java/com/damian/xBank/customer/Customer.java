@@ -21,7 +21,7 @@ public class Customer implements CustomerDetails {
     @Column
     private String email;
 
-    @OneToOne(mappedBy = "customer", cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
     private Auth auth;
 
     @Enumerated(EnumType.STRING)

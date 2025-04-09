@@ -8,11 +8,13 @@ public record CustomerUpdateRequest(
 
         @NotNull(message = "Email cannot be empty.")
         @Email(message = "Invalid email.")
-        String email,
+        String currentEmail,
 
-        @NotNull(message = "Password cannot be empty.")
-        String actualPassword,
+        @Email
+        String newEmail,
 
-        @NotNull(message = "Password cannot be empty.")
+        @NotNull(message = "Current password cannot be empty.")
+        String currentPassword,
+
         String newPassword) {
 }

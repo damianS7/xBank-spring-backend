@@ -20,7 +20,6 @@ public class CustomerRepositoryTest {
 
     private Faker faker;
 
-
     @BeforeEach
     void setUp() {
         faker = new Faker();
@@ -29,21 +28,21 @@ public class CustomerRepositoryTest {
 
     @Test
     void shouldFindCustomer() {
-        String email = faker.internet().emailAddress();
-
         // Given
+        String email = faker.internet().emailAddress();
         Customer customer = new Customer(null, email, "123456");
-        Customer savedCustomer = customerRepository.save(customer);
 
         // When
-        Optional<Customer> storedCustomer = customerRepository.findById(savedCustomer.getId());
+        customerRepository.save(customer);
+        Optional<Customer> optionalCustomer = customerRepository.findById(customer.getId());
+        Customer storedCustomer = optionalCustomer.get();
 
         // Then
-        assertThat(storedCustomer.isEmpty()).isFalse();
-        assertThat(storedCustomer.get().getId()).isNotNull();
-        assertThat(storedCustomer.get().getEmail()).isEqualTo(email);
-        assertThat(storedCustomer.get().getPassword()).isEqualTo("123456");
-        assertThat(storedCustomer.get().getRole()).isEqualTo(CustomerRole.CUSTOMER);
+        assertThat(optionalCustomer).isPresent();
+        assertThat(storedCustomer.getId()).isNotNull();
+        assertThat(storedCustomer.getEmail()).isEqualTo(email);
+        assertThat(storedCustomer.getPassword()).isEqualTo("123456");
+        assertThat(storedCustomer.getRole()).isEqualTo(CustomerRole.CUSTOMER);
     }
 
     @Test
@@ -79,24 +78,28 @@ public class CustomerRepositoryTest {
     @Test
     void shouldUpdateCustomer() {
         // Given
-        Customer customer = new Customer();
-        customer.setPassword("123456");
-        customer.setRole(CustomerRole.CUSTOMER);
-        customer.setEmail("alice@gmail.com");
+        String oldEmail = "alice@gmail.com";
+        String newEmail = "alice@outlook.com";
+        Customer customer = new Customer(
+                null,
+                oldEmail,
+                "123456"
+        );
         customerRepository.save(customer);
 
         // When
-        customer.setEmail("alice@outlook.com");
+        customer.setEmail(newEmail);
         customer.setPassword("654321");
         customerRepository.save(customer);
 
-        Customer storedCustomer = customerRepository.findByEmail(customer.getEmail()).get();
+        Customer storedCustomer = customerRepository.findByEmail(newEmail).get();
 
         // Then
         assertThat(storedCustomer.getId()).isNotNull();
-        assertThat(storedCustomer.getEmail()).isEqualTo("alice@outlook.com");
+        assertThat(storedCustomer.getEmail()).isEqualTo(newEmail);
         assertThat(storedCustomer.getPassword()).isEqualTo("654321");
         assertThat(storedCustomer.getRole()).isEqualTo(CustomerRole.CUSTOMER);
+
     }
 
     @Test

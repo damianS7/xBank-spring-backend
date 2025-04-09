@@ -1,7 +1,6 @@
 package com.damian.xBank.customer;
 
 import com.damian.xBank.common.http.response.ApiResponse;
-import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.customer.http.request.CustomerUpdateRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -61,17 +60,6 @@ public class CustomerController {
         ApiResponse<?> response = ApiResponse.success(
                 "Customer deleted.",
                 HttpStatus.ACCEPTED
-        );
-        return ResponseEntity.status(response.getHttpCode()).body(response);
-    }
-
-    // endpoint para nuevos usuarios (registro)
-    @PostMapping("/customer")
-    public ResponseEntity<?> register(@Validated @RequestBody CustomerRegistrationRequest request) {
-        Customer customer = customerService.createCustomer(request);
-        ApiResponse<?> response = ApiResponse.success(
-                customer.toDTO(),
-                HttpStatus.CREATED
         );
         return ResponseEntity.status(response.getHttpCode()).body(response);
     }

@@ -4,6 +4,7 @@ import com.damian.xBank.auth.exception.AuthenticationException;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
+import com.damian.xBank.customer.CustomerService;
 import com.damian.xBank.utils.JWTUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,10 +15,16 @@ import org.springframework.stereotype.Service;
 public class AuthenticationService {
     private final JWTUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final CustomerService customerService;
 
-    public AuthenticationService(JWTUtil jwtUtil, AuthenticationManager authenticationManager) {
+    public AuthenticationService(JWTUtil jwtUtil, AuthenticationManager authenticationManager, CustomerService customerService) {
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
+        this.customerService = customerService;
+    }
+
+    public Customer register(AuthenticationRequest request) {
+        return customerService.createCustomer(request);
     }
 
     /**
@@ -57,7 +64,6 @@ public class AuthenticationService {
                 customer.getId(), customer.getEmail(), token
         );
     }
-
 
 
 }

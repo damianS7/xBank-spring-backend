@@ -1,8 +1,7 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.auth.Auth;
+import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.customer.exception.CustomerException;
-import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.customer.http.request.CustomerUpdateRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,17 +35,21 @@ public class CustomerService {
         );
     }
 
-    // Crea un usuario
-    public Customer createCustomer(CustomerRegistrationRequest request) {
+    public Customer createCustomer(AuthenticationRequest request) {
+        return createCustomer(request.email(), request.password());
+    }
 
-        if (emailExist(request.email())) {
+    // Crea un usuario
+    public Customer createCustomer(String email, String password) {
+
+        if (emailExist(email)) {
             throw new CustomerException("Email is taken.");
         }
 
         return customerRepository.save(
                 new Customer(
-                        request.email(),
-                        bCryptPasswordEncoder.encode(request.password())
+                        email,
+                        bCryptPasswordEncoder.encode(password)
                 )
         );
     }
@@ -64,37 +67,43 @@ public class CustomerService {
         return customerRepository.findByEmail(email).isPresent();
     }
 
-    // PARA REVIEW
-    public Customer updateCustomer(CustomerUpdateRequest request) {
-        return this.updateCustomer(request.email(), request.actualPassword(), request.newPassword());
-    }
-
     // Modifica los datos de un usuario
-    public Customer updateCustomer(String email, String actualRawPassword, String newRawPassword) throws CustomerException {
-        //String currentCustomername = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public Customer updateCustomer(CustomerUpdateRequest request) {
         // check if user is logged and token is valid
+//        UsernamePasswordAuthenticationToken authToken = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+//        System.out.println(authToken);
+
+        final String currentEmail = request.currentEmail();
+        final String newEmail = request.newEmail();
+        final String newRawPassword = request.newPassword();
+        final String currentRawPassword = request.currentPassword();
+
+
         // Obtenemos el nombre del usuario logeado que envia la peticion
-        Customer customer = customerRepository.findByEmail(email).orElseThrow(
+        Customer customer = customerRepository.findByEmail(currentEmail).orElseThrow(
                 () -> new CustomerException("Customer cannot be found.")
         );
 
         // Antes de cambiar comprobamos que las password antiguas coincidan
-        if (!bCryptPasswordEncoder.matches(actualRawPassword, customer.getPassword())) {
+        if (!bCryptPasswordEncoder.matches(currentRawPassword, customer.getPassword())) {
             throw new CustomerException("Password does not match.");
         }
 
         // nuevo password encriptado
-        String encodedNewPassword = bCryptPasswordEncoder.encode(newRawPassword);
+        if (newRawPassword != null) {
+            customer.setPassword(
+                    bCryptPasswordEncoder.encode(newRawPassword)
+            );
+        }
 
         // Modificamos el usuario
-        customer.setEmail(email);
-//        customer.setPassword(encodedNewPassword);
+        if (newEmail != null) {
+            customer.setEmail(newEmail);
+        }
+
+        // Guardamos los cambios
         customerRepository.save(customer);
 
-        // Modificamos el password
-//        Auth customerAuth = authRepository.findByCustomerId(customer.getId());
-//        customerAuth.setPassword(encodedNewPassword);
-//        customer.setPassword
         return customer;
     }
 }

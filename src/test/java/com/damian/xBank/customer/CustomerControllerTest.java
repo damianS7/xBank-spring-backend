@@ -1,6 +1,5 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,13 +34,15 @@ public class CustomerControllerTest {
 
     private Faker faker;
 
+    private String token;
+
     @BeforeEach
     void setUp() {
         faker = new Faker();
     }
 
     @Test
-    void canGetAllCustomers() throws Exception {
+    void shouldGetAllCustomers() throws Exception {
         List<CustomerDTO> customerDTOList = new ArrayList<CustomerDTO>();
         // Given
         for (int i = 0; i < 10; i++) {
@@ -57,7 +58,8 @@ public class CustomerControllerTest {
         when(customerService.getCustomers()).thenReturn(customerDTOList);
 
         // then
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/customers"))
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/customers")
+                        .header("Bearer " + token))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
@@ -79,25 +81,5 @@ public class CustomerControllerTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
-    @Test
-    void canCreateCustomer() throws Exception {
-        CustomerRegistrationRequest request = new CustomerRegistrationRequest(
-                "alice@gmail.com",
-                "12345"
-        );
-        String json = objectMapper.writeValueAsString(request);
 
-        Customer customer = new Customer(4L, request.email(), request.password());
-        // when
-        when(customerService.createCustomer(request)).thenReturn(customer);
-
-        // then
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/customer")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(201))
-                .andExpect(jsonPath("$.data.email").value(request.email()))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
-    }
 }

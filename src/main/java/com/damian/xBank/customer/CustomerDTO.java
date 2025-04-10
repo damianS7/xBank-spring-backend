@@ -1,11 +1,12 @@
 package com.damian.xBank.customer;
 
-public record CustomerDTO(Long id, String email, CustomerRole role) {
-    public static CustomerDTO build(Customer customer) {
-        return CustomerDTO.build(customer.getId(), customer.getEmail(), customer.getRole());
-    }
+import com.damian.xBank.profile.ProfileDTO;
 
-    public static CustomerDTO build(Long id, String email, CustomerRole role) {
-        return new CustomerDTO(id, email, role);
-    }
+public record CustomerDTO(
+        Long id,
+        String email,
+        CustomerRole role,
+        ProfileDTO profile) {
+
+
 }

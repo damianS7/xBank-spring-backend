@@ -41,7 +41,6 @@ public class AuthenticationControllerTest {
     private Faker faker;
 
     @Autowired
-//    @MockitoBean
     private AuthenticationService authenticationService;
 
     @Autowired
@@ -55,6 +54,7 @@ public class AuthenticationControllerTest {
     @BeforeEach
     void setUp() {
         faker = new Faker();
+        customerRepository.deleteAll();
         customer = new Customer(
                 null, this.email, bCryptPasswordEncoder.encode(this.rawPassword)
         );
@@ -64,7 +64,7 @@ public class AuthenticationControllerTest {
 
     @Test
     void shouldLoginWhenValidCredentials() throws Exception {
-        // Given
+        // given
         AuthenticationRequest request = new AuthenticationRequest(
                 this.email, this.rawPassword
         );
@@ -135,7 +135,7 @@ public class AuthenticationControllerTest {
                         .content(json))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().is(201))
-                .andExpect(jsonPath("$.data.email").value(request.email()))
+                .andExpect(jsonPath("$.email").value(request.email()))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 

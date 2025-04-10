@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RequestMapping("/api/v1")
 @RestController
 public class CustomerController {
@@ -20,37 +18,24 @@ public class CustomerController {
         this.customerService = customerService;
     }
 
-    // endpoint que devuelve todos los usuarios
-    @GetMapping("/customers")
-    public ResponseEntity<ApiResponse<?>> getUsers() {
-        List<CustomerDTO> customers = customerService.getCustomers();
-        ApiResponse<?> response = ApiResponse.success(
-                customers,
-                HttpStatus.OK
-        );
-        return ResponseEntity.status(response.getHttpCode()).body(response);
-    }
-
     // endpoint que devuelve los datos de un usuario
     @GetMapping("/customer/{id}")
-    public ResponseEntity<ApiResponse<CustomerDTO>> getUser(@PathVariable Long id) {
-        CustomerDTO customerDTO = customerService.getCustomer(id).toDTO();
-        ApiResponse<CustomerDTO> response = ApiResponse.success(
-                customerDTO,
-                HttpStatus.OK
-        );
-        return ResponseEntity.status(response.getHttpCode()).body(response);
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
+        Customer customer = customerService.getCustomer(id);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(customer.toDTO());
     }
 
     // endpoint para modificar usuarios
     @PutMapping("/customer/{id}")
     public ResponseEntity<?> updateUser(@Validated @RequestBody CustomerUpdateRequest request) {
-        CustomerDTO customerDTO = customerService.updateCustomer(request).toDTO();
-        ApiResponse<CustomerDTO> response = ApiResponse.success(
-                customerDTO,
-                HttpStatus.OK
-        );
-        return ResponseEntity.status(response.getHttpCode()).body(response);
+        Customer customer = customerService.updateCustomer(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(customer.toDTO());
     }
 
     // endpoint para borrado de usuario
@@ -61,7 +46,9 @@ public class CustomerController {
                 "Customer deleted.",
                 HttpStatus.ACCEPTED
         );
-        return ResponseEntity.status(response.getHttpCode()).body(response);
+        return ResponseEntity
+                .status(HttpStatus.ACCEPTED)
+                .body(response);
     }
 }
 

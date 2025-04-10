@@ -29,7 +29,7 @@ public class CustomerService {
     }
 
     // devuelve un usuario
-    public Customer getCustomer(Long userId) throws CustomerException {
+    public Customer getCustomer(Long userId) {
         return customerRepository.findById(userId).orElseThrow(
                 () -> new CustomerException("Customer not found.")
         );

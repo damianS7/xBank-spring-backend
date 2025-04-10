@@ -2,7 +2,6 @@ package com.damian.xBank.auth;
 
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
-import com.damian.xBank.common.http.response.ApiResponse;
 import com.damian.xBank.customer.Customer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,27 +26,20 @@ public class AuthenticationController {
     @PostMapping("register")
     public ResponseEntity<?> register(@Validated @RequestBody AuthenticationRequest request) {
         Customer customer = authenticationService.register(request);
-        ApiResponse<?> response = ApiResponse.success(
-                customer.toDTO(),
-                HttpStatus.CREATED
-        );
 
-        return ResponseEntity.status(response.getHttpCode()).body(response);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(customer.toDTO());
     }
 
     @PostMapping("login")
-    public ResponseEntity<?> login(@RequestBody AuthenticationRequest request) {
+    public ResponseEntity<?> login(@Validated @RequestBody AuthenticationRequest request) {
         AuthenticationResponse authResponse = authenticationService.login(request);
 
-        ApiResponse<?> response = ApiResponse.success(
-                authResponse,
-                HttpStatus.OK
-        );
-
         return ResponseEntity
-                .status(response.getHttpCode())
+                .status(HttpStatus.OK)
                 .header(HttpHeaders.AUTHORIZATION, authResponse.token())
-                .body(response);
+                .body(authResponse);
     }
 
 }

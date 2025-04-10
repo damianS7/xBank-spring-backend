@@ -15,10 +15,6 @@ public class ApiResponse<T> {
         this.status = status;
     }
 
-//    public static ApiResponse<T> build(String message, ) {
-//        return new ApiResponse<>();
-//    }
-
     public static <T> ApiResponse<T> success(T data) {
         return new ApiResponse<>(null, data, HttpStatus.OK);
     }

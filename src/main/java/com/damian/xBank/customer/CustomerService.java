@@ -1,6 +1,7 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.auth.http.AuthenticationRequest;
+import com.damian.xBank.auth.http.CustomerRegistrationRequest;
+import com.damian.xBank.common.DTOBuilder;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.http.request.CustomerUpdateRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,7 +25,7 @@ public class CustomerService {
         return customerRepository.findAll()
                 .stream()
                 .map(
-                        CustomerDTO::build
+                        DTOBuilder::build
                 ).toList();
     }
 
@@ -35,23 +36,26 @@ public class CustomerService {
         );
     }
 
-    public Customer createCustomer(AuthenticationRequest request) {
-        return createCustomer(request.email(), request.password());
-    }
+    public Customer createCustomer(CustomerRegistrationRequest request) {
 
-    // Crea un usuario
-    public Customer createCustomer(String email, String password) {
-
-        if (emailExist(email)) {
+        if (emailExist(request.email())) {
             throw new CustomerException("Email is taken.");
         }
 
-        return customerRepository.save(
-                new Customer(
-                        email,
-                        bCryptPasswordEncoder.encode(password)
-                )
-        );
+        Customer customer = new Customer();
+        customer.setEmail(request.email());
+        customer.setPassword(bCryptPasswordEncoder.encode(request.password()));
+        customer.getProfile().setNationalId(request.nationalId());
+        customer.getProfile().setName(request.name());
+        customer.getProfile().setSurname(request.surname());
+        customer.getProfile().setGender(request.gender());
+        customer.getProfile().setBirthdate(request.birthdate());
+        customer.getProfile().setCountry(request.country());
+        customer.getProfile().setAddress(request.address());
+        customer.getProfile().setPostalCode(request.postalCode());
+        customer.getProfile().setPhoto(request.photo());
+
+        return customerRepository.save(customer);
     }
 
     // Borra un usuario

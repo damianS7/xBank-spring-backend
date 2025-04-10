@@ -1,12 +1,11 @@
 package com.damian.xBank.customer;
 
 import com.damian.xBank.auth.Auth;
+import com.damian.xBank.common.DTOBuilder;
+import com.damian.xBank.profile.Profile;
 import jakarta.persistence.*;
-import org.hibernate.annotations.Type;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -24,27 +23,32 @@ public class Customer implements CustomerDetails {
     @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
     private Auth auth;
 
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
+    private Profile profile;
+
     @Enumerated(EnumType.STRING)
     private CustomerRole role;
 
     public Customer() {
         this.auth = new Auth();
         this.auth.setCustomer(this);
+        this.profile = new Profile();
+        this.profile.setCustomer(this);
+        this.role = CustomerRole.CUSTOMER;
     }
 
     public Customer(Long id, String email, String password) {
+        this();
         this.id = id;
         this.email = email;
-        this.role = CustomerRole.CUSTOMER;
-        this.auth = new Auth(password);
-        this.auth.setCustomer(this);
+        setPassword(password);
     }
 
     public Customer(String email, String password) {
         this(null, email, password);
     }
 
-    public void setAuth(Auth auth){
+    public void setAuth(Auth auth) {
         this.auth = auth;
     }
 
@@ -57,7 +61,7 @@ public class Customer implements CustomerDetails {
     }
 
     public void setPassword(String password) {
-        this.auth.setPassword(password);;
+        this.auth.setPassword(password);
     }
 
     public CustomerRole getRole() {
@@ -69,7 +73,7 @@ public class Customer implements CustomerDetails {
     }
 
     public CustomerDTO toDTO() {
-        return CustomerDTO.build(this);
+        return DTOBuilder.build(this);
     }
 
     @Override
@@ -117,5 +121,13 @@ public class Customer implements CustomerDetails {
         SimpleGrantedAuthority authority =
                 new SimpleGrantedAuthority(CustomerRole.CUSTOMER.name());
         return Collections.singletonList(authority);
+    }
+
+    public Profile getProfile() {
+        return profile;
+    }
+
+    public void setProfile(Profile profile) {
+        this.profile = profile;
     }
 }

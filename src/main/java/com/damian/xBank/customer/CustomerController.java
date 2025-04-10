@@ -1,6 +1,5 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.common.http.response.ApiResponse;
 import com.damian.xBank.customer.http.request.CustomerUpdateRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,17 +37,5 @@ public class CustomerController {
                 .body(customer.toDTO());
     }
 
-    // endpoint para borrado de usuario
-    @DeleteMapping("/customer/{id}")
-    public ResponseEntity<?> deleteCustomer(@PathVariable Long id) {
-        customerService.deleteCustomer(id);
-        ApiResponse<?> response = ApiResponse.success(
-                "Customer deleted.",
-                HttpStatus.ACCEPTED
-        );
-        return ResponseEntity
-                .status(HttpStatus.ACCEPTED)
-                .body(response);
-    }
 }
 

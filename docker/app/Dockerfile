@@ -1,5 +1,3 @@
-# Recuerda construir el .jar antes con mvn clean package o ./mvnw clean package.
-# Usa imagen oficial de Eclipse Temurin con Java 21
 FROM eclipse-temurin:21-jdk-alpine
 
 # Crea directorio para la app
@@ -12,4 +10,4 @@ COPY target/*.jar app.jar
 EXPOSE 8080
 
 # Comando para ejecutar la app
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app.jar"]

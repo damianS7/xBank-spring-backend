@@ -2,6 +2,7 @@ package com.damian.xBank.auth;
 
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.auth.http.CustomerRegistrationRequest;
 import com.damian.xBank.customer.Customer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,8 @@ public class AuthenticationController {
 
     // endpoint para nuevos usuarios (registro)
     @PostMapping("register")
-    public ResponseEntity<?> register(@Validated @RequestBody AuthenticationRequest request) {
+    public ResponseEntity<?> register(@Validated @RequestBody CustomerRegistrationRequest request) {
+        System.out.println("REQUEST>" + request.birthdate());
         Customer customer = authenticationService.register(request);
 
         return ResponseEntity

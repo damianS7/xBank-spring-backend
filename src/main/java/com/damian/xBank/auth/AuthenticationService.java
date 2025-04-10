@@ -3,6 +3,7 @@ package com.damian.xBank.auth;
 import com.damian.xBank.auth.exception.AuthenticationException;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.auth.http.CustomerRegistrationRequest;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerService;
 import com.damian.xBank.utils.JWTUtil;
@@ -23,7 +24,7 @@ public class AuthenticationService {
         this.customerService = customerService;
     }
 
-    public Customer register(AuthenticationRequest request) {
+    public Customer register(CustomerRegistrationRequest request) {
         return customerService.createCustomer(request);
     }
 

@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
-    private String error;
     private String message;
     private T data;
     private HttpStatus status;
@@ -18,10 +17,6 @@ public class ApiResponse<T> {
         this.message = message;
         this.data = data;
         this.status = status;
-    }
-
-    public ApiResponse(String error) {
-        this.error = error;
     }
 
     public static <T> ApiResponse<T> success(T data) {
@@ -44,16 +39,8 @@ public class ApiResponse<T> {
         return new ApiResponse<>(message, null, status);
     }
 
-    public static <T> ApiResponse<T> error(String error) {
-        return new ApiResponse<>(error);
-    }
-
     public static <T> ApiResponse<T> error(String error, T data, HttpStatus status) {
-        ApiResponse response = new ApiResponse();
-        response.setData(data);
-        response.setError(error);
-        response.setStatus(status);
-        return response;
+        return new ApiResponse<>(error, null, status);
     }
 
     public T getData() {
@@ -74,13 +61,5 @@ public class ApiResponse<T> {
 
     public String getMessage() {
         return this.message;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
     }
 }

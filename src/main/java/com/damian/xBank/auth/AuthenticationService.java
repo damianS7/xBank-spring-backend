@@ -53,15 +53,15 @@ public class AuthenticationService {
         // Creamos el token utilizado para validar al usuario
         final String token = jwtUtil.generateToken(email);
 
-        // Usuario autenticado
-        Customer customer = (Customer) auth.getPrincipal();
+        // id usuario autenticado
+        Long customerId = ((Customer) auth.getPrincipal()).getId();
 
-        // TODO
         // should return Customer from database
+        Customer customer = customerService.getCustomer(customerId);
 
         // Enviamos al usuario de vuelta los datos necesarios para el cliente
         return new AuthenticationResponse(
-                customer.getId(), customer.getEmail(), token
+                customer.toDTO(), token
         );
     }
 

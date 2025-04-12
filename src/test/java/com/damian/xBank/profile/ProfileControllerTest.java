@@ -5,6 +5,7 @@ import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
+import com.damian.xBank.profile.http.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,6 +25,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -140,5 +142,69 @@ public class ProfileControllerTest {
         assertThat(response.photo()).isEqualTo(request.photo());
         assertThat(response.postalCode()).isEqualTo(request.postalCode());
         assertThat(response.nationalId()).isEqualTo(request.nationalId());
+    }
+
+    @Test
+    void shouldNotUpdateProfileWhenAnyFieldIsEmpty() throws Exception {
+        // given
+        ProfileUpdateRequest request = new ProfileUpdateRequest(
+                customer.getProfile().getId(),
+                "david",
+                "",
+                "123 123 123",
+                "1/1/1980",
+                Gender.MALE,
+                "-",
+                "Fake AV 51",
+                "50120",
+                "USA",
+                "123123123Z",
+                customer.getId(),
+                this.rawPassword
+        );
+
+        String jsonRequest = objectMapper.writeValueAsString(request);
+
+        // when
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/api/v1/profile/" + request.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .content(jsonRequest))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().is(400))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void shouldNotUpdateProfileWhenAnyFieldIsNull() throws Exception {
+        // given
+        ProfileUpdateRequest request = new ProfileUpdateRequest(
+                customer.getProfile().getId(),
+                "david",
+                null,
+                "123 123 123",
+                "1/1/1980",
+                Gender.MALE,
+                "-",
+                "Fake AV 51",
+                "50120",
+                "USA",
+                "123123123Z",
+                customer.getId(),
+                this.rawPassword
+        );
+
+        String jsonRequest = objectMapper.writeValueAsString(request);
+
+        // when
+        mockMvc.perform(MockMvcRequestBuilders
+                        .put("/api/v1/profile/" + request.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .content(jsonRequest))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().is(400))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 }

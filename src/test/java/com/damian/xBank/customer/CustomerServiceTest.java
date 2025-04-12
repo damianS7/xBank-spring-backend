@@ -1,7 +1,9 @@
 package com.damian.xBank.customer;
 
 import com.damian.xBank.customer.exception.CustomerException;
+import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.customer.http.request.CustomerUpdateRequest;
+import com.damian.xBank.profile.Gender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -118,14 +120,27 @@ public class CustomerServiceTest {
     @Test
     void shouldCreateCustomer() {
         // given
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(
+                "david@gmail.com",
+                "123456",
+                "david",
+                "white",
+                "123 123 123",
+                "1/1/1980",
+                Gender.MALE,
+                "",
+                "Fake AV",
+                "50120",
+                "USA",
+                "123123123Z"
+        );
+
         final String passwordHash = "¢5554ml;f;lsd";
-        final String email = "david@gmail.com";
-        final String password = "123456";
 
         // when
-        when(bCryptPasswordEncoder.encode(password)).thenReturn(passwordHash);
-        when(customerRepository.findByEmail(email)).thenReturn(Optional.empty());
-        customerService.createCustomer(email, password);
+        when(bCryptPasswordEncoder.encode(request.password())).thenReturn(passwordHash);
+        when(customerRepository.findByEmail(request.email())).thenReturn(Optional.empty());
+        customerService.createCustomer(request);
 
         // then
         ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor.forClass(Customer.class);
@@ -134,20 +149,32 @@ public class CustomerServiceTest {
         Customer customer = customerArgumentCaptor.getValue();
         verify(customerRepository, times(1)).save(customer);
         assertThat(customer.getId()).isNull();
-        assertThat(customer.getEmail()).isEqualTo(email);
+        assertThat(customer.getEmail()).isEqualTo(request.email());
         assertThat(customer.getPassword()).isEqualTo(passwordHash);
     }
 
     @Test
     void shouldNotCreateAnyCustomerWhenEmailIsTakenAndWillThrow() {
         // given
-        final String email = "david@gmail.com";
-        final String password = "123456";
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(
+                "david@gmail.com",
+                "123456",
+                "david",
+                "white",
+                "123 123 123",
+                "1/1/1980",
+                Gender.MALE,
+                "",
+                "Fake AV",
+                "50120",
+                "USA",
+                "123123123Z"
+        );
 
         // when
-        when(customerRepository.findByEmail(email)).thenReturn(Optional.of(new Customer()));
+        when(customerRepository.findByEmail(request.email())).thenReturn(Optional.of(new Customer()));
         CustomerException exception = assertThrows(CustomerException.class,
-                () -> customerService.createCustomer(email, password)
+                () -> customerService.createCustomer(request)
         );
 
         // then

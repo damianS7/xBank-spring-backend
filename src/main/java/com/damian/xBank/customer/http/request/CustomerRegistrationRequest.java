@@ -4,33 +4,31 @@ import com.damian.xBank.profile.Gender;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * Contains all the data required for Customer registration
  */
 public record CustomerRegistrationRequest(
-        @NotNull
         @NotBlank
         @Email
         String email,
 
-        @NotNull
         @NotBlank
+        @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+                message = "Password must be at least 8 characters long, contain at least one uppercase letter, " +
+                        "one number, and one special character.")
         String password,
 
-        @NotNull
         @NotBlank
         String name,
 
-        @NotNull
         @NotBlank
         String surname,
 
-        @NotNull
         @NotBlank
         String phone,
 
-        @NotNull
         @NotBlank
         String birthdate,
 
@@ -39,19 +37,15 @@ public record CustomerRegistrationRequest(
 
         String photo,
 
-        @NotNull
         @NotBlank
         String address,
 
-        @NotNull
         @NotBlank
         String postalCode,
 
-        @NotNull
         @NotBlank
         String country,
 
-        @NotNull
         @NotBlank
         String nationalId
 ) {

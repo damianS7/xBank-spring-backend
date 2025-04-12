@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -152,15 +153,14 @@ public class AuthenticationControllerTest {
         String jsonRequest = objectMapper.writeValueAsString(request);
 
         // when
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+        mockMvc.perform(MockMvcRequestBuilders
                         .post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().is(400))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.error").value("Validation error."))
-                .andReturn();
+                .andExpect(jsonPath("$.message").value(containsString("Validation error:")));
     }
 
     @Test
@@ -181,7 +181,7 @@ public class AuthenticationControllerTest {
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().is(400))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.error").value("Validation error."))
+                .andExpect(jsonPath("$.message").value(containsString("Validation error")))
                 .andReturn();
     }
 
@@ -190,7 +190,7 @@ public class AuthenticationControllerTest {
         // given
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
                 "david@gmail.com",
-                "123456",
+                "12345678X$",
                 "david",
                 "white",
                 "123 123 123",
@@ -253,12 +253,43 @@ public class AuthenticationControllerTest {
                         .content(json))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().is(400))
-                .andExpect(jsonPath("$.error").value("Validation error."))
+                .andExpect(jsonPath("$.message").value(containsString("Validation error")))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
     void shouldNotRegisterCustomerWhenEmailIsTaken() throws Exception {
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(
+                this.email,
+                "12345678X$",
+                "david",
+                "white",
+                "123 123 123",
+                "1/1/1980",
+                Gender.MALE,
+                "",
+                "Fake AV",
+                "50120",
+                "USA",
+                "123123123Z"
+        );
+
+        // request to json
+        String json = objectMapper.writeValueAsString(request);
+
+        // when
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().is(500))
+                .andExpect(jsonPath("$.message").value("Email is taken."))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void shouldNotRegisterCustomerWhenPasswordPolicyNotSatisfied() throws Exception {
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
                 this.email,
                 "123456",
@@ -283,8 +314,8 @@ public class AuthenticationControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(500))
-                .andExpect(jsonPath("$.message").value("Email is taken."))
+                .andExpect(MockMvcResultMatchers.status().is(400))
+                .andExpect(jsonPath("$.message").value(containsString("Validation error: Password")))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 

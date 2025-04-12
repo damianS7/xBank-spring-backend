@@ -3,6 +3,7 @@ package com.damian.xBank.profile;
 import com.damian.xBank.auth.exception.AuthorizationException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.exception.CustomerException;
+import com.damian.xBank.profile.http.ProfileUpdateRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,28 +19,35 @@ public class ProfileService {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
-    // Modifica los datos de un usuario
+    /**
+     * It updates the whole customer profile
+     *
+     * @param request the fields to change
+     * @return the profile updated
+     */
     public Profile updateProfile(ProfileUpdateRequest request) {
-        // Comprobamos que el usuario que esta intentando modifiicar el perfil
-        // sea el owner del perfil
+        // We get the customer logged in the context
         Customer customerLogged = (Customer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long profileId = customerLogged.getProfile().getId();
 
-        // Antes de cambiar comprobamos que las password antiguas coincidan
+        // before making any changes we check that the user sent the current password
         if (!bCryptPasswordEncoder.matches(request.currentPassword(), customerLogged.getPassword())) {
             throw new CustomerException("Password does not match.");
         }
 
-        // Obtenemos el perfil del usuario logeado que envia la peticion
+        // the profile id the current customer has
+        Long profileId = customerLogged.getProfile().getId();
+
+        // We get the profile we want to modify
         Profile profile = profileRepository.findById(profileId).orElseThrow(
                 () -> new ProfileException("Profile cannot be found.")
         );
 
-        // Comprueba que el perfil que se intenta modificar pertenezca al usuario logeado
+        // we make sure that this profile belongs to the customer logged
         if (!profile.getCustomerId().equals(customerLogged.getId())) {
             throw new AuthorizationException("This profile does not belongs to the logged user.");
         }
 
+        // we make the changes into the profile
         profile.setNationalId(request.nationalId());
         profile.setName(request.name());
         profile.setSurname(request.surname());

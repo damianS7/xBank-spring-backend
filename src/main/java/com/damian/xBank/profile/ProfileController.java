@@ -1,5 +1,6 @@
 package com.damian.xBank.profile;
 
+import com.damian.xBank.profile.http.ProfileUpdateRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,7 @@ public class ProfileController {
         this.profileService = customerService;
     }
 
-    // endpoint para modificar profile al completo
+    // endpoint to modify a profile
     @PutMapping("/profile/{id}")
     public ResponseEntity<?> updateProfile(@Validated @RequestBody ProfileUpdateRequest request) {
         Profile profile = profileService.updateProfile(request);
@@ -26,7 +27,7 @@ public class ProfileController {
                 .body(profile.toDTO());
     }
 
-    // endpoint para modificar profile al completo
+    // endpoint to modify some parts of the profile
     @PatchMapping("/profile/{id}")
     public ResponseEntity<?> patchProfile(@Validated @RequestBody ProfileUpdateRequest request) {
         Profile profile = profileService.patchProfile(request);

@@ -13,7 +13,7 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @Autowired
-    public CustomerController(CustomerService customerService, CustomerRepository customerRepository) {
+    public CustomerController(CustomerService customerService) {
         this.customerService = customerService;
     }
 
@@ -36,6 +36,5 @@ public class CustomerController {
                 .status(HttpStatus.OK)
                 .body(customer.toDTO());
     }
-
 }
 

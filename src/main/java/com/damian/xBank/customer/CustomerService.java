@@ -1,8 +1,8 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.auth.http.CustomerRegistrationRequest;
 import com.damian.xBank.common.DTOBuilder;
 import com.damian.xBank.customer.exception.CustomerException;
+import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.customer.http.request.CustomerUpdateRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,6 +48,7 @@ public class CustomerService {
         customer.getProfile().setNationalId(request.nationalId());
         customer.getProfile().setName(request.name());
         customer.getProfile().setSurname(request.surname());
+        customer.getProfile().setPhone(request.phone());
         customer.getProfile().setGender(request.gender());
         customer.getProfile().setBirthdate(request.birthdate());
         customer.getProfile().setCountry(request.country());

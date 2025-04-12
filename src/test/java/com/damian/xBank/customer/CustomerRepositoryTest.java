@@ -1,5 +1,6 @@
 package com.damian.xBank.customer;
 
+import com.damian.xBank.profile.Gender;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,6 +74,30 @@ public class CustomerRepositoryTest {
         assertThat(savedCustomer.getEmail()).isEqualTo("alice@gmail.com");
         assertThat(savedCustomer.getPassword()).isEqualTo("123456");
         assertThat(savedCustomer.getRole()).isEqualTo(CustomerRole.CUSTOMER);
+    }
+
+    @Test
+    void shouldSaveCustomerAndProfile() {
+        // Given
+        Customer customer = new Customer();
+        customer.setEmail("david@gmail.com");
+        customer.setPassword("123456");
+        customer.getProfile().setNationalId("123456789Z");
+        customer.getProfile().setName("david");
+        customer.getProfile().setSurname("white");
+        customer.getProfile().setPhone("123 123 123");
+        customer.getProfile().setGender(Gender.MALE);
+        customer.getProfile().setBirthdate("1/1/1980");
+        customer.getProfile().setCountry("USA");
+        customer.getProfile().setAddress("fake av");
+        customer.getProfile().setPostalCode("501200");
+        customer.getProfile().setPhoto("/images/photo.jpg");
+
+        // When
+        customerRepository.save(customer);
+
+        // Then
+        assertThat(customer.getId()).isNotNull();
     }
 
     @Test

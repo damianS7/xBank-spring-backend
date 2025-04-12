@@ -2,6 +2,8 @@ package com.damian.xBank.customer;
 
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
+import com.damian.xBank.profile.Gender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
@@ -50,29 +52,50 @@ public class CustomerControllerTest {
 
     @BeforeAll
     void setUp() throws Exception {
-        String rawPassword = "123456";
-
-        customer = new Customer(
-                null,
-                "alice@test.com",
-                bCryptPasswordEncoder.encode(rawPassword)
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(
+                "david@gmail.com",
+                "123456",
+                "david",
+                "white",
+                "123 123 123",
+                "1/1/1980",
+                Gender.MALE,
+                "-",
+                "Fake AV",
+                "50120",
+                "USA",
+                "123123123Z"
         );
+
+        customer = new Customer();
+        customer.setEmail(request.email());
+        customer.setPassword(bCryptPasswordEncoder.encode(request.password()));
+        customer.getProfile().setNationalId(request.nationalId());
+        customer.getProfile().setName(request.name());
+        customer.getProfile().setSurname(request.surname());
+        customer.getProfile().setPhone(request.phone());
+        customer.getProfile().setGender(request.gender());
+        customer.getProfile().setBirthdate(request.birthdate());
+        customer.getProfile().setCountry(request.country());
+        customer.getProfile().setAddress(request.address());
+        customer.getProfile().setPostalCode(request.postalCode());
+        customer.getProfile().setPhoto(request.photo());
 
         customerRepository.save(customer);
 
         // given
-        AuthenticationRequest request = new AuthenticationRequest(
-                customer.getEmail(), rawPassword
+        AuthenticationRequest authenticationRequest = new AuthenticationRequest(
+                customer.getEmail(), request.password()
         );
 
-        String jsonRequest = objectMapper.writeValueAsString(request);
+        String jsonRequest = objectMapper.writeValueAsString(authenticationRequest);
 
         // when
-        MvcResult result = mockMvc.perform(
-                MockMvcRequestBuilders.post("/api/v1/auth/login")
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest)
-        ).andReturn();
+                        .content(jsonRequest))
+                .andReturn();
 
         AuthenticationResponse response = objectMapper.readValue(
                 result.getResponse().getContentAsString(),
@@ -89,6 +112,7 @@ public class CustomerControllerTest {
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$.email").value(customer.getEmail()))
+                .andExpect(jsonPath("$.profile.address").value(customer.getProfile().getAddress()))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 }

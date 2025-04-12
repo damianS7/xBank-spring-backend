@@ -4,6 +4,7 @@ import com.damian.xBank.common.DTOBuilder;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.customer.http.request.CustomerUpdateRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -75,35 +76,32 @@ public class CustomerService {
     // Modifica los datos de un usuario
     public Customer updateCustomer(CustomerUpdateRequest request) {
         // check if user is logged and token is valid
-//        UsernamePasswordAuthenticationToken authToken = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-//        System.out.println(authToken);
+        final String customerEmail = ((Customer) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal())
+                .getEmail();
 
-        final String currentEmail = request.currentEmail();
-        final String newEmail = request.newEmail();
-        final String newRawPassword = request.newPassword();
-        final String currentRawPassword = request.currentPassword();
-
-
-        // Obtenemos el nombre del usuario logeado que envia la peticion
-        Customer customer = customerRepository.findByEmail(currentEmail).orElseThrow(
+        // We get the Customer entity so we can save at the end
+        Customer customer = customerRepository.findByEmail(customerEmail).orElseThrow(
                 () -> new CustomerException("Customer cannot be found.")
         );
 
-        // Antes de cambiar comprobamos que las password antiguas coincidan
-        if (!bCryptPasswordEncoder.matches(currentRawPassword, customer.getPassword())) {
+        // Before making any changes we check that the password sent by the customer matches the one in the entity
+        if (!bCryptPasswordEncoder.matches(request.currentPassword(), customer.getPassword())) {
             throw new CustomerException("Password does not match.");
         }
 
-        // nuevo password encriptado
-        if (newRawPassword != null) {
+        // if a new password is specified we set in the customer entity
+        if (request.newPassword() != null) {
             customer.setPassword(
-                    bCryptPasswordEncoder.encode(newRawPassword)
+                    bCryptPasswordEncoder.encode(request.newPassword())
             );
         }
 
         // Modificamos el usuario
-        if (newEmail != null) {
-            customer.setEmail(newEmail);
+        if (request.newEmail() != null) {
+            customer.setEmail(request.newEmail());
         }
 
         // Guardamos los cambios

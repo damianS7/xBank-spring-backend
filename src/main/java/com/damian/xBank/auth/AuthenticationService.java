@@ -29,11 +29,11 @@ public class AuthenticationService {
     }
 
     /**
-     * Metodo que contiene la logica principal del servicio de autenticacion.
+     * It controls the login flow
      *
-     * @param request Peticion que contiene los datos de usuario que intenta autenticarse (usuario y password)
-     * @return La respuesta que contiene los datos del usuario autentificado.
-     * @throws AuthenticationException Excepcion con el mensaje del fallo arrojado durante la autenticacion
+     * @param request Contains the fields needed to login into the service
+     * @return Contains the data (Customer, Profile) and the token
+     * @throws AuthenticationException
      */
     public AuthenticationResponse login(AuthenticationRequest request) {
         final String email = request.email();
@@ -50,13 +50,13 @@ public class AuthenticationService {
             throw new AuthenticationException("Bad credentials"); // 403 Forbidden
         }
 
-        // Creamos el token utilizado para validar al usuario
+        // Token generation
         final String token = jwtUtil.generateToken(email);
 
-        // id usuario autenticado
+        // id from the authenticated customer
         Long customerId = ((Customer) auth.getPrincipal()).getId();
 
-        // should return Customer from database
+        // fetch the customer logged from the service
         Customer customer = customerService.getCustomer(customerId);
 
         // Enviamos al usuario de vuelta los datos necesarios para el cliente

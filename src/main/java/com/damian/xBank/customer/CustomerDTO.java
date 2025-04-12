@@ -7,6 +7,4 @@ public record CustomerDTO(
         String email,
         CustomerRole role,
         ProfileDTO profile) {
-
-
 }

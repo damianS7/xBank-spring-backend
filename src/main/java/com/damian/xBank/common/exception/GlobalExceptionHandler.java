@@ -11,9 +11,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -31,15 +28,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidationErrors(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
+        StringBuilder errors = new StringBuilder();
+        errors.append("Validation error: ");
 
         ex.getBindingResult().getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
+//            errors.append(error.getField());
+//            errors.append(":");
+            errors.append(error.getDefaultMessage());
         });
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error("Validation error.", errors, HttpStatus.BAD_REQUEST));
+                .body(ApiResponse.error(errors.toString(), HttpStatus.BAD_REQUEST));
     }
 
     @ExceptionHandler(AuthorizationException.class)

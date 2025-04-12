@@ -7,19 +7,40 @@ import org.springframework.lang.NonNull;
 public record ProfileUpdateRequest(
         @NonNull
         Long id,
+
+        @NotBlank
         String name,
+
+        @NotBlank
         String surname,
+
+        @NotBlank
         String phone,
+
+        @NotBlank
         String birthdate,
+
+        @NonNull
         Gender gender,
+
+        @NotBlank
         String photo,
+
+        @NotBlank
         String address,
+
+        @NotBlank
         String postalCode,
+
+        @NotBlank
         String country,
+
+        @NotBlank
         String nationalId,
+
         @NonNull
         Long customerId,
-        @NonNull
+
         @NotBlank
         String currentPassword) {
 }

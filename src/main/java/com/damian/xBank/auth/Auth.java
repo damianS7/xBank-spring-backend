@@ -33,8 +33,13 @@ public class Auth {
         this.verified = false;
     }
 
-    public Customer getCustomer() { return this.customer; }
-    public void setCustomer(Customer customer) { this.customer = customer; }
+    public Customer getCustomer() {
+        return this.customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
 
     public Long getId() {
         return id;

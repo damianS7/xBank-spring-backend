@@ -3,9 +3,9 @@ package com.damian.xBank.auth;
 import com.damian.xBank.auth.exception.AuthenticationException;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
-import com.damian.xBank.auth.http.CustomerRegistrationRequest;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerService;
+import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.utils.JWTUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,8 +36,8 @@ public class AuthenticationService {
      * @throws AuthenticationException Excepcion con el mensaje del fallo arrojado durante la autenticacion
      */
     public AuthenticationResponse login(AuthenticationRequest request) {
-        String email = request.email();
-        String password = request.password();
+        final String email = request.email();
+        final String password = request.password();
 
         Authentication auth;
 
@@ -51,14 +51,13 @@ public class AuthenticationService {
         }
 
         // Creamos el token utilizado para validar al usuario
-        String token = jwtUtil.generateToken(email);
+        final String token = jwtUtil.generateToken(email);
 
         // Usuario autenticado
         Customer customer = (Customer) auth.getPrincipal();
 
-        // Si necesitasemos mantener la sesion podriamos almacenar los datos
-        // Pero esto no tiene sentido en si usamos sesiones sin estado basado tokens
-        // SecurityContextHolder.getContext().setAuth entication(auth);
+        // TODO
+        // should return Customer from database
 
         // Enviamos al usuario de vuelta los datos necesarios para el cliente
         return new AuthenticationResponse(

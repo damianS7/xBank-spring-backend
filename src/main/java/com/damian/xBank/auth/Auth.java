@@ -19,7 +19,7 @@ public class Auth {
 
     @Column
     @Enumerated(EnumType.STRING)
-    private AuthStatus status;
+    private AuthenticationStatus status;
 
     @Column(name = "password_hash")
     private String passwordHash;
@@ -29,7 +29,7 @@ public class Auth {
 
     public Auth(String passwordHash) {
         this.passwordHash = passwordHash;
-        this.status = AuthStatus.EXPIRED;
+        this.status = AuthenticationStatus.EXPIRED;
         this.verified = false;
     }
 
@@ -65,11 +65,11 @@ public class Auth {
         return this.verified;
     }
 
-    public AuthStatus getStatus() {
+    public AuthenticationStatus getStatus() {
         return this.status;
     }
 
-    public void setStatus(AuthStatus status) {
+    public void setStatus(AuthenticationStatus status) {
         this.status = status;
     }
 

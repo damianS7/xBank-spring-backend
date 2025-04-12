@@ -1,5 +1,6 @@
-package com.damian.xBank.profile;
+package com.damian.xBank.profile.http;
 
+import com.damian.xBank.profile.Gender;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.lang.NonNull;
 

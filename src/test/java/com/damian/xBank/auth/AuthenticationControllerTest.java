@@ -67,6 +67,7 @@ public class AuthenticationControllerTest {
         customer.getProfile().setNationalId("123456789Z");
         customer.getProfile().setName("John");
         customer.getProfile().setSurname("Wick");
+        customer.getProfile().setPhone("123 123 123");
         customer.getProfile().setGender(Gender.MALE);
         customer.getProfile().setBirthdate("1/1/1989");
         customer.getProfile().setCountry("USA");
@@ -105,7 +106,7 @@ public class AuthenticationControllerTest {
 
         // then
         final String emailFromToken = jwtUtil.extractEmail(response.token());
-        assertThat(response.email()).isEqualTo(this.email);
+        assertThat(response.customer().email()).isEqualTo(this.email);
         assertThat(emailFromToken).isEqualTo(this.email);
     }
 
@@ -136,8 +137,7 @@ public class AuthenticationControllerTest {
         );
 
         // then
-        assertThat(response.id()).isNull();
-        assertThat(response.email()).isNull();
+        assertThat(response.customer()).isNull();
         assertThat(response.token()).isNull();
     }
 

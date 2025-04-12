@@ -11,8 +11,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +44,11 @@ public class CustomerServiceTest {
                 bCryptPasswordEncoder
         );
         customerRepository.deleteAll();
+
+        Customer customer = new Customer("david@gmail.com", "123456");
+
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                customer, null, Collections.emptyList()));
     }
 
     @Test
@@ -298,6 +306,8 @@ public class CustomerServiceTest {
         );
 
         // when
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                customer, null, Collections.emptyList()));
         when(bCryptPasswordEncoder.matches(currentRawPassword, currentEncodedPassword)).thenReturn(true);
         when(customerRepository.findByEmail(updateRequest.currentEmail())).thenReturn(Optional.of(customer));
         when(customerRepository.save(customer)).thenReturn(storedCustomer);

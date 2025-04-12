@@ -21,7 +21,7 @@ public class CustomerService {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
-    // Devuelve todos los usuarios existentes
+    // return all the customers transformed to DTO
     public List<CustomerDTO> getCustomers() {
         return customerRepository.findAll()
                 .stream()
@@ -30,19 +30,28 @@ public class CustomerService {
                 ).toList();
     }
 
-    // devuelve un usuario
-    public Customer getCustomer(Long userId) {
-        return customerRepository.findById(userId).orElseThrow(
+    // return the users
+    public Customer getCustomer(Long customerId) {
+        return customerRepository.findById(customerId).orElseThrow(
                 () -> new CustomerException("Customer not found.")
         );
     }
 
+    /**
+     * Creates a new customer
+     *
+     * @param request contains the fields needed for the customer creation
+     * @return the customer created
+     * @throws CustomerException if another user has the email
+     */
     public Customer createCustomer(CustomerRegistrationRequest request) {
 
+        // check if the email is already taken
         if (emailExist(request.email())) {
             throw new CustomerException("Email is taken.");
         }
 
+        // we create the customer and assign the data
         Customer customer = new Customer();
         customer.setEmail(request.email());
         customer.setPassword(bCryptPasswordEncoder.encode(request.password()));
@@ -60,7 +69,7 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    // Borra un usuario
+    // it deletes a customer
     public boolean deleteCustomer(Long userId) {
         if (!customerRepository.existsById(userId)) {
             throw new CustomerException("Customer do not exist.");
@@ -69,20 +78,21 @@ public class CustomerService {
         return true;
     }
 
+    // it checks if an email exist in the database
     private boolean emailExist(String email) {
         return customerRepository.findByEmail(email).isPresent();
     }
 
-    // Modifica los datos de un usuario
+    // it modifies the customer data
     public Customer updateCustomer(CustomerUpdateRequest request) {
-        // check if user is logged and token is valid
+        // we extract the email from the Customer stored in the SecurityContext
         final String customerEmail = ((Customer) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getPrincipal())
                 .getEmail();
 
-        // We get the Customer entity so we can save at the end
+        // we get the Customer entity so we can save at the end
         Customer customer = customerRepository.findByEmail(customerEmail).orElseThrow(
                 () -> new CustomerException("Customer cannot be found.")
         );
@@ -99,14 +109,12 @@ public class CustomerService {
             );
         }
 
-        // Modificamos el usuario
+        // if the email is not null we modify in the customer
         if (request.newEmail() != null) {
             customer.setEmail(request.newEmail());
         }
 
-        // Guardamos los cambios
-        customerRepository.save(customer);
-
-        return customer;
+        // save the changes
+        return customerRepository.save(customer);
     }
 }

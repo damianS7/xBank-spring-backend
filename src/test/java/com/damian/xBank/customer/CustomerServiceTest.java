@@ -37,6 +37,9 @@ public class CustomerServiceTest {
     @InjectMocks
     private CustomerService customerService;
 
+    private Customer customer;
+    private String hashedPassword = "3hri2rhid;/!";
+
     @BeforeEach
     void setUp() {
         customerService = new CustomerService(
@@ -45,7 +48,7 @@ public class CustomerServiceTest {
         );
         customerRepository.deleteAll();
 
-        Customer customer = new Customer("david@gmail.com", "123456");
+        customer = new Customer(99L, "customer@test.com", this.hashedPassword);
 
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 customer, null, Collections.emptyList()));
@@ -62,15 +65,12 @@ public class CustomerServiceTest {
         // when
         when(customerRepository.findAll()).thenReturn(customers);
 
-        // Llamar al método
         List<CustomerDTO> result = customerService.getCustomers();
 
         // then
+        verify(customerRepository, times(1)).findAll();
         assertThat(result.get(0).email()).isEqualTo("alicia@gmail.com");
         assertThat(result.get(1).email()).isEqualTo("david@gmail.com");
-
-        // Verificar que el método findAll() fue llamado una vez
-        verify(customerRepository, times(1)).findAll();
     }
 
     @Test
@@ -80,54 +80,50 @@ public class CustomerServiceTest {
 
         // when
         when(customerRepository.findAll()).thenReturn(customers);
-
-        // Llamar al método
         List<CustomerDTO> result = customerService.getCustomers();
 
         // then
-        assertThat(result.size()).isEqualTo(0);
-
-        // Verificar que el método findAll() fue llamado una vez
         verify(customerRepository, times(1)).findAll();
+        assertThat(result.size()).isEqualTo(0);
     }
 
     @Test
     void shouldGetOneCustomer() {
-        // Given
+        // given
         Customer customer = new Customer(
                 1L,
                 "alice@gmail.com",
                 "1234"
         );
 
-        // When
+        // when
         when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
         Customer storedCustomer = customerService.getCustomer(customer.getId());
 
-        // Then
+        // then
+        verify(customerRepository, times(1)).findById(customer.getId());
         assertEquals(customer.getId(), storedCustomer.getId());
         assertEquals("alice@gmail.com", storedCustomer.getEmail());
-
-        verify(customerRepository, times(1)).findById(customer.getId());
     }
 
     @Test
     void shouldNotGetAnyCustomerWhenNotExistAndWillThrow() {
-        // Given
+        // given
         Long id = -1L;
 
-        // When
-        // Then
+        // when
         CustomerException exception = assertThrows(CustomerException.class,
                 () -> customerService.getCustomer(id)
         );
 
+        // then
         assertEquals("Customer not found.", exception.getMessage());
     }
 
     @Test
     void shouldCreateCustomer() {
         // given
+        final String passwordHash = "¢5554ml;f;lsd";
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
                 "david@gmail.com",
                 "123456",
@@ -142,8 +138,6 @@ public class CustomerServiceTest {
                 "USA",
                 "123123123Z"
         );
-
-        final String passwordHash = "¢5554ml;f;lsd";
 
         // when
         when(bCryptPasswordEncoder.encode(request.password())).thenReturn(passwordHash);
@@ -223,37 +217,37 @@ public class CustomerServiceTest {
 
     @Test
     void shouldUpdateCustomerPasswordOnly() {
-        // Given
-        String currentRawPassword = "123456";
-        String currentEncodedPassword = "encodedActualPassword";
-        String rawNewPassword = "1234";
-        String encodedNewPassword = "encodedNewPassword";
+        // given
+        final String currentRawPassword = "123456";
+        final String currentEncodedPassword = this.hashedPassword;
+        final String rawNewPassword = "1234";
+        final String encodedNewPassword = "encodedNewPassword";
 
         Customer customer = new Customer(
                 10L,
                 "david@gmail.com",
                 currentEncodedPassword
         );
-        Customer storedCustomer = new Customer();
+
+        // we change the context customer
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                customer, null, Collections.emptyList()));
 
         CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(
-                "david@gmail.com",
-                null,
+                "david@test.com",
                 currentRawPassword,
                 rawNewPassword
         );
 
+        // when
         when(bCryptPasswordEncoder.encode(rawNewPassword)).thenReturn(encodedNewPassword);
         when(bCryptPasswordEncoder.matches(currentRawPassword, currentEncodedPassword)).thenReturn(true);
-
-        when(customerRepository.findByEmail(updateRequest.currentEmail())).thenReturn(Optional.of(customer));
-        when(customerRepository.save(customer)).thenReturn(storedCustomer);
-
+        when(customerRepository.findByEmail(customer.getEmail())).thenReturn(Optional.of(customer));
         customerService.updateCustomer(updateRequest);
 
-        // Then
+        // then
         verify(customerRepository, times(1)).save(customer);
-        assertThat(customer.getEmail()).isEqualTo(updateRequest.currentEmail());
+        assertThat(customer.getEmail()).isEqualTo(updateRequest.newEmail());
         assertThat(customer.getPassword()).isEqualTo(encodedNewPassword);
     }
 
@@ -268,7 +262,6 @@ public class CustomerServiceTest {
 
         CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(
                 "david@gmail.com",
-                null,
                 "wrongPassword",
                 "1234"
         );
@@ -287,7 +280,7 @@ public class CustomerServiceTest {
 
     @Test
     void shouldUpdateCustomerEmailOnly() {
-        // Given
+        // given
         String currentRawPassword = "123456";
         String currentEncodedPassword = "encodedActualPassword";
 
@@ -296,26 +289,26 @@ public class CustomerServiceTest {
                 "david@gmail.com",
                 currentEncodedPassword
         );
-        Customer storedCustomer = new Customer();
+
+        // we change the context customer
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                customer, null, Collections.emptyList()));
 
         CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(
                 "david@gmail.com",
-                "david@outlook.com",
                 currentRawPassword,
                 null
         );
 
         // when
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customer, null, Collections.emptyList()));
         when(bCryptPasswordEncoder.matches(currentRawPassword, currentEncodedPassword)).thenReturn(true);
-        when(customerRepository.findByEmail(updateRequest.currentEmail())).thenReturn(Optional.of(customer));
-        when(customerRepository.save(customer)).thenReturn(storedCustomer);
+        when(customerRepository.findByEmail(updateRequest.newEmail())).thenReturn(Optional.of(customer));
 
         customerService.updateCustomer(updateRequest);
 
-        // Then
+        // then
         verify(customerRepository, times(1)).save(customer);
         assertThat(customer.getEmail()).isEqualTo(updateRequest.newEmail());
+        assertThat(customer.getPassword()).isEqualTo(currentEncodedPassword);
     }
 }

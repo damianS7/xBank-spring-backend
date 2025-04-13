@@ -1,8 +1,11 @@
 package com.damian.xBank.auth;
 
+
+import com.damian.xBank.auth.exception.JwtAuthenticationException;
 import com.damian.xBank.customer.CustomerDetails;
 import com.damian.xBank.customer.CustomerDetailsService;
 import com.damian.xBank.utils.JWTUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -21,12 +25,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
     private final CustomerDetailsService customerDetailsService;
+    private final AuthenticationEntryPoint authenticationEntryPoint;
 
     public AuthenticationFilter(
             JWTUtil jwtUtil,
-            CustomerDetailsService customerDetailsService) {
+            CustomerDetailsService customerDetailsService, AuthenticationEntryPoint authenticationEntryPoint) {
         this.jwtUtil = jwtUtil;
         this.customerDetailsService = customerDetailsService;
+        this.authenticationEntryPoint = authenticationEntryPoint;
     }
 
     @Override
@@ -43,6 +49,15 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String jwtToken = authHeader.substring(7);
+
+        try {
+            // check here if token is expired
+            jwtUtil.isTokenExpired(jwtToken);
+        } catch (ExpiredJwtException e) {
+            authenticationEntryPoint.commence(request, response, new JwtAuthenticationException("Token expired"));
+            return;
+        }
+
         final String email = jwtUtil.extractEmail(jwtToken);
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {

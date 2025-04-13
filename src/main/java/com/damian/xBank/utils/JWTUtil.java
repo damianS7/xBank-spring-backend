@@ -46,6 +46,16 @@ public class JWTUtil {
         return generateToken(Map.of(), email);
     }
 
+    public String generateToken(String email, Date expiration) {
+        return Jwts.builder()
+                .setClaims(Map.of())
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(expiration) // 1 hora
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
     public String generateToken(Map<String, Object> claims, String email) {
         return Jwts.builder()
                 .setClaims(claims)
@@ -61,7 +71,7 @@ public class JWTUtil {
         return (email.equals(customerDetails.getEmail())) && !isTokenExpired(token);
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 

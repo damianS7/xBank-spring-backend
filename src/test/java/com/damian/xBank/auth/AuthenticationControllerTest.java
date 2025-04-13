@@ -164,7 +164,8 @@ public class AuthenticationControllerTest {
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().is(400))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value(containsString("Validation error:")));
+                .andExpect(jsonPath("$.errors.email").value(containsString("must be a well-formed email address")))
+                .andExpect(jsonPath("$.message").value("Validation error"));
     }
 
     @Test
@@ -234,12 +235,12 @@ public class AuthenticationControllerTest {
     void shouldNotRegisterCustomerWhenMissingFields() throws Exception {
         // given
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
-                "david@gmail.com",
+                "david@test.com",
                 "123456",
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                "",
                 Gender.MALE,
                 "",
                 "",
@@ -258,6 +259,38 @@ public class AuthenticationControllerTest {
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().is(400))
                 .andExpect(jsonPath("$.message").value(containsString("Validation error")))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void shouldNotRegisterCustomerWhenEmailIsNotWellFormed() throws Exception {
+        // given
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(
+                "badEmail",
+                "1234567899X$",
+                "david",
+                "white",
+                "123 123 123",
+                "1/1/1999",
+                Gender.MALE,
+                "",
+                "fake ave",
+                "55555",
+                "USA",
+                "123123123Z"
+        );
+
+        // request to json
+        String json = objectMapper.writeValueAsString(request);
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().is(400))
+                .andExpect(jsonPath("$.message").value("Validation error"))
+                .andExpect(jsonPath("$.errors.email").value(containsString("Email must be a well-formed email address")))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
@@ -319,7 +352,8 @@ public class AuthenticationControllerTest {
                         .content(json))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().is(400))
-                .andExpect(jsonPath("$.message").value(containsString("Validation error: Password")))
+                .andExpect(jsonPath("$.message").value("Validation error"))
+                .andExpect(jsonPath("$.errors.password").value(containsString("Password must be at least")))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 

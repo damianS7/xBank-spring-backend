@@ -10,8 +10,8 @@ import jakarta.validation.constraints.Pattern;
  * Contains all the data required for Customer registration
  */
 public record CustomerRegistrationRequest(
-        @NotBlank
-        @Email
+        @NotBlank(message = "Email must not be blank")
+        @Email(message = "Email must be a well-formed email address.")
         String email,
 
         @NotBlank
@@ -20,16 +20,16 @@ public record CustomerRegistrationRequest(
                         "one number, and one special character.")
         String password,
 
-        @NotBlank
+        @NotBlank(message = "Name must not be blank.")
         String name,
 
-        @NotBlank
+        @NotBlank(message = "Surname must not be blank.")
         String surname,
 
-        @NotBlank
+        @NotBlank(message = "Phone must not be blank.")
         String phone,
 
-        @NotBlank
+        @NotBlank(message = "Birthdate must not be blank.")
         String birthdate,
 
         @NotNull
@@ -37,16 +37,16 @@ public record CustomerRegistrationRequest(
 
         String photo,
 
-        @NotBlank
+        @NotBlank(message = "Address must not be blank.")
         String address,
 
-        @NotBlank
+        @NotBlank(message = "Postal code must not be blank.")
         String postalCode,
 
-        @NotBlank
+        @NotBlank(message = "Country must not be blank.")
         String country,
 
-        @NotBlank
+        @NotBlank(message = "National ID must not be blank.")
         String nationalId
 ) {
 }

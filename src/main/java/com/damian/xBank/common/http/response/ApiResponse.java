@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 public class ApiResponse<T> {
     private String message;
     private T data;
+    private T errors;
     private HttpStatus status;
 
     public ApiResponse() {
@@ -35,12 +36,18 @@ public class ApiResponse<T> {
         return new ApiResponse<>(message, null, status);
     }
 
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(message, null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     public static <T> ApiResponse<T> error(String message, HttpStatus status) {
         return new ApiResponse<>(message, null, status);
     }
 
-    public static <T> ApiResponse<T> error(String error, T data, HttpStatus status) {
-        return new ApiResponse<>(error, null, status);
+    public static <T> ApiResponse<T> error(String error, T errors, HttpStatus status) {
+        ApiResponse<T> response = new ApiResponse<>(error, null, status);
+        response.setErrors(errors);
+        return response;
     }
 
     public T getData() {
@@ -51,7 +58,11 @@ public class ApiResponse<T> {
         this.data = data;
     }
 
-    public int getHttpCode() {
+    public void setErrors(T errors) {
+        this.errors = errors;
+    }
+
+    public int getStatus() {
         return this.status.value();
     }
 
@@ -61,5 +72,9 @@ public class ApiResponse<T> {
 
     public String getMessage() {
         return this.message;
+    }
+
+    public T getErrors() {
+        return errors;
     }
 }

@@ -1,6 +1,7 @@
 package com.damian.xBank.customer;
 
 import com.damian.xBank.auth.Auth;
+import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.common.DTOBuilder;
 import com.damian.xBank.profile.Profile;
 import jakarta.persistence.*;
@@ -9,6 +10,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "customers")
@@ -25,6 +28,9 @@ public class Customer implements CustomerDetails {
 
     @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
     private Profile profile;
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    private Set<BankingAccount> bankingAccounts = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private CustomerRole role;
@@ -130,4 +136,13 @@ public class Customer implements CustomerDetails {
     public void setProfile(Profile profile) {
         this.profile = profile;
     }
+
+    public Set<BankingAccount> getBankingAccounts() {
+        return bankingAccounts;
+    }
+
+    public void setBankingAccounts(Set<BankingAccount> bankingAccounts) {
+        this.bankingAccounts = bankingAccounts;
+    }
+
 }

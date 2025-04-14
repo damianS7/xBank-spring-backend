@@ -1,6 +1,7 @@
 package com.damian.xBank.config;
 
 import com.damian.xBank.customer.CustomerDetailsService;
+import net.datafaker.Faker;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,6 +13,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class SecurityConfig {
+
+    @Bean
+    public Faker getFaker() {
+        return new Faker();
+    }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {

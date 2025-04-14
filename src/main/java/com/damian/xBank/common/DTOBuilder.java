@@ -27,7 +27,7 @@ public class DTOBuilder {
                 bankingAccount.getId(),
                 bankingAccount.getNumber(),
                 bankingAccount.getBalance(),
-                bankingAccount.getType(),
+                bankingAccount.getAccountType(),
                 bankingAccount.getCurrency(),
                 bankingAccount.getStatus(),
                 bankingAccount.getUpdatedAt()

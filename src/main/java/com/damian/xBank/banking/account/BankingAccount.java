@@ -19,13 +19,13 @@ public class BankingAccount {
     private Customer customer;
 
     @Column(length = 20, nullable = false)
-    private String number;
+    private String accountNumber;
 
     @Column(precision = 15, scale = 3)
     private BigDecimal balance;
 
     @Enumerated(EnumType.STRING)
-    private BankingAccountType type;
+    private BankingAccountType accountType;
 
     @Enumerated(EnumType.STRING)
     private BankingAccountCurrency currency;
@@ -56,11 +56,11 @@ public class BankingAccount {
     }
 
     public String getNumber() {
-        return number;
+        return accountNumber;
     }
 
     public void setNumber(String number) {
-        this.number = number;
+        this.accountNumber = number;
     }
 
     public BigDecimal getBalance() {
@@ -71,12 +71,12 @@ public class BankingAccount {
         this.balance = balance;
     }
 
-    public BankingAccountType getType() {
-        return type;
+    public BankingAccountType getAccountType() {
+        return accountType;
     }
 
-    public void setType(BankingAccountType type) {
-        this.type = type;
+    public void setAccountType(BankingAccountType accountType) {
+        this.accountType = accountType;
     }
 
     public BankingAccountCurrency getCurrency() {

@@ -30,7 +30,7 @@ public class Customer implements CustomerDetails {
     private Profile profile;
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
-    private Set<BankingAccount> bankingAccounts = new HashSet<>();
+    private Set<BankingAccount> bankingAccounts;
 
     @Enumerated(EnumType.STRING)
     private CustomerRole role;
@@ -41,6 +41,7 @@ public class Customer implements CustomerDetails {
         this.profile = new Profile();
         this.profile.setCustomer(this);
         this.role = CustomerRole.CUSTOMER;
+        this.bankingAccounts = new HashSet<>();
     }
 
     public Customer(Long id, String email, String password) {

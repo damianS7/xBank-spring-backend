@@ -12,7 +12,6 @@ public class Profile {
     private Long id;
 
     @OneToOne
-//    @JsonIgnore
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
     private Customer customer;
 

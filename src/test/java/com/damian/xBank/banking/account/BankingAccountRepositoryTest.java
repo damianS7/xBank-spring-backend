@@ -33,12 +33,16 @@ public class BankingAccountRepositoryTest {
     @Test
     void shouldSaveBankingAccount() {
         // given
-        Customer customer = new Customer("demo@test.com", "1234");
+        final String customerEmail = "customer@test.com";
+        final String customerPassword = "123456";
+        final String accountNumber = faker.finance().iban();
+
+        Customer customer = new Customer(customerEmail, customerPassword);
         customerRepository.save(customer);
 
         BankingAccount account = new BankingAccount();
         account.setCustomer(customer);
-        account.setAccountNumber("AA11 0000 0000 0000 0000");
+        account.setAccountNumber(accountNumber);
         account.setAccountCurrency(BankingAccountCurrency.EUR);
         account.setAccountStatus(BankingAccountStatus.OPEN);
         account.setAccountType(BankingAccountType.SAVINGS);
@@ -70,12 +74,16 @@ public class BankingAccountRepositoryTest {
     @Test
     void shouldUpdateBankingAccount() {
         // given
-        Customer customer = new Customer("demo@test.com", "1234");
+        final String customerEmail = "customer@test.com";
+        final String customerPassword = "123456";
+        final String accountNumber = faker.finance().iban();
+
+        Customer customer = new Customer(customerEmail, customerPassword);
         customerRepository.save(customer);
 
         BankingAccount account = new BankingAccount();
         account.setCustomer(customer);
-        account.setAccountNumber("AA11 0000 0000 0000 0000");
+        account.setAccountNumber(accountNumber);
         account.setAccountCurrency(BankingAccountCurrency.EUR);
         account.setAccountStatus(BankingAccountStatus.OPEN);
         account.setAccountType(BankingAccountType.SAVINGS);
@@ -83,12 +91,13 @@ public class BankingAccountRepositoryTest {
         accountRepository.save(account);
 
         // when
-        account.setBalance(BigDecimal.valueOf(500));
+        final BigDecimal updatedBalance = BigDecimal.valueOf(600);
+        account.setBalance(updatedBalance);
         accountRepository.save(account);
 
         // then
         Optional<BankingAccount> result = accountRepository.findById(account.getId());
         assertThat(result.isPresent());
-        assertThat(result.get().getBalance()).isEqualTo(BigDecimal.valueOf(500));
+        assertThat(result.get().getBalance()).isEqualTo(updatedBalance);
     }
 }

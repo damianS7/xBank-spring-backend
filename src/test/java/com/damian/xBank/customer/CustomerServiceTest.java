@@ -15,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -130,7 +131,7 @@ public class CustomerServiceTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "",
                 "Fake AV",
@@ -164,7 +165,7 @@ public class CustomerServiceTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "",
                 "Fake AV",
@@ -254,14 +255,8 @@ public class CustomerServiceTest {
     @Test
     void shouldNotUpdatePasswordWhenCurrentPasswordDoesNotMatch() {
         // Given
-        Customer customer = new Customer(
-                10L,
-                "david@gmail.com",
-                "123456"
-        );
-
         CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(
-                "david@gmail.com",
+                customer.getEmail(),
                 "wrongPassword",
                 "1234"
         );

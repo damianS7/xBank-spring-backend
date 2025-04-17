@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.time.LocalDate;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -58,7 +60,7 @@ public class CustomerControllerTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "-",
                 "Fake AV",
@@ -79,7 +81,7 @@ public class CustomerControllerTest {
         customer.getProfile().setCountry(request.country());
         customer.getProfile().setAddress(request.address());
         customer.getProfile().setPostalCode(request.postalCode());
-        customer.getProfile().setPhoto(request.photo());
+        customer.getProfile().setPhotoPath(request.photo());
 
         customerRepository.save(customer);
 

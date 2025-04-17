@@ -31,7 +31,7 @@ public record CustomerRegistrationRequest(
         @NotBlank(message = "Phone must not be blank.")
         String phone,
 
-        @NotBlank(message = "Birthdate must not be blank.")
+        @NotNull(message = "Birthdate must not be null.")
         LocalDate birthdate,
 
         @NotNull

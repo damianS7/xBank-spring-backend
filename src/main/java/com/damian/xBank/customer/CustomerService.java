@@ -64,7 +64,7 @@ public class CustomerService {
         customer.getProfile().setCountry(request.country());
         customer.getProfile().setAddress(request.address());
         customer.getProfile().setPostalCode(request.postalCode());
-        customer.getProfile().setPhoto(request.photo());
+        customer.getProfile().setPhotoPath(request.photo());
 
         return customerRepository.save(customer);
     }

@@ -3,7 +3,7 @@ package com.damian.xBank.customer;
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
-import com.damian.xBank.profile.Gender;
+import com.damian.xBank.profile.CustomerGender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
@@ -61,7 +61,7 @@ public class CustomerControllerTest {
                 "white",
                 "123 123 123",
                 LocalDate.of(1989, 1, 1),
-                Gender.MALE,
+                CustomerGender.MALE,
                 "-",
                 "Fake AV",
                 "50120",

@@ -57,7 +57,7 @@ public class ProfileServiceTest {
         customer.getProfile().setNationalId("123456789Z");
         customer.getProfile().setName("John");
         customer.getProfile().setSurname("Wick");
-        customer.getProfile().setGender(Gender.MALE);
+        customer.getProfile().setGender(CustomerGender.MALE);
         customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
         customer.getProfile().setCountry("USA");
         customer.getProfile().setAddress("fake ave");
@@ -79,7 +79,7 @@ public class ProfileServiceTest {
                 "white",
                 "123 123 123",
                 LocalDate.of(1989, 1, 1),
-                Gender.MALE,
+                CustomerGender.MALE,
                 "-",
                 "Fake AV 51",
                 "50120",
@@ -108,7 +108,7 @@ public class ProfileServiceTest {
                 "white",
                 "123 123 123",
                 LocalDate.of(1989, 1, 1),
-                Gender.MALE,
+                CustomerGender.MALE,
                 "-",
                 "Fake AV 51",
                 "50120",
@@ -139,7 +139,7 @@ public class ProfileServiceTest {
                 "white",
                 "123 123 123",
                 LocalDate.of(1989, 1, 1),
-                Gender.MALE,
+                CustomerGender.MALE,
                 "-",
                 "Fake AV 51",
                 "50120",

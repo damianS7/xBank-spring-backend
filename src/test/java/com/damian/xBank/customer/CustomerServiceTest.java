@@ -3,7 +3,7 @@ package com.damian.xBank.customer;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.customer.http.request.CustomerUpdateRequest;
-import com.damian.xBank.profile.Gender;
+import com.damian.xBank.profile.CustomerGender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -132,7 +132,7 @@ public class CustomerServiceTest {
                 "white",
                 "123 123 123",
                 LocalDate.of(1989, 1, 1),
-                Gender.MALE,
+                CustomerGender.MALE,
                 "",
                 "Fake AV",
                 "50120",
@@ -166,7 +166,7 @@ public class CustomerServiceTest {
                 "white",
                 "123 123 123",
                 LocalDate.of(1989, 1, 1),
-                Gender.MALE,
+                CustomerGender.MALE,
                 "",
                 "Fake AV",
                 "50120",

@@ -37,7 +37,7 @@ public class ProfileRepositoryTest {
         customer.getProfile().setName("david");
         customer.getProfile().setSurname("white");
         customer.getProfile().setPhone("123 123 123");
-        customer.getProfile().setGender(Gender.MALE);
+        customer.getProfile().setGender(CustomerGender.MALE);
         customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
         customer.getProfile().setCountry("USA");
         customer.getProfile().setAddress("fake av");

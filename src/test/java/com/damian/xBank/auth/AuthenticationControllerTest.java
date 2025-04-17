@@ -5,7 +5,7 @@ import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
-import com.damian.xBank.profile.Gender;
+import com.damian.xBank.profile.CustomerGender;
 import com.damian.xBank.profile.http.request.ProfileUpdateRequest;
 import com.damian.xBank.utils.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -74,7 +74,7 @@ public class AuthenticationControllerTest {
         customer.getProfile().setName("John");
         customer.getProfile().setSurname("Wick");
         customer.getProfile().setPhone("123 123 123");
-        customer.getProfile().setGender(Gender.MALE);
+        customer.getProfile().setGender(CustomerGender.MALE);
         customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
         customer.getProfile().setCountry("USA");
         customer.getProfile().setAddress("fake ave");
@@ -201,7 +201,7 @@ public class AuthenticationControllerTest {
                 "white",
                 "123 123 123",
                 LocalDate.of(1989, 1, 1),
-                Gender.MALE,
+                CustomerGender.MALE,
                 "",
                 "Fake AV",
                 "50120",
@@ -242,7 +242,7 @@ public class AuthenticationControllerTest {
                 "white",
                 "123 123 123",
                 null,
-                Gender.MALE,
+                CustomerGender.MALE,
                 "",
                 "",
                 null,
@@ -273,7 +273,7 @@ public class AuthenticationControllerTest {
                 "white",
                 "123 123 123",
                 LocalDate.of(1989, 1, 1),
-                Gender.MALE,
+                CustomerGender.MALE,
                 "",
                 "fake ave",
                 "55555",
@@ -304,7 +304,7 @@ public class AuthenticationControllerTest {
                 "white",
                 "123 123 123",
                 LocalDate.of(1989, 1, 1),
-                Gender.MALE,
+                CustomerGender.MALE,
                 "",
                 "Fake AV",
                 "50120",
@@ -335,7 +335,7 @@ public class AuthenticationControllerTest {
                 "white",
                 "123 123 123",
                 LocalDate.of(1989, 1, 1),
-                Gender.MALE,
+                CustomerGender.MALE,
                 "",
                 "Fake AV",
                 "50120",
@@ -373,7 +373,7 @@ public class AuthenticationControllerTest {
                 "white",
                 "123 123 123",
                 LocalDate.of(1989, 1, 1),
-                Gender.MALE,
+                CustomerGender.MALE,
                 "-",
                 "Fake AV 51",
                 "50120",

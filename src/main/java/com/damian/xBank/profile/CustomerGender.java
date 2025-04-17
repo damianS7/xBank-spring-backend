@@ -1,5 +1,5 @@
 package com.damian.xBank.profile;
 
-public enum Gender {
+public enum CustomerGender {
     MALE, FEMALE
 }

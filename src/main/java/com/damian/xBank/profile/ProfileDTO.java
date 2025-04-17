@@ -8,7 +8,7 @@ public record ProfileDTO(
         String surname,
         String phone,
         LocalDate birthdate,
-        Gender gender,
+        CustomerGender gender,
         String photoPath,
         String address,
         String postalCode,

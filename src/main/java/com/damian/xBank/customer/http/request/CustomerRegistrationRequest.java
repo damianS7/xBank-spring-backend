@@ -1,6 +1,6 @@
 package com.damian.xBank.customer.http.request;
 
-import com.damian.xBank.profile.Gender;
+import com.damian.xBank.profile.CustomerGender;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -35,7 +35,7 @@ public record CustomerRegistrationRequest(
         LocalDate birthdate,
 
         @NotNull
-        Gender gender,
+        CustomerGender gender,
 
         String photo,
 

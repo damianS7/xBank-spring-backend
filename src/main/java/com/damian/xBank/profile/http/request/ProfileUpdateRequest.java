@@ -1,6 +1,6 @@
 package com.damian.xBank.profile.http.request;
 
-import com.damian.xBank.profile.Gender;
+import com.damian.xBank.profile.CustomerGender;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.lang.NonNull;
@@ -24,7 +24,7 @@ public record ProfileUpdateRequest(
         LocalDate birthdate,
 
         @NonNull
-        Gender gender,
+        CustomerGender gender,
 
         @NotBlank
         String photoPath,

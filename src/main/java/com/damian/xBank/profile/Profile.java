@@ -31,7 +31,7 @@ public class Profile {
 
     @Column
     @Enumerated(EnumType.STRING)
-    private Gender gender;
+    private CustomerGender gender;
 
     @Column(name = "photo_path")
     private String photoPath;
@@ -75,11 +75,11 @@ public class Profile {
         return this.customer.getId();
     }
 
-    public Gender getGender() {
+    public CustomerGender getGender() {
         return this.gender;
     }
 
-    public void setGender(Gender gender) {
+    public void setGender(CustomerGender gender) {
         this.gender = gender;
     }
 

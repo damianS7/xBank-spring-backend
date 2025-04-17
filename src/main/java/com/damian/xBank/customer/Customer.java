@@ -103,22 +103,22 @@ public class Customer implements CustomerDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return CustomerDetails.super.isAccountNonExpired();
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return CustomerDetails.super.isAccountNonLocked();
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return CustomerDetails.super.isCredentialsNonExpired();
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return CustomerDetails.super.isEnabled();
     }
 
     @Override

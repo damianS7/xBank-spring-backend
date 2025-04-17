@@ -48,6 +48,12 @@ public class BankingAccount {
         this.createdAt = Instant.now();
     }
 
+    public BankingAccount(Customer customer) {
+        this();
+        this.customer = customer;
+        this.customer.addBankingAccount(this);
+    }
+
     public BankingAccount(String accountNumber,
                           BankingAccountType accountType,
                           BankingAccountCurrency accountCurrency) {

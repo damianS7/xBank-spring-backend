@@ -2,7 +2,6 @@ package com.damian.xBank.profile;
 
 import com.damian.xBank.auth.exception.AuthorizationException;
 import com.damian.xBank.customer.Customer;
-import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.profile.http.request.ProfileUpdateRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,9 +31,6 @@ public class ProfileServiceTest {
     private ProfileRepository profileRepository;
 
     @Mock
-    private CustomerRepository customerRepository;
-
-    @Mock
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @InjectMocks
@@ -42,7 +38,6 @@ public class ProfileServiceTest {
 
     private Customer customer;
     private final String rawPassword = "123456";
-    private final String encodedPassword = "123;456$";
 
     @BeforeEach
     void setUp() {
@@ -51,8 +46,8 @@ public class ProfileServiceTest {
 
         customer = new Customer();
         customer.setId(2L);
-        customer.setEmail("alice@test.com");
-        customer.setPassword(encodedPassword);
+        customer.setEmail("customer@test.com");
+        customer.setPassword("encryptedPassword");
         customer.getProfile().setId(5L);
         customer.getProfile().setNationalId("123456789Z");
         customer.getProfile().setName("John");
@@ -64,10 +59,11 @@ public class ProfileServiceTest {
         customer.getProfile().setPostalCode("050012");
         customer.getProfile().setPhotoPath("no photoPath");
 
-        customerRepository.save(customer);
-
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customer, null, Collections.emptyList()));
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        customer, null, Collections.emptyList()
+                )
+        );
     }
 
     @Test
@@ -92,11 +88,20 @@ public class ProfileServiceTest {
         // when
         when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(true);
         when(profileRepository.findById(updateRequest.id())).thenReturn(Optional.of(customer.getProfile()));
-        profileService.updateProfile(updateRequest);
+        when(profileRepository.save(any(Profile.class))).thenReturn(customer.getProfile());
+
+        Profile result = profileService.updateProfile(updateRequest);
 
         // Then
         verify(profileRepository, times(1)).save(customer.getProfile());
-        assertThat(customer.getProfile().getName()).isEqualTo(updateRequest.name());
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo(updateRequest.name());
+        assertThat(result.getSurname()).isEqualTo(updateRequest.surname());
+        assertThat(result.getPhone()).isEqualTo(updateRequest.phone());
+        assertThat(result.getCountry()).isEqualTo(updateRequest.country());
+        assertThat(result.getNationalId()).isEqualTo(updateRequest.nationalId());
+        assertThat(result.getBirthdate()).isEqualTo(updateRequest.birthdate());
+        assertThat(result.getPhotoPath()).isEqualTo(updateRequest.photoPath());
     }
 
     @Test

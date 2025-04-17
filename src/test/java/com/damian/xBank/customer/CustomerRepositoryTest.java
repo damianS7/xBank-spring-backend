@@ -1,7 +1,12 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.profile.Gender;
-import net.datafaker.Faker;
+import com.damian.xBank.auth.Auth;
+import com.damian.xBank.auth.AuthenticationRepository;
+import com.damian.xBank.banking.account.BankingAccount;
+import com.damian.xBank.banking.account.BankingAccountCurrency;
+import com.damian.xBank.banking.account.BankingAccountRepository;
+import com.damian.xBank.banking.account.BankingAccountType;
+import com.damian.xBank.profile.CustomerGender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,132 +20,167 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @DataJpaTest
 public class CustomerRepositoryTest {
 
-    // No es necesario la inyección de dependencias a
-    // travès del constructor cuando se usa DataJpaTest
     @Autowired
     private CustomerRepository customerRepository;
 
-    private Faker faker;
+    @Autowired
+    private AuthenticationRepository authRepository;
+
+    @Autowired
+    private BankingAccountRepository bankingAccountRepository;
 
     @BeforeEach
     void setUp() {
-        faker = new Faker();
         customerRepository.deleteAll();
     }
 
     @Test
     void shouldFindCustomer() {
-        // Given
-        String email = faker.internet().emailAddress();
-        Customer customer = new Customer(null, email, "123456");
+        // given
+        final String customerEmail = "customer@test.com";
+        final String customerPassword = "123456";
+        Customer givenCustomer = new Customer(null, customerEmail, customerPassword);
 
-        // When
-        customerRepository.save(customer);
-        Optional<Customer> optionalCustomer = customerRepository.findById(customer.getId());
-        Customer storedCustomer = optionalCustomer.get();
+        // when
+        customerRepository.save(givenCustomer);
+        Optional<Customer> optionalCustomer = customerRepository.findById(givenCustomer.getId());
 
-        // Then
+        // then
         assertThat(optionalCustomer).isPresent();
-        assertThat(storedCustomer.getId()).isNotNull();
-        assertThat(storedCustomer.getEmail()).isEqualTo(email);
-        assertThat(storedCustomer.getPassword()).isEqualTo("123456");
-        assertThat(storedCustomer.getRole()).isEqualTo(CustomerRole.CUSTOMER);
+        assertThat(optionalCustomer.get().getEmail()).isEqualTo(customerEmail);
+        assertThat(optionalCustomer.get().getPassword()).isEqualTo(customerPassword);
     }
 
     @Test
     void shouldNotFindCustomer() {
-        // Given
+        // given
         Long customerId = -1L;
 
-        // When
+        // when
         boolean customerExists = customerRepository.existsById(customerId);
 
-        // Then
+        // then
         assertThat(customerExists).isFalse();
     }
 
     @Test
     void shouldSaveCustomer() {
-        // Given
-        Customer customer = new Customer();
-        customer.setPassword("123456");
-        customer.setRole(CustomerRole.CUSTOMER);
-        customer.setEmail("alice@gmail.com");
+        // given
+        final String customerEmail = "customer@test.com";
+        final String customerPassword = "123456";
 
-        // When
-        Customer savedCustomer = customerRepository.save(customer);
+        // when
+        Customer savedCustomer = customerRepository.save(
+                new Customer(null, customerEmail, customerPassword)
+        );
 
-        // Then
+        // then
         assertThat(savedCustomer.getId()).isNotNull();
-        assertThat(savedCustomer.getEmail()).isEqualTo("alice@gmail.com");
-        assertThat(savedCustomer.getPassword()).isEqualTo("123456");
-        assertThat(savedCustomer.getRole()).isEqualTo(CustomerRole.CUSTOMER);
+        assertThat(savedCustomer.getEmail()).isEqualTo(customerEmail);
+        assertThat(savedCustomer.getPassword()).isEqualTo(customerPassword);
     }
 
     @Test
     void shouldSaveCustomerAndProfile() {
-        // Given
-        Customer customer = new Customer();
-        customer.setEmail("david@gmail.com");
-        customer.setPassword("123456");
-        customer.getProfile().setNationalId("123456789Z");
-        customer.getProfile().setName("david");
-        customer.getProfile().setSurname("white");
-        customer.getProfile().setPhone("123 123 123");
-        customer.getProfile().setGender(Gender.MALE);
-        customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
-        customer.getProfile().setCountry("USA");
-        customer.getProfile().setAddress("fake av");
-        customer.getProfile().setPostalCode("501200");
-        customer.getProfile().setPhotoPath("/images/photoPath.jpg");
+        // given
+        final String customerName = "david";
+        final String customerSurname = "white";
+        final String customerPhone = "+11 664 563 521";
+        final CustomerGender customerGender = CustomerGender.MALE;
+        final LocalDate customerBirthdate = LocalDate.of(1989, 1, 1);
+        final String customerCountry = "USA";
+        final String customerAddress = "fake av, 44";
+        final String customerPostal = "52342";
+        final String customerNationalId = "444111222J";
+        final String customerPhotoPath = "/upload/images/9sdf324283sdf47293479fsdff23232347.jpg";
 
-        // When
-        customerRepository.save(customer);
+        Customer givenCustomer = new Customer(null, "customer@test.com", "123456");
+        givenCustomer.getProfile().setName(customerName);
+        givenCustomer.getProfile().setSurname(customerSurname);
+        givenCustomer.getProfile().setPhone(customerPhone);
+        givenCustomer.getProfile().setGender(customerGender);
+        givenCustomer.getProfile().setBirthdate(customerBirthdate);
+        givenCustomer.getProfile().setCountry(customerCountry);
+        givenCustomer.getProfile().setAddress(customerAddress);
+        givenCustomer.getProfile().setPostalCode(customerPostal);
+        givenCustomer.getProfile().setNationalId(customerNationalId);
+        givenCustomer.getProfile().setPhotoPath(customerPhotoPath);
 
-        // Then
-        assertThat(customer.getId()).isNotNull();
+        // when
+        Customer savedCustomer = customerRepository.save(givenCustomer);
+
+        // then
+        assertThat(customerRepository.existsById(savedCustomer.getId())).isTrue();
+        assertThat(savedCustomer.getId()).isNotNull();
+        assertThat(savedCustomer.getProfile().getName()).isEqualTo(customerName);
+        assertThat(savedCustomer.getProfile().getSurname()).isEqualTo(customerSurname);
+        assertThat(savedCustomer.getProfile().getPhone()).isEqualTo(customerPhone);
+        assertThat(savedCustomer.getProfile().getGender()).isEqualTo(customerGender);
+        assertThat(savedCustomer.getProfile().getBirthdate()).isEqualTo(customerBirthdate);
+        assertThat(savedCustomer.getProfile().getCountry()).isEqualTo(customerCountry);
+        assertThat(savedCustomer.getProfile().getAddress()).isEqualTo(customerAddress);
+        assertThat(savedCustomer.getProfile().getPostalCode()).isEqualTo(customerPostal);
+        assertThat(savedCustomer.getProfile().getNationalId()).isEqualTo(customerNationalId);
+        assertThat(savedCustomer.getProfile().getPhotoPath()).isEqualTo(customerPhotoPath);
     }
 
     @Test
-    void shouldUpdateCustomer() {
-        // Given
-        String oldEmail = "alice@gmail.com";
-        String newEmail = "alice@outlook.com";
-        Customer customer = new Customer(
-                null,
-                oldEmail,
-                "123456"
+    void shouldSaveCustomerAndAuth() {
+        // given
+        Customer customer = customerRepository.save(
+                new Customer(null, "customer@test.com", "123456")
         );
+
+        // when
+        Auth auth = authRepository.findByCustomer_Id(customer.getId()).orElseThrow();
+
+        // then
+        assertThat(customerRepository.existsById(customer.getId())).isTrue();
+        assertThat(customer.getId()).isNotNull();
+        assertThat(customer.getPassword()).isEqualTo(auth.getPassword());
+        assertThat(auth).isNotNull();
+        assertThat(auth.getCustomerId()).isEqualTo(customer.getId());
+    }
+
+    @Test
+    void shouldSaveCustomerAndBankingAccounts() {
+        // given
+        final String givenIban = "US00 0000 1111 2222 3333 4444";
+        Customer customer = customerRepository.save(
+                new Customer(null, "customer@test.com", "123456")
+        );
+
+        BankingAccount bankingAccount = new BankingAccount();
+        bankingAccount.setAccountNumber(givenIban);
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setCustomer(customer);
+        customer.addBankingAccount(bankingAccount);
+
         customerRepository.save(customer);
 
-        // When
-        customer.setEmail(newEmail);
-        customer.setPassword("654321");
-        customerRepository.save(customer);
+        // when
+        BankingAccount storedBankingAccount = bankingAccountRepository.findByCustomer_Id(customer.getId()).orElseThrow();
 
-        Customer storedCustomer = customerRepository.findByEmail(newEmail).get();
-
-        // Then
-        assertThat(storedCustomer.getId()).isNotNull();
-        assertThat(storedCustomer.getEmail()).isEqualTo(newEmail);
-        assertThat(storedCustomer.getPassword()).isEqualTo("654321");
-        assertThat(storedCustomer.getRole()).isEqualTo(CustomerRole.CUSTOMER);
-
+        // then
+        assertThat(storedBankingAccount).isNotNull();
+        assertThat(bankingAccountRepository.existsById(storedBankingAccount.getId())).isTrue();
     }
 
     @Test
     void shouldDeleteCustomerByIdCustomer() {
-        // Given
-        Customer customer = new Customer();
-        customer.setPassword("123456");
-        customer.setRole(CustomerRole.CUSTOMER);
-        customer.setEmail("alice@gmail.com");
-        Customer savedCustomer = customerRepository.save(customer);
+        // given
+        final String customerEmail = "customer@test.com";
+        final String customerPassword = "123456";
 
-        // When
+        Customer savedCustomer = customerRepository.save(
+                new Customer(null, customerEmail, customerPassword)
+        );
+
+        // when
         customerRepository.deleteById(savedCustomer.getId());
 
-        // Then
+        // then
         assertThat(customerRepository.existsById(savedCustomer.getId())).isFalse();
     }
 

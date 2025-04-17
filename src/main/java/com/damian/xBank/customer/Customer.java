@@ -142,6 +142,10 @@ public class Customer implements CustomerDetails {
         return bankingAccounts;
     }
 
+    public void addBankingAccount(BankingAccount account) {
+        this.bankingAccounts.add(account);
+    }
+
     public void setBankingAccounts(Set<BankingAccount> bankingAccounts) {
         this.bankingAccounts = bankingAccounts;
     }

@@ -5,7 +5,6 @@ import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerService;
-import com.damian.xBank.profile.Profile;
 import com.damian.xBank.utils.JWTUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,9 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
-import java.time.LocalDate;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,9 +25,6 @@ public class AuthenticationServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
-
-    @Mock
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @InjectMocks
     private AuthenticationService authenticationService;
@@ -62,10 +55,6 @@ public class AuthenticationServiceTest {
                 "123456"
         );
 
-        Profile profile = new Profile();
-        profile.setBirthdate(LocalDate.of(1980, 1, 1));
-        customer.setProfile(profile);
-
         AuthenticationRequest request = new AuthenticationRequest(customer.getEmail(), customer.getPassword());
 
         // when
@@ -78,5 +67,7 @@ public class AuthenticationServiceTest {
 
         // then
         assertThat(response.token()).isEqualTo(token);
+        assertThat(customer.getId()).isEqualTo(response.customer().id());
+        assertThat(customer.getEmail()).isEqualTo(response.customer().email());
     }
 }

@@ -8,7 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import java.time.LocalDate;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
 public class ProfileRepositoryTest {
@@ -35,11 +38,11 @@ public class ProfileRepositoryTest {
         customer.getProfile().setSurname("white");
         customer.getProfile().setPhone("123 123 123");
         customer.getProfile().setGender(Gender.MALE);
-        customer.getProfile().setBirthdate("1/1/1980");
+        customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
         customer.getProfile().setCountry("USA");
         customer.getProfile().setAddress("fake av");
         customer.getProfile().setPostalCode("501200");
-        customer.getProfile().setPhoto("/images/photo.jpg");
+        customer.getProfile().setPhotoPath("/images/photoPath.jpg");
 
         customerRepository.save(customer);
     }
@@ -50,9 +53,7 @@ public class ProfileRepositoryTest {
         Long profileId = customer.getProfile().getId();
 
         // when
-        Profile profile = profileRepository.findById(profileId).orElseThrow(
-                () -> new ProfileException("Profile cannot be found.")
-        );
+        Profile profile = profileRepository.findById(profileId).orElseThrow();
 
         // then
         assertThat(profile.getId()).isNotNull();
@@ -73,6 +74,18 @@ public class ProfileRepositoryTest {
     }
 
     @Test
+    void shouldThrowWhenProfileIdIsNull() {
+        // given
+        Long profileId = null;
+
+        // when
+        // then
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> profileRepository.findById(profileId)
+        );
+    }
+
+    @Test
     void shouldUpdateProfile() {
         // given
         Long profileId = customer.getProfile().getId();
@@ -81,14 +94,9 @@ public class ProfileRepositoryTest {
         // when
         customer.getProfile().setName(newName);
         profileRepository.save(customer.getProfile());
-
+        Profile profile = profileRepository.findById(profileId).orElseThrow();
 
         // then
-        Profile profile = profileRepository.findById(profileId).orElseThrow(
-                () -> new ProfileException("Profile cannot be found.")
-        );
-
-
         assertThat(profile.getName()).isEqualTo(newName);
     }
 }

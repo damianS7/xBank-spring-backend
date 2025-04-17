@@ -15,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -57,11 +58,11 @@ public class ProfileServiceTest {
         customer.getProfile().setName("John");
         customer.getProfile().setSurname("Wick");
         customer.getProfile().setGender(Gender.MALE);
-        customer.getProfile().setBirthdate("1/1/1989");
+        customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
         customer.getProfile().setCountry("USA");
         customer.getProfile().setAddress("fake ave");
         customer.getProfile().setPostalCode("050012");
-        customer.getProfile().setPhoto("no photo");
+        customer.getProfile().setPhotoPath("no photoPath");
 
         customerRepository.save(customer);
 
@@ -77,7 +78,7 @@ public class ProfileServiceTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "-",
                 "Fake AV 51",
@@ -106,7 +107,7 @@ public class ProfileServiceTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "-",
                 "Fake AV 51",
@@ -137,7 +138,7 @@ public class ProfileServiceTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "-",
                 "Fake AV 51",

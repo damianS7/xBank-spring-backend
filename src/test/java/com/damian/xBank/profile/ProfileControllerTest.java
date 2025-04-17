@@ -24,6 +24,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.time.LocalDate;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
@@ -66,11 +68,11 @@ public class ProfileControllerTest {
         customer.getProfile().setName("John");
         customer.getProfile().setSurname("Wick");
         customer.getProfile().setGender(Gender.MALE);
-        customer.getProfile().setBirthdate("1/1/1989");
+        customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
         customer.getProfile().setCountry("USA");
         customer.getProfile().setAddress("fake ave");
         customer.getProfile().setPostalCode("050012");
-        customer.getProfile().setPhoto("no photo");
+        customer.getProfile().setPhotoPath("no photoPath");
 
         customerRepository.save(customer);
 
@@ -104,7 +106,7 @@ public class ProfileControllerTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "-",
                 "Fake AV 51",
@@ -139,7 +141,7 @@ public class ProfileControllerTest {
         assertThat(response.phone()).isEqualTo(request.phone());
         assertThat(response.birthdate()).isEqualTo(request.birthdate());
         assertThat(response.gender()).isEqualTo(request.gender());
-        assertThat(response.photo()).isEqualTo(request.photo());
+        assertThat(response.photo()).isEqualTo(request.photoPath());
         assertThat(response.postalCode()).isEqualTo(request.postalCode());
         assertThat(response.nationalId()).isEqualTo(request.nationalId());
     }
@@ -152,7 +154,7 @@ public class ProfileControllerTest {
                 "david",
                 "",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "-",
                 "Fake AV 51",
@@ -184,7 +186,7 @@ public class ProfileControllerTest {
                 "david",
                 null,
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "-",
                 "Fake AV 51",

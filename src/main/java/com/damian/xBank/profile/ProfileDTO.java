@@ -1,11 +1,13 @@
 package com.damian.xBank.profile;
 
+import java.time.LocalDate;
+
 public record ProfileDTO(
         Long id,
         String name,
         String surname,
         String phone,
-        String birthdate,
+        LocalDate birthdate,
         Gender gender,
         String photo,
         String address,

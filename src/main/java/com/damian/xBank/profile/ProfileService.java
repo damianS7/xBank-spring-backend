@@ -57,7 +57,7 @@ public class ProfileService {
         profile.setPhone(request.phone());
         profile.setAddress(request.address());
         profile.setPostalCode(request.postalCode());
-        profile.setPhoto(request.photo());
+        profile.setPhotoPath(request.photoPath());
 
         return profileRepository.save(profile);
     }
@@ -110,8 +110,8 @@ public class ProfileService {
             profile.setBirthdate(request.birthdate());
         }
 
-        if (profile.getPhoto() != null) {
-            profile.setPhoto(request.photo());
+        if (profile.getPhotoPath() != null) {
+            profile.setPhotoPath(request.photoPath());
         }
 
         if (profile.getPhone() != null) {

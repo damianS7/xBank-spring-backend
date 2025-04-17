@@ -45,38 +45,39 @@ public class BankingAccountServiceTest {
 
     @BeforeEach
     void setUp() {
-        customer = new Customer(99L, "customer@test.com", "3hri2rhid;/!");
+        customer = new Customer(99L, "customer@test.com", "123456");
 
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 customer, null, Collections.emptyList()));
 
         when(faker.finance()).thenReturn(finance);
-        when(finance.iban()).thenReturn("ES1234567890123456789012");
+        when(finance.iban()).thenReturn("US99 0000 1111 1122 3333 4444");
     }
 
     @Test
     void shouldCreateBankingAccount() {
         // given
+        final String accountNumber = "US99 0000 1111 1122 3333 4444";
         BankingAccountOpenRequest request = new BankingAccountOpenRequest(
                 BankingAccountType.SAVINGS,
                 BankingAccountCurrency.EUR
         );
 
-        BankingAccount savedAccount = new BankingAccount();
-        savedAccount.setAccountCurrency(request.accountCurrency());
-        savedAccount.setAccountType(request.accountType());
-        savedAccount.setAccountNumber(faker.finance().iban());
+        BankingAccount bankingAccount = new BankingAccount(customer);
+        bankingAccount.setAccountCurrency(request.accountCurrency());
+        bankingAccount.setAccountType(request.accountType());
+        bankingAccount.setAccountNumber(accountNumber);
 
         // when
         when(customerRepository.findByEmail(customer.getEmail())).thenReturn(Optional.of(customer));
-        when(bankingAccountRepository.save(any(BankingAccount.class))).thenReturn(savedAccount);
+        when(bankingAccountRepository.save(any(BankingAccount.class))).thenReturn(bankingAccount);
 
-        bankingAccountService.openBankingAccount(request);
+        BankingAccount savedAccount = bankingAccountService.openBankingAccount(request);
 
         // then
         assertThat(savedAccount.getAccountCurrency()).isEqualTo(request.accountCurrency());
         assertThat(savedAccount.getAccountType()).isEqualTo(request.accountType());
-        assertThat(savedAccount.getAccountNumber()).isNotBlank();
+        assertThat(savedAccount.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(savedAccount.getBalance()).isEqualTo(BigDecimal.valueOf(0));
         verify(bankingAccountRepository, times(1)).save(any(BankingAccount.class));
     }

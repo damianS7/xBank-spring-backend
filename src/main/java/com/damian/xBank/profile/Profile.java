@@ -51,6 +51,10 @@ public class Profile {
     public Profile() {
     }
 
+    public Profile(Customer customer) {
+        this.customer = customer;
+    }
+
     public Customer getCustomer() {
         return this.customer;
     }

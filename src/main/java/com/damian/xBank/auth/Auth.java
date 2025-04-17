@@ -25,12 +25,13 @@ public class Auth {
     private String passwordHash;
 
     public Auth() {
-    }
-
-    public Auth(String passwordHash) {
-        this.passwordHash = passwordHash;
         this.status = AuthenticationStatus.ENABLED_ACCOUNT;
         this.emailVerified = false;
+    }
+
+    public Auth(Customer customer) {
+        this();
+        this.customer = customer;
     }
 
     public Customer getCustomer() {

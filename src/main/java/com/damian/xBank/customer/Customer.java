@@ -36,10 +36,8 @@ public class Customer implements CustomerDetails {
     private CustomerRole role;
 
     public Customer() {
-        this.auth = new Auth();
-        this.auth.setCustomer(this);
-        this.profile = new Profile();
-        this.profile.setCustomer(this);
+        this.auth = new Auth(this);
+        this.profile = new Profile(this);
         this.role = CustomerRole.CUSTOMER;
         this.bankingAccounts = new HashSet<>();
     }
@@ -48,7 +46,7 @@ public class Customer implements CustomerDetails {
         this();
         this.id = id;
         this.email = email;
-        setPassword(password);
+        this.setPassword(password);
     }
 
     public Customer(String email, String password) {

@@ -9,7 +9,7 @@ public record ProfileDTO(
         String phone,
         LocalDate birthdate,
         Gender gender,
-        String photo,
+        String photoPath,
         String address,
         String postalCode,
         String country,

@@ -4,7 +4,7 @@ import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "auth")
+@Table(name = "customer_auth")
 public class Auth {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,10 +14,10 @@ public class Auth {
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
     private Customer customer;
 
-    @Column
-    private boolean verified;
+    @Column(name = "email_verified")
+    private boolean emailVerified;
 
-    @Column
+    @Column(name = "auth_status")
     @Enumerated(EnumType.STRING)
     private AuthenticationStatus status;
 
@@ -29,8 +29,8 @@ public class Auth {
 
     public Auth(String passwordHash) {
         this.passwordHash = passwordHash;
-        this.status = AuthenticationStatus.EXPIRED;
-        this.verified = false;
+        this.status = AuthenticationStatus.ENABLED_ACCOUNT;
+        this.emailVerified = false;
     }
 
     public Customer getCustomer() {
@@ -61,8 +61,8 @@ public class Auth {
         this.passwordHash = password;
     }
 
-    public boolean isVerified() {
-        return this.verified;
+    public boolean isEmailVerified() {
+        return this.emailVerified;
     }
 
     public AuthenticationStatus getStatus() {

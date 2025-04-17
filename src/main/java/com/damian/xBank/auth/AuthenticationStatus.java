@@ -1,5 +1,5 @@
 package com.damian.xBank.auth;
 
 public enum AuthenticationStatus {
-    ACTIVE, EXPIRED
+    ENABLED_ACCOUNT, DISABLED_ACCOUNT, RESET_PASSWORD
 }

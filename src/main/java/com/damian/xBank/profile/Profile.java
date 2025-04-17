@@ -4,8 +4,10 @@ import com.damian.xBank.common.DTOBuilder;
 import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+
 @Entity
-@Table(name = "profiles")
+@Table(name = "customer_profiles")
 public class Profile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,14 +27,14 @@ public class Profile {
     private String phone;
 
     @Column
-    private String birthdate;
+    private LocalDate birthdate;
 
     @Column
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column
-    private String photo;
+    @Column(name = "photo_path")
+    private String photoPath;
 
     @Column
     private String address;
@@ -105,20 +107,20 @@ public class Profile {
         this.phone = phone;
     }
 
-    public String getBirthdate() {
+    public LocalDate getBirthdate() {
         return birthdate;
     }
 
-    public void setBirthdate(String birthdate) {
+    public void setBirthdate(LocalDate birthdate) {
         this.birthdate = birthdate;
     }
 
-    public String getPhoto() {
-        return photo;
+    public String getPhotoPath() {
+        return photoPath;
     }
 
-    public void setPhoto(String photo) {
-        this.photo = photo;
+    public void setPhotoPath(String photoPath) {
+        this.photoPath = photoPath;
     }
 
     public String getAddress() {

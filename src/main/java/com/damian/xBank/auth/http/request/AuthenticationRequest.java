@@ -1,4 +1,4 @@
-package com.damian.xBank.auth.http;
+package com.damian.xBank.auth.http.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

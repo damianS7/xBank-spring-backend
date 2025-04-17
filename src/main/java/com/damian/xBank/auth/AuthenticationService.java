@@ -1,8 +1,8 @@
 package com.damian.xBank.auth;
 
 import com.damian.xBank.auth.exception.AuthenticationException;
-import com.damian.xBank.auth.http.AuthenticationRequest;
-import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.auth.http.request.AuthenticationRequest;
+import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerService;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;

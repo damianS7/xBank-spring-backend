@@ -1,7 +1,7 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.auth.http.AuthenticationRequest;
-import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.auth.http.request.AuthenticationRequest;
+import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.profile.Gender;
 import com.fasterxml.jackson.databind.ObjectMapper;

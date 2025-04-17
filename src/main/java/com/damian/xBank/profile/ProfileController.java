@@ -1,6 +1,6 @@
 package com.damian.xBank.profile;
 
-import com.damian.xBank.profile.http.ProfileUpdateRequest;
+import com.damian.xBank.profile.http.request.ProfileUpdateRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.damian.xBank.profile.http;
+package com.damian.xBank.profile.http.request;
 
 import com.damian.xBank.profile.Gender;
 import jakarta.validation.constraints.NotBlank;

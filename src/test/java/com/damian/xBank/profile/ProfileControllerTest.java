@@ -1,11 +1,11 @@
 package com.damian.xBank.profile;
 
 import com.damian.xBank.auth.AuthenticationService;
-import com.damian.xBank.auth.http.AuthenticationRequest;
-import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.auth.http.request.AuthenticationRequest;
+import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
-import com.damian.xBank.profile.http.ProfileUpdateRequest;
+import com.damian.xBank.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;

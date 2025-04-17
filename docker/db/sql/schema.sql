@@ -151,7 +151,7 @@ CREATE TABLE public.customers (
 CREATE TABLE public.banking_accounts (
 	id int8 GENERATED ALWAYS AS IDENTITY NOT NULL,
 	customer_id int8 NOT NULL,
-	account_number varchar(24) NOT NULL,
+	account_number varchar(29) NOT NULL,
 	balance numeric(15, 2) DEFAULT 0.00 NOT NULL,
 	account_type public."banking_account_type" DEFAULT 'SAVINGS'::banking_account_type NOT NULL,
 	account_currency public."banking_account_currency" DEFAULT 'EUR'::banking_account_currency NOT NULL,

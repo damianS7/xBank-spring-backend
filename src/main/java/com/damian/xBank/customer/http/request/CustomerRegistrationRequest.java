@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
+import java.time.LocalDate;
+
 /**
  * Contains all the data required for Customer registration
  */
@@ -30,7 +32,7 @@ public record CustomerRegistrationRequest(
         String phone,
 
         @NotBlank(message = "Birthdate must not be blank.")
-        String birthdate,
+        LocalDate birthdate,
 
         @NotNull
         Gender gender,

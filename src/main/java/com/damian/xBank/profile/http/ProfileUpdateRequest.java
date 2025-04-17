@@ -4,6 +4,8 @@ import com.damian.xBank.profile.Gender;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.lang.NonNull;
 
+import java.time.LocalDate;
+
 public record ProfileUpdateRequest(
         @NonNull
         Long id,
@@ -18,7 +20,7 @@ public record ProfileUpdateRequest(
         String phone,
 
         @NotBlank
-        String birthdate,
+        LocalDate birthdate,
 
         @NonNull
         Gender gender,

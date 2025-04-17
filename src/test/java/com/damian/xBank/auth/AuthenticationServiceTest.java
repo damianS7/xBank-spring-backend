@@ -4,6 +4,8 @@ import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
+import com.damian.xBank.customer.CustomerService;
+import com.damian.xBank.profile.Profile;
 import com.damian.xBank.utils.JWTUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.time.LocalDate;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,6 +37,9 @@ public class AuthenticationServiceTest {
     private AuthenticationService authenticationService;
 
     @Mock
+    private CustomerService customerService;
+
+    @Mock
     private AuthenticationManager authenticationManager;
 
     @Mock
@@ -46,6 +53,7 @@ public class AuthenticationServiceTest {
     @Test
     void shouldLoginWhenValidCredentials() {
         // given
+        Authentication authentication = mock(Authentication.class);
         String token = "jwt-token";
 
         Customer customer = new Customer(
@@ -54,18 +62,21 @@ public class AuthenticationServiceTest {
                 "123456"
         );
 
-        AuthenticationRequest request = new AuthenticationRequest(customer.getEmail(), customer.getPassword());
+        Profile profile = new Profile();
+        profile.setBirthdate(LocalDate.of(1980, 1, 1));
+        customer.setProfile(profile);
 
-        Authentication authentication = mock(Authentication.class);
+        AuthenticationRequest request = new AuthenticationRequest(customer.getEmail(), customer.getPassword());
 
         // when
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
         when(jwtUtil.generateToken(request.email())).thenReturn(token);
         when(authentication.getPrincipal()).thenReturn(customer);
+        when(customerService.getCustomer(customer.getId())).thenReturn(customer);
+
         AuthenticationResponse response = authenticationService.login(request);
 
         // then
         assertThat(response.token()).isEqualTo(token);
     }
-
 }

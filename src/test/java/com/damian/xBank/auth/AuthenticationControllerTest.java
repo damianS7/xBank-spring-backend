@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,11 +75,11 @@ public class AuthenticationControllerTest {
         customer.getProfile().setSurname("Wick");
         customer.getProfile().setPhone("123 123 123");
         customer.getProfile().setGender(Gender.MALE);
-        customer.getProfile().setBirthdate("1/1/1989");
+        customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
         customer.getProfile().setCountry("USA");
         customer.getProfile().setAddress("fake ave");
         customer.getProfile().setPostalCode("050012");
-        customer.getProfile().setPhoto("no photo");
+        customer.getProfile().setPhotoPath("no photoPath");
 
         customerRepository.save(customer);
     }
@@ -199,7 +200,7 @@ public class AuthenticationControllerTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "",
                 "Fake AV",
@@ -222,7 +223,7 @@ public class AuthenticationControllerTest {
                 .andExpect(jsonPath("$.profile.name").value(request.name()))
                 .andExpect(jsonPath("$.profile.surname").value(request.surname()))
                 .andExpect(jsonPath("$.profile.phone").value(request.phone()))
-                .andExpect(jsonPath("$.profile.birthdate").value(request.birthdate()))
+                .andExpect(jsonPath("$.profile.birthdate").value(request.birthdate().toString()))
                 .andExpect(jsonPath("$.profile.gender").value(request.gender().toString()))
                 .andExpect(jsonPath("$.profile.address").value(request.address()))
                 .andExpect(jsonPath("$.profile.postalCode").value(request.postalCode()))
@@ -240,7 +241,7 @@ public class AuthenticationControllerTest {
                 "david",
                 "white",
                 "123 123 123",
-                "",
+                null,
                 Gender.MALE,
                 "",
                 "",
@@ -271,7 +272,7 @@ public class AuthenticationControllerTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1999",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "",
                 "fake ave",
@@ -302,7 +303,7 @@ public class AuthenticationControllerTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "",
                 "Fake AV",
@@ -333,7 +334,7 @@ public class AuthenticationControllerTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "",
                 "Fake AV",
@@ -371,7 +372,7 @@ public class AuthenticationControllerTest {
                 "david",
                 "white",
                 "123 123 123",
-                "1/1/1980",
+                LocalDate.of(1989, 1, 1),
                 Gender.MALE,
                 "-",
                 "Fake AV 51",

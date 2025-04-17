@@ -1,11 +1,14 @@
 package com.damian.xBank.banking.account;
 
+import com.damian.xBank.banking.transactions.BankingAccountTransaction;
 import com.damian.xBank.common.DTOBuilder;
 import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "banking_accounts")
@@ -18,7 +21,10 @@ public class BankingAccount {
     @JoinColumn(name = "customer_id", referencedColumnName = "id", nullable = false)
     private Customer customer;
 
-    @Column(length = 20, nullable = false)
+    @OneToMany(mappedBy = "ownerAccount", cascade = CascadeType.ALL)
+    private Set<BankingAccountTransaction> accountTransactions;
+
+    @Column(length = 29, nullable = false)
     private String accountNumber;
 
     @Column(precision = 15, scale = 3)
@@ -28,12 +34,28 @@ public class BankingAccount {
     private BankingAccountType accountType;
 
     @Enumerated(EnumType.STRING)
-    private BankingAccountCurrency currency;
+    private BankingAccountCurrency accountCurrency;
 
     @Enumerated(EnumType.STRING)
-    private BankingAccountStatus status;
+    private BankingAccountStatus accountStatus;
 
-    private Instant updatedAt;
+    private Instant createdAt;
+
+    public BankingAccount() {
+        this.accountTransactions = new HashSet<>();
+        this.balance = BigDecimal.valueOf(0);
+        this.accountStatus = BankingAccountStatus.OPEN;
+        this.createdAt = Instant.now();
+    }
+
+    public BankingAccount(String accountNumber,
+                          BankingAccountType accountType,
+                          BankingAccountCurrency accountCurrency) {
+        this();
+        this.accountNumber = accountNumber;
+        this.accountType = accountType;
+        this.accountCurrency = accountCurrency;
+    }
 
     public BankingAccountDTO toDTO() {
         return DTOBuilder.build(this);
@@ -55,11 +77,11 @@ public class BankingAccount {
         this.customer = customer;
     }
 
-    public String getNumber() {
+    public String getAccountNumber() {
         return accountNumber;
     }
 
-    public void setNumber(String number) {
+    public void setAccountNumber(String number) {
         this.accountNumber = number;
     }
 
@@ -79,27 +101,35 @@ public class BankingAccount {
         this.accountType = accountType;
     }
 
-    public BankingAccountCurrency getCurrency() {
-        return currency;
+    public BankingAccountCurrency getAccountCurrency() {
+        return accountCurrency;
     }
 
-    public void setCurrency(BankingAccountCurrency currency) {
-        this.currency = currency;
+    public void setAccountCurrency(BankingAccountCurrency accountCurrency) {
+        this.accountCurrency = accountCurrency;
     }
 
-    public BankingAccountStatus getStatus() {
-        return status;
+    public BankingAccountStatus getAccountStatus() {
+        return accountStatus;
     }
 
-    public void setStatus(BankingAccountStatus status) {
-        this.status = status;
+    public void setAccountStatus(BankingAccountStatus accountStatus) {
+        this.accountStatus = accountStatus;
     }
 
-    public Instant getUpdatedAt() {
-        return updatedAt;
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Set<BankingAccountTransaction> getAccountTransactions() {
+        return accountTransactions;
+    }
+
+    public void setAccountTransactions(Set<BankingAccountTransaction> accountTransactions) {
+        this.accountTransactions = accountTransactions;
     }
 }

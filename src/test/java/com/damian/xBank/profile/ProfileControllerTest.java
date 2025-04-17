@@ -26,8 +26,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -126,24 +126,18 @@ public class ProfileControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .content(jsonRequest))
                 .andExpect(MockMvcResultMatchers.status().is(200))
+                .andExpect(jsonPath("$.name").value(request.name()))
+                .andExpect(jsonPath("$.surname").value(request.surname()))
+                .andExpect(jsonPath("$.phone").value(request.phone()))
+                .andExpect(jsonPath("$.birthdate").value(request.birthdate().toString()))
+                .andExpect(jsonPath("$.gender").value(request.gender().toString()))
+                .andExpect(jsonPath("$.address").value(request.address()))
+                .andExpect(jsonPath("$.postalCode").value(request.postalCode()))
+                .andExpect(jsonPath("$.country").value(request.country()))
+                .andExpect(jsonPath("$.photoPath").value(request.photoPath()))
+                .andExpect(jsonPath("$.nationalId").value(request.nationalId()))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
-
-        ProfileDTO response = objectMapper.readValue(
-                result.getResponse().getContentAsString(),
-                ProfileDTO.class
-        );
-
-        // then
-        assertThat(response.name()).isEqualTo(request.name());
-        assertThat(response.surname()).isEqualTo(request.surname());
-        assertThat(response.address()).isEqualTo(request.address());
-        assertThat(response.phone()).isEqualTo(request.phone());
-        assertThat(response.birthdate()).isEqualTo(request.birthdate());
-        assertThat(response.gender()).isEqualTo(request.gender());
-        assertThat(response.photo()).isEqualTo(request.photoPath());
-        assertThat(response.postalCode()).isEqualTo(request.postalCode());
-        assertThat(response.nationalId()).isEqualTo(request.nationalId());
     }
 
     @Test

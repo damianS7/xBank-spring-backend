@@ -35,7 +35,7 @@ public class BankingAccountRepositoryTest {
         // given
         final String customerEmail = "customer@test.com";
         final String customerPassword = "123456";
-        final String accountNumber = faker.finance().iban();
+        final String accountNumber = "US00 1111 2222 3333 4444 5555";
 
         Customer customer = new Customer(customerEmail, customerPassword);
         customerRepository.save(customer);
@@ -76,7 +76,7 @@ public class BankingAccountRepositoryTest {
         // given
         final String customerEmail = "customer@test.com";
         final String customerPassword = "123456";
-        final String accountNumber = faker.finance().iban();
+        final String accountNumber = "US00 1111 2222 3333 4444 5555";
 
         Customer customer = new Customer(customerEmail, customerPassword);
         customerRepository.save(customer);

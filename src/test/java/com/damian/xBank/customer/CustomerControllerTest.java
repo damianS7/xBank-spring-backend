@@ -2,7 +2,6 @@ package com.damian.xBank.customer;
 
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
-import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.profile.CustomerGender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
@@ -54,40 +53,28 @@ public class CustomerControllerTest {
 
     @BeforeAll
     void setUp() throws Exception {
-        CustomerRegistrationRequest request = new CustomerRegistrationRequest(
-                "david@gmail.com",
-                "123456",
-                "david",
-                "white",
-                "123 123 123",
-                LocalDate.of(1989, 1, 1),
-                CustomerGender.MALE,
-                "-",
-                "Fake AV",
-                "50120",
-                "USA",
-                "123123123Z"
-        );
+        customerRepository.deleteAll();
+
+        final String rawPassword = "123456";
 
         customer = new Customer();
-        customer.setEmail(request.email());
-        customer.setPassword(bCryptPasswordEncoder.encode(request.password()));
-        customer.getProfile().setNationalId(request.nationalId());
-        customer.getProfile().setName(request.name());
-        customer.getProfile().setSurname(request.surname());
-        customer.getProfile().setPhone(request.phone());
-        customer.getProfile().setGender(request.gender());
-        customer.getProfile().setBirthdate(request.birthdate());
-        customer.getProfile().setCountry(request.country());
-        customer.getProfile().setAddress(request.address());
-        customer.getProfile().setPostalCode(request.postalCode());
-        customer.getProfile().setPhotoPath(request.photo());
+        customer.setEmail("customer@test.com");
+        customer.setPassword(bCryptPasswordEncoder.encode(rawPassword));
+        customer.getProfile().setNationalId("123456789Z");
+        customer.getProfile().setName("John");
+        customer.getProfile().setSurname("Wick");
+        customer.getProfile().setGender(CustomerGender.MALE);
+        customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
+        customer.getProfile().setCountry("USA");
+        customer.getProfile().setAddress("fake ave");
+        customer.getProfile().setPostalCode("050012");
+        customer.getProfile().setPhotoPath("no photoPath");
 
         customerRepository.save(customer);
 
         // given
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(
-                customer.getEmail(), request.password()
+                customer.getEmail(), rawPassword
         );
 
         String jsonRequest = objectMapper.writeValueAsString(authenticationRequest);

@@ -24,7 +24,7 @@ public class BankingAccount {
     @OneToMany(mappedBy = "ownerAccount", cascade = CascadeType.ALL)
     private Set<BankingAccountTransaction> accountTransactions;
 
-    @Column(length = 29, nullable = false)
+    @Column(length = 32, nullable = false)
     private String accountNumber;
 
     @Column(precision = 15, scale = 3)
@@ -137,5 +137,10 @@ public class BankingAccount {
 
     public void setAccountTransactions(Set<BankingAccountTransaction> accountTransactions) {
         this.accountTransactions = accountTransactions;
+    }
+
+    public void addAccountTransaction(BankingAccountTransaction transaction) {
+        transaction.setOwnerAccount(this);
+        this.accountTransactions.add(transaction);
     }
 }

@@ -1,12 +1,9 @@
-package com.damian.xBank.profile;
+package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.auth.exception.AuthorizationException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.exception.CustomerException;
-import com.damian.xBank.customer.profile.CustomerGender;
-import com.damian.xBank.customer.profile.Profile;
-import com.damian.xBank.customer.profile.ProfileRepository;
-import com.damian.xBank.customer.profile.ProfileService;
+import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +17,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -27,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-// Habilita Mockito en JUnit 5
 @ExtendWith(MockitoExtension.class)
 public class ProfileServiceTest {
 
@@ -45,8 +43,8 @@ public class ProfileServiceTest {
 
     @BeforeEach
     void setUp() {
-        profileService = new ProfileService(profileRepository, bCryptPasswordEncoder);
         profileRepository.deleteAll();
+        profileService = new ProfileService(profileRepository, bCryptPasswordEncoder);
 
         customer = new Customer();
         customer.setId(2L);
@@ -104,6 +102,61 @@ public class ProfileServiceTest {
         assertThat(result.getNationalId()).isEqualTo(updateRequest.nationalId());
         assertThat(result.getBirthdate()).isEqualTo(updateRequest.birthdate());
         assertThat(result.getPhotoPath()).isEqualTo(updateRequest.photoPath());
+    }
+
+    @Test
+    void shouldPatchProfile() {
+        // given
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("name", "alice");
+        fields.put("surname", "white");
+        fields.put("phone", "999 999 999");
+        fields.put("birthdate", "1983-03-13");
+        fields.put("gender", "FEMALE");
+
+        ProfilePatchRequest patchProfile = new ProfilePatchRequest(
+                this.rawPassword,
+                fields
+        );
+
+        // when
+        when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(true);
+        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
+        when(profileRepository.save(any(Profile.class))).thenReturn(customer.getProfile());
+
+        Profile result = profileService.patchProfile(customer.getProfile().getId(), patchProfile);
+
+        // Then
+        verify(profileRepository, times(1)).save(customer.getProfile());
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo(patchProfile.fieldsToUpdate().get("name"));
+        assertThat(result.getSurname()).isEqualTo(patchProfile.fieldsToUpdate().get("surname"));
+        assertThat(result.getPhone()).isEqualTo(patchProfile.fieldsToUpdate().get("phone"));
+        assertThat(result.getBirthdate().toString()).isEqualTo(patchProfile.fieldsToUpdate().get("birthdate"));
+        assertThat(result.getGender().toString()).isEqualTo(patchProfile.fieldsToUpdate().get("gender"));
+    }
+
+    @Test
+    void shouldNotPatchProfileWhenInvalidFields() {
+        // given
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("name", "alice");
+        fields.put("surname", "white");
+        fields.put("FAKE FIELD", "999 999 999");
+
+        ProfilePatchRequest patchProfile = new ProfilePatchRequest(
+                this.rawPassword,
+                fields
+        );
+
+        // when
+        when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(true);
+        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
+
+        // Then
+        ProfileException exception = assertThrows(ProfileException.class,
+                () -> profileService.patchProfile(customer.getProfile().getId(), patchProfile)
+        );
     }
 
     @Test

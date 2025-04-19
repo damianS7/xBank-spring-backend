@@ -1,11 +1,10 @@
-package com.damian.xBank.profile;
+package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.auth.AuthenticationService;
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
-import com.damian.xBank.customer.profile.CustomerGender;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;

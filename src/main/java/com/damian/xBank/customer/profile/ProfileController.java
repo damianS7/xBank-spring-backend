@@ -1,5 +1,6 @@
 package com.damian.xBank.customer.profile;
 
+import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -35,7 +36,7 @@ public class ProfileController {
     @PatchMapping("/profiles/{id}")
     public ResponseEntity<?> patchProfile(
             @PathVariable @NotNull @Positive Long id,
-            @Validated @RequestBody ProfileUpdateRequest request) {
+            @Validated @RequestBody ProfilePatchRequest request) {
         Profile profile = profileService.patchProfile(id, request);
 
         return ResponseEntity

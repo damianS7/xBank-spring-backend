@@ -15,14 +15,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-// Habilita Mockito en JUnit 5
 @ExtendWith(MockitoExtension.class)
 public class BankingAccountServiceTest {
 
@@ -49,9 +47,6 @@ public class BankingAccountServiceTest {
 
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 customer, null, Collections.emptyList()));
-
-        when(faker.finance()).thenReturn(finance);
-        when(finance.iban()).thenReturn("US99 0000 1111 1122 3333 4444");
     }
 
     @Test
@@ -69,6 +64,8 @@ public class BankingAccountServiceTest {
         bankingAccount.setAccountNumber(accountNumber);
 
         // when
+        when(faker.finance()).thenReturn(finance);
+        when(finance.iban()).thenReturn("US99 0000 1111 1122 3333 4444");
         when(customerRepository.findByEmail(customer.getEmail())).thenReturn(Optional.of(customer));
         when(bankingAccountRepository.save(any(BankingAccount.class))).thenReturn(bankingAccount);
 
@@ -80,5 +77,31 @@ public class BankingAccountServiceTest {
         assertThat(savedAccount.getAccountNumber()).isEqualTo(accountNumber);
         assertThat(savedAccount.getBalance()).isEqualTo(BigDecimal.valueOf(0));
         verify(bankingAccountRepository, times(1)).save(any(BankingAccount.class));
+    }
+
+    @Test
+    void shouldGetBankingAccountsFromCustomer() {
+        // given
+        List<BankingAccount> bankingAccounts = new ArrayList<>();
+        BankingAccount bankingAccountA = new BankingAccount(customer);
+        bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccountA.setAccountNumber("US99 0000 1111 1122 3333 4444");
+        bankingAccounts.add(bankingAccountA);
+
+        BankingAccount bankingAccountB = new BankingAccount(customer);
+        bankingAccountB.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountB.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccountB.setAccountNumber("US99 0000 1111 1122 3333 6666");
+        bankingAccounts.add(bankingAccountB);
+
+        // when
+        when(bankingAccountRepository.findByCustomer_Id(anyLong())).thenReturn(bankingAccounts);
+
+        Set<BankingAccountDTO> result = bankingAccountService.getBankingAccounts(customer.getId());
+
+        // then
+        assertThat(result.size()).isEqualTo(2);
+        verify(bankingAccountRepository, times(1)).findByCustomer_Id(anyLong());
     }
 }

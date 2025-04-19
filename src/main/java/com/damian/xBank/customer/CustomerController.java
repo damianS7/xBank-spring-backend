@@ -44,9 +44,9 @@ public class CustomerController {
     }
 
     // endpoint to receive all BankingAccounts from user
-    @GetMapping("/customers/{customer_id}/banking/accounts")
-    public ResponseEntity<?> getCustomerBankingAccounts(@PathVariable Long customerId) {
-        Set<BankingAccountDTO> bankingAccounts = bankingAccountService.getBankingAccounts(customerId);
+    @GetMapping("/customers/{id}/banking/accounts")
+    public ResponseEntity<?> getCustomerBankingAccounts(@PathVariable Long id) {
+        Set<BankingAccountDTO> bankingAccounts = bankingAccountService.getBankingAccounts(id);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

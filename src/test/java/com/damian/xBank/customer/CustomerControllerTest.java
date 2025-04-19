@@ -2,6 +2,9 @@ package com.damian.xBank.customer;
 
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.banking.account.BankingAccount;
+import com.damian.xBank.banking.account.BankingAccountCurrency;
+import com.damian.xBank.banking.account.BankingAccountType;
 import com.damian.xBank.customer.profile.CustomerGender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
@@ -21,6 +24,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -70,6 +75,21 @@ public class CustomerControllerTest {
         customer.getProfile().setPostalCode("050012");
         customer.getProfile().setPhotoPath("no photoPath");
 
+        Set<BankingAccount> bankingAccounts = new HashSet<>();
+        BankingAccount bankingAccountA = new BankingAccount(customer);
+        bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccountA.setAccountNumber("US99 0000 1111 1122 3333 4444");
+        bankingAccounts.add(bankingAccountA);
+
+        BankingAccount bankingAccountB = new BankingAccount(customer);
+        bankingAccountB.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountB.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccountB.setAccountNumber("US99 0000 1111 1122 3333 6666");
+        bankingAccounts.add(bankingAccountB);
+
+        customer.setBankingAccounts(bankingAccounts);
+
         customerRepository.save(customer);
 
         // given
@@ -102,6 +122,15 @@ public class CustomerControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(jsonPath("$.email").value(customer.getEmail()))
                 .andExpect(jsonPath("$.profile.address").value(customer.getProfile().getAddress()))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void shouldGetCustomerAccounts() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/customers/" + customer.getId() + "/banking/accounts")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 }

@@ -160,7 +160,8 @@ public class CustomerRepositoryTest {
         customerRepository.save(customer);
 
         // when
-        BankingAccount storedBankingAccount = bankingAccountRepository.findByCustomer_Id(customer.getId()).orElseThrow();
+        BankingAccount storedBankingAccount = bankingAccountRepository.findByCustomer_Id(customer.getId())
+                .getFirst();
 
         // then
         assertThat(storedBankingAccount).isNotNull();

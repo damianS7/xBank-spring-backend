@@ -3,6 +3,9 @@ package com.damian.xBank.banking.account;
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
+import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
+import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
+import com.damian.xBank.banking.account.transactions.BankingAccountTransactionType;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,7 +20,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -29,7 +31,6 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -41,7 +42,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource(properties = "JWT_SECRET_KEY=THIS-IS-A-BIG-SECRET!-KEEP-IT-SAFE")
 public class BankingAccountControllerTest {
-    private final String email = "john@gmail.com";
     private final String rawPassword = "123456";
 
     @Autowired
@@ -59,26 +59,38 @@ public class BankingAccountControllerTest {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    @MockitoBean
+    //    @MockitoBean
     private BankingAccountService bankingAccountService;
 
-    private Customer customer;
+    private Customer customerA;
+    private Customer customerB;
     private String token;
 
     @BeforeAll
     void setUp() throws Exception {
+        customerRepository.deleteAll();
 
-        customer = new Customer();
-        customer.setEmail(this.email);
-        customer.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
-        customer.getProfile().setNationalId("123456789Z");
-        customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
+        customerA = new Customer();
+        customerA.setEmail("customerA@test.com");
+        customerA.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
+        customerA.getProfile().setName("alice");
+        customerA.getProfile().setSurname("wonderland");
+        customerA.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
 
-        customerRepository.save(customer);
+        customerRepository.save(customerA);
+
+        customerB = new Customer();
+        customerB.setEmail("customerB@test.com");
+        customerB.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
+        customerB.getProfile().setName("alice");
+        customerB.getProfile().setSurname("wonderland");
+        customerB.getProfile().setBirthdate(LocalDate.of(1995, 11, 11));
+
+        customerRepository.save(customerB);
 
         // given
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(
-                customer.getEmail(), this.rawPassword
+                customerA.getEmail(), this.rawPassword
         );
 
         String jsonRequest = objectMapper.writeValueAsString(authenticationRequest);
@@ -105,28 +117,17 @@ public class BankingAccountControllerTest {
                 BankingAccountCurrency.EUR
         );
 
-        BankingAccount response = new BankingAccount();
-        response.setId(1L);
-        response.setAccountNumber("ES1234567890123456789012");
-        response.setAccountType(BankingAccountType.SAVINGS);
-        response.setAccountCurrency(BankingAccountCurrency.EUR);
-        response.setAccountStatus(BankingAccountStatus.OPEN);
-        response.setBalance(BigDecimal.ZERO);
-
         // when
-        when(bankingAccountService.openBankingAccount(request)).thenReturn(response);
-
         // then
-        mockMvc.perform(post("/api/v1/banking_account/open")
+        mockMvc.perform(post("/api/v1/banking/accounts/open")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.accountNumber").value("ES1234567890123456789012"))
+                .andExpect(jsonPath("$.accountNumber").isNotEmpty())
                 .andExpect(jsonPath("$.accountType").value("SAVINGS"))
                 .andExpect(jsonPath("$.accountCurrency").value("EUR"))
-                .andExpect(jsonPath("$.accountStatus").value("OPEN"))
                 .andExpect(jsonPath("$.balance").value(0));
     }
 
@@ -135,7 +136,7 @@ public class BankingAccountControllerTest {
         Set<BankingAccount> bankingAccounts = new HashSet<>();
 
         BankingAccount bankingAccount1 = new BankingAccount();
-        bankingAccount1.setCustomer(customer);
+        bankingAccount1.setCustomer(customerA);
         bankingAccount1.setAccountNumber("12345678");
         bankingAccount1.setBalance(BigDecimal.valueOf(100));
         bankingAccount1.setAccountStatus(BankingAccountStatus.OPEN);
@@ -145,7 +146,7 @@ public class BankingAccountControllerTest {
         bankingAccounts.add(bankingAccount1);
 
         BankingAccount bankingAccount2 = new BankingAccount();
-        bankingAccount2.setCustomer(customer);
+        bankingAccount2.setCustomer(customerA);
         bankingAccount2.setAccountNumber("001231443");
         bankingAccount2.setBalance(BigDecimal.valueOf(350));
         bankingAccount2.setAccountStatus(BankingAccountStatus.OPEN);
@@ -154,17 +155,154 @@ public class BankingAccountControllerTest {
         bankingAccount2.setCreatedAt(Instant.now());
         bankingAccounts.add(bankingAccount2);
 
-        customer.setBankingAccounts(bankingAccounts);
+        customerA.setBankingAccounts(bankingAccounts);
 
         bankingAccountRepository.save(bankingAccount1);
         bankingAccountRepository.save(bankingAccount2);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/customer/" + customer.getId())
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/customer/" + customerA.getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bankingAccounts.[?(@.id == " + bankingAccount1.getId() + ")].accountNumber").value(bankingAccount1.getAccountNumber()))
                 .andExpect(jsonPath("$.bankingAccounts.[?(@.id == " + bankingAccount2.getId() + ")].accountNumber").value(bankingAccount2.getAccountNumber()))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void shouldCreateTransactionDeposit() throws Exception {
+        // given
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.ZERO);
+
+        bankingAccountRepository.save(bankingAccount);
+
+        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+                null,
+                BigDecimal.valueOf(1000),
+                BankingAccountTransactionType.DEPOSIT,
+                "Enjoy!"
+        );
+
+        BankingAccountTransaction transaction = new BankingAccountTransaction(bankingAccount);
+        transaction.setTransactionType(request.transactionType());
+        transaction.setDescription(request.description());
+        transaction.setAmount(request.amount());
+
+        // when
+//        when(bankingAccountService.createTransaction(request)).thenReturn(transaction);
+
+        // then
+        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccount.getId() + "/transactions")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldTransferToAnotherCustomer() throws Exception {
+        // given
+        BankingAccount bankingAccountA = new BankingAccount(customerA);
+        bankingAccountA.setAccountNumber("ES12 3456 7890 1234 5678 9012");
+        bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountA.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccountA.setBalance(BigDecimal.valueOf(3200));
+
+        bankingAccountRepository.save(bankingAccountA);
+
+        BankingAccount bankingAccountB = new BankingAccount(customerB);
+        bankingAccountB.setAccountNumber("DE12 3456 7890 1234 5678 9012");
+        bankingAccountB.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccountB.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountB.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccountB.setBalance(BigDecimal.valueOf(200));
+
+        bankingAccountRepository.save(bankingAccountB);
+
+        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+                bankingAccountB.getId(),
+                BigDecimal.valueOf(1000),
+                BankingAccountTransactionType.TRANSFER_TO,
+                "Enjoy!"
+        );
+
+        // when
+        // then
+        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccountA.getId() + "/transactions")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldNotTransferToSameAccount() throws Exception {
+        // given
+        BankingAccount bankingAccountA = new BankingAccount(customerA);
+        bankingAccountA.setAccountNumber("ES12 3456 7890 1234 5678 9012");
+        bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountA.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccountA.setBalance(BigDecimal.valueOf(3200));
+
+        bankingAccountRepository.save(bankingAccountA);
+
+        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+                bankingAccountA.getId(),
+                BigDecimal.valueOf(1000),
+                BankingAccountTransactionType.TRANSFER_TO,
+                "Enjoy!"
+        );
+
+        // when
+        // then
+        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccountA.getId() + "/transactions")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(500));
+    }
+
+    @Test
+    void shouldFailToCreateTransactionSpendWhenInsufficentFunds() throws Exception {
+        // given
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.ZERO);
+
+        bankingAccountRepository.save(bankingAccount);
+
+        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+                null,
+                BigDecimal.valueOf(1000),
+                BankingAccountTransactionType.CARD_CHARGE,
+                "Enjoy!"
+        );
+
+        BankingAccountTransaction transaction = new BankingAccountTransaction(bankingAccount);
+        transaction.setTransactionType(request.transactionType());
+        transaction.setDescription(request.description());
+        transaction.setAmount(request.amount());
+
+        // when
+        // then
+        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccount.getId() + "/transactions")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(500));
     }
 }

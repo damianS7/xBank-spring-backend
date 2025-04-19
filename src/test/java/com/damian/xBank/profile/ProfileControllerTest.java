@@ -101,7 +101,6 @@ public class ProfileControllerTest {
     void shouldUpdateProfile() throws Exception {
         // given
         ProfileUpdateRequest request = new ProfileUpdateRequest(
-                customer.getProfile().getId(),
                 "david",
                 "white",
                 "123 123 123",
@@ -112,7 +111,6 @@ public class ProfileControllerTest {
                 "50120",
                 "USA",
                 "123123123Z",
-                customer.getId(),
                 this.rawPassword
         );
 
@@ -120,7 +118,7 @@ public class ProfileControllerTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/v1/profile/" + request.id())
+                        .put("/api/v1/profiles/" + customer.getProfile().getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .content(jsonRequest))
@@ -143,7 +141,6 @@ public class ProfileControllerTest {
     void shouldNotUpdateProfileWhenAnyFieldIsEmpty() throws Exception {
         // given
         ProfileUpdateRequest request = new ProfileUpdateRequest(
-                customer.getProfile().getId(),
                 "david",
                 "",
                 "123 123 123",
@@ -154,7 +151,6 @@ public class ProfileControllerTest {
                 "50120",
                 "USA",
                 "123123123Z",
-                customer.getId(),
                 this.rawPassword
         );
 
@@ -162,7 +158,7 @@ public class ProfileControllerTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/v1/profile/" + request.id())
+                        .put("/api/v1/profiles/" + customer.getProfile().getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .content(jsonRequest))
@@ -175,7 +171,6 @@ public class ProfileControllerTest {
     void shouldNotUpdateProfileWhenAnyFieldIsNull() throws Exception {
         // given
         ProfileUpdateRequest request = new ProfileUpdateRequest(
-                customer.getProfile().getId(),
                 "david",
                 null,
                 "123 123 123",
@@ -186,7 +181,6 @@ public class ProfileControllerTest {
                 "50120",
                 "USA",
                 "123123123Z",
-                customer.getId(),
                 this.rawPassword
         );
 
@@ -194,7 +188,7 @@ public class ProfileControllerTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/v1/profile/" + request.id())
+                        .put("/api/v1/profiles/" + customer.getProfile().getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .content(jsonRequest))

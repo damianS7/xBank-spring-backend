@@ -1,6 +1,8 @@
 package com.damian.xBank.profile;
 
 import com.damian.xBank.profile.http.request.ProfileUpdateRequest;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +20,11 @@ public class ProfileController {
     }
 
     // endpoint to modify a profile
-    @PutMapping("/profile/{id}")
-    public ResponseEntity<?> updateProfile(@Validated @RequestBody ProfileUpdateRequest request) {
-        Profile profile = profileService.updateProfile(request);
+    @PutMapping("/profiles/{id}")
+    public ResponseEntity<?> updateProfile(
+            @PathVariable @NotNull @Positive Long id,
+            @Validated @RequestBody ProfileUpdateRequest request) {
+        Profile profile = profileService.updateProfile(id, request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -28,9 +32,11 @@ public class ProfileController {
     }
 
     // endpoint to modify some parts of the profile
-    @PatchMapping("/profile/{id}")
-    public ResponseEntity<?> patchProfile(@Validated @RequestBody ProfileUpdateRequest request) {
-        Profile profile = profileService.patchProfile(request);
+    @PatchMapping("/profiles/{id}")
+    public ResponseEntity<?> patchProfile(
+            @PathVariable @NotNull @Positive Long id,
+            @Validated @RequestBody ProfileUpdateRequest request) {
+        Profile profile = profileService.patchProfile(id, request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

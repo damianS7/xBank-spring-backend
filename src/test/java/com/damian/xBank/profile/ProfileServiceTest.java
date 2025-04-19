@@ -70,7 +70,6 @@ public class ProfileServiceTest {
     void shouldUpdateProfile() {
         // given
         ProfileUpdateRequest updateRequest = new ProfileUpdateRequest(
-                customer.getProfile().getId(),
                 "david",
                 "white",
                 "123 123 123",
@@ -81,16 +80,15 @@ public class ProfileServiceTest {
                 "50120",
                 "USA",
                 "123123123Z",
-                customer.getId(),
                 this.rawPassword
         );
 
         // when
         when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(true);
-        when(profileRepository.findById(updateRequest.id())).thenReturn(Optional.of(customer.getProfile()));
+        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
         when(profileRepository.save(any(Profile.class))).thenReturn(customer.getProfile());
 
-        Profile result = profileService.updateProfile(updateRequest);
+        Profile result = profileService.updateProfile(customer.getProfile().getId(), updateRequest);
 
         // Then
         verify(profileRepository, times(1)).save(customer.getProfile());
@@ -108,7 +106,6 @@ public class ProfileServiceTest {
     void shouldNotUpdateProfileWhenPasswordDoesNotMatch() {
         // given
         ProfileUpdateRequest updateRequest = new ProfileUpdateRequest(
-                customer.getProfile().getId(),
                 "david",
                 "white",
                 "123 123 123",
@@ -119,7 +116,6 @@ public class ProfileServiceTest {
                 "50120",
                 "USA",
                 "123123123Z",
-                customer.getId(),
                 this.rawPassword
         );
 
@@ -127,7 +123,7 @@ public class ProfileServiceTest {
         when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(false);
 
         CustomerException exception = assertThrows(CustomerException.class,
-                () -> profileService.updateProfile(updateRequest)
+                () -> profileService.updateProfile(customer.getProfile().getId(), updateRequest)
         );
 
         // Then
@@ -139,7 +135,6 @@ public class ProfileServiceTest {
     void shouldNotUpdateProfileWhenProfileDoesNotBelongToCustomer() {
         // given
         ProfileUpdateRequest updateRequest = new ProfileUpdateRequest(
-                customer.getProfile().getId(),
                 "david",
                 "white",
                 "123 123 123",
@@ -150,7 +145,6 @@ public class ProfileServiceTest {
                 "50120",
                 "USA",
                 "123123123Z",
-                customer.getId(),
                 this.rawPassword
         );
 
@@ -161,7 +155,7 @@ public class ProfileServiceTest {
         when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(true);
         when(profileRepository.findById(anyLong())).thenReturn(Optional.of(profileFromOtherUser));
         AuthorizationException exception = assertThrows(AuthorizationException.class,
-                () -> profileService.updateProfile(updateRequest)
+                () -> profileService.updateProfile(customer.getProfile().getId(), updateRequest)
         );
 
         // Then

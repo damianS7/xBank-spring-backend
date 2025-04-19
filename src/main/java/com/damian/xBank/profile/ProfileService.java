@@ -25,7 +25,7 @@ public class ProfileService {
      * @param request the fields to change
      * @return the profile updated
      */
-    public Profile updateProfile(ProfileUpdateRequest request) {
+    public Profile updateProfile(Long profileId, ProfileUpdateRequest request) {
         // We get the customer logged in the context
         Customer customerLogged = (Customer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -33,9 +33,6 @@ public class ProfileService {
         if (!bCryptPasswordEncoder.matches(request.currentPassword(), customerLogged.getPassword())) {
             throw new CustomerException("Password does not match.");
         }
-
-        // the profile id the current customer has
-        Long profileId = customerLogged.getProfile().getId();
 
         // We get the profile we want to modify
         Profile profile = profileRepository.findById(profileId).orElseThrow(
@@ -62,15 +59,10 @@ public class ProfileService {
         return profileRepository.save(profile);
     }
 
-    public Profile patchProfile(ProfileUpdateRequest request) {
+    public Profile patchProfile(Long profileId, ProfileUpdateRequest request) {
         // Comprobamos que el usuario que esta intentando modifiicar el perfil
         // sea el owner del perfil
         Customer customerLogged = (Customer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        // Comprueba que el perfil que se intenta modificar pertenezca al usuario logeado
-        if (!customerLogged.getId().equals(request.customerId())) {
-            throw new AuthorizationException("Profile does not belong to this user.");
-        }
 
         // Antes de cambiar comprobamos que las password antiguas coincidan
         if (!bCryptPasswordEncoder.matches(request.currentPassword(), customerLogged.getPassword())) {
@@ -78,9 +70,14 @@ public class ProfileService {
         }
 
         // Obtenemos el nombre del usuario logeado que envia la peticion
-        Profile profile = profileRepository.findById(request.id()).orElseThrow(
+        Profile profile = profileRepository.findById(profileId).orElseThrow(
                 () -> new ProfileException("Profile cannot be found.")
         );
+
+        // Comprueba que el perfil que se intenta modificar pertenezca al usuario logeado
+        if (!customerLogged.getId().equals(profile.getCustomerId())) {
+            throw new AuthorizationException("Profile does not belong to this user.");
+        }
 
         if (profile.getName() != null) {
             profile.setName(request.name());

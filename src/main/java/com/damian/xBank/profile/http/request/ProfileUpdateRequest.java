@@ -3,46 +3,38 @@ package com.damian.xBank.profile.http.request;
 import com.damian.xBank.profile.CustomerGender;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.lang.NonNull;
 
 import java.time.LocalDate;
 
 public record ProfileUpdateRequest(
-        @NonNull
-        Long id,
-
-        @NotBlank
+        @NotBlank(message = "Name must not be blank.")
         String name,
 
-        @NotBlank
+        @NotBlank(message = "Surname must not be blank.")
         String surname,
 
-        @NotBlank
+        @NotBlank(message = "Phone must not be blank.")
         String phone,
 
-        @NotNull
+        @NotNull(message = "Birthdate must not be null.")
         LocalDate birthdate,
 
-        @NonNull
+        @NotNull(message = "Gender must not be null")
         CustomerGender gender,
 
-        @NotBlank
         String photoPath,
 
-        @NotBlank
+        @NotBlank(message = "Address must not be blank.")
         String address,
 
-        @NotBlank
+        @NotBlank(message = "Postal code must not be blank.")
         String postalCode,
 
-        @NotBlank
+        @NotBlank(message = "Country must not be blank.")
         String country,
 
-        @NotBlank
+        @NotBlank(message = "National ID must not be blank.")
         String nationalId,
-
-        @NonNull
-        Long customerId,
 
         @NotBlank
         String currentPassword) {

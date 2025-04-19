@@ -2,6 +2,7 @@ package com.damian.xBank.common.exception;
 
 import com.damian.xBank.auth.exception.AuthenticationException;
 import com.damian.xBank.auth.exception.AuthorizationException;
+import com.damian.xBank.banking.account.BankingAccountException;
 import com.damian.xBank.common.http.response.ApiResponse;
 import com.damian.xBank.customer.exception.CustomerException;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,8 +30,14 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
+    @ExceptionHandler(BankingAccountException.class)
+    public ResponseEntity<ApiResponse<String>> handleException(BankingAccountException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<?>> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<?>> handleException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
 
         ex.getBindingResult().getFieldErrors().forEach(error -> {

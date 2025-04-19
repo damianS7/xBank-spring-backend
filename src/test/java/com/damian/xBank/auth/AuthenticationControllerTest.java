@@ -368,7 +368,6 @@ public class AuthenticationControllerTest {
 
         // given
         ProfileUpdateRequest request = new ProfileUpdateRequest(
-                customer.getProfile().getId(),
                 "david",
                 "white",
                 "123 123 123",
@@ -379,7 +378,6 @@ public class AuthenticationControllerTest {
                 "50120",
                 "USA",
                 "123123123Z",
-                customer.getId(),
                 this.rawPassword
         );
 
@@ -387,7 +385,7 @@ public class AuthenticationControllerTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/v1/profile/" + request.id())
+                        .put("/api/v1/profiles/" + customer.getProfile().getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken)
                         .content(jsonRequest))

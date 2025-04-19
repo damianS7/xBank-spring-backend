@@ -96,7 +96,7 @@ public class CustomerControllerTest {
 
     @Test
     void shouldGetCustomer() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/customer/" + customer.getId())
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/customers/" + customer.getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())

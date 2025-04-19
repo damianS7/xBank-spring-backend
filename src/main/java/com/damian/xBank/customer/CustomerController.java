@@ -24,7 +24,7 @@ public class CustomerController {
     }
 
     // endpoint to receive certain customer
-    @GetMapping("/customer/{id}")
+    @GetMapping("/customers/{id}")
     public ResponseEntity<?> getUser(@PathVariable Long id) {
         Customer customer = customerService.getCustomer(id);
 
@@ -34,7 +34,7 @@ public class CustomerController {
     }
 
     // endpoint to modify customers
-    @PutMapping("/customer/{id}")
+    @PutMapping("/customers/{id}")
     public ResponseEntity<?> updateUser(@Validated @RequestBody CustomerUpdateRequest request) {
         Customer customer = customerService.updateCustomer(request);
 
@@ -44,7 +44,7 @@ public class CustomerController {
     }
 
     // endpoint to receive all BankingAccounts from user
-    @GetMapping("/customer/{customer_id}/banking_accounts")
+    @GetMapping("/customers/{customer_id}/banking/accounts")
     public ResponseEntity<?> getCustomerBankingAccounts(@PathVariable Long customerId) {
         Set<BankingAccountDTO> bankingAccounts = bankingAccountService.getBankingAccounts(customerId);
 

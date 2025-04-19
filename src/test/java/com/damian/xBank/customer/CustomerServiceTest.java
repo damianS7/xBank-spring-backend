@@ -3,7 +3,7 @@ package com.damian.xBank.customer;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.customer.http.request.CustomerUpdateRequest;
-import com.damian.xBank.profile.CustomerGender;
+import com.damian.xBank.customer.profile.CustomerGender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-// Habilita Mockito en JUnit 5
+// TODO cleanup
 @ExtendWith(MockitoExtension.class)
 public class CustomerServiceTest {
 

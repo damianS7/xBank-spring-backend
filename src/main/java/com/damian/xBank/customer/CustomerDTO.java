@@ -1,7 +1,7 @@
 package com.damian.xBank.customer;
 
 import com.damian.xBank.banking.account.BankingAccountDTO;
-import com.damian.xBank.profile.ProfileDTO;
+import com.damian.xBank.customer.profile.ProfileDTO;
 
 import java.util.Set;
 

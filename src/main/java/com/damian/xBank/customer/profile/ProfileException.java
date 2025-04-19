@@ -1,4 +1,4 @@
-package com.damian.xBank.profile;
+package com.damian.xBank.customer.profile;
 
 //@ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "...")
 public class ProfileException extends RuntimeException {

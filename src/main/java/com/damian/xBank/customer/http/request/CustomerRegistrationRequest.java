@@ -1,6 +1,6 @@
 package com.damian.xBank.customer.http.request;
 
-import com.damian.xBank.profile.CustomerGender;
+import com.damian.xBank.customer.profile.CustomerGender;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

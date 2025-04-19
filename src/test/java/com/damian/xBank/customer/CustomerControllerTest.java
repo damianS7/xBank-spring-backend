@@ -2,7 +2,7 @@ package com.damian.xBank.customer;
 
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
-import com.damian.xBank.profile.CustomerGender;
+import com.damian.xBank.customer.profile.CustomerGender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;

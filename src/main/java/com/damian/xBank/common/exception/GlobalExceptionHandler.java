@@ -3,7 +3,7 @@ package com.damian.xBank.common.exception;
 import com.damian.xBank.auth.exception.AuthenticationException;
 import com.damian.xBank.auth.exception.AuthorizationException;
 import com.damian.xBank.banking.account.BankingAccountException;
-import com.damian.xBank.common.http.response.ApiResponse;
+import com.damian.xBank.common.http.ApiResponse;
 import com.damian.xBank.customer.exception.CustomerException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;

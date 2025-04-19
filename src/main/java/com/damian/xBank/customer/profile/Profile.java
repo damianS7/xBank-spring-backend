@@ -1,6 +1,6 @@
-package com.damian.xBank.profile;
+package com.damian.xBank.customer.profile;
 
-import com.damian.xBank.common.DTOBuilder;
+import com.damian.xBank.common.utils.DTOBuilder;
 import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
 

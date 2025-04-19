@@ -2,12 +2,12 @@ package com.damian.xBank.auth;
 
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
-import com.damian.xBank.profile.CustomerGender;
-import com.damian.xBank.profile.http.request.ProfileUpdateRequest;
-import com.damian.xBank.utils.JWTUtil;
+import com.damian.xBank.customer.profile.CustomerGender;
+import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;

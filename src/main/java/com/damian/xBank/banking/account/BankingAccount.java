@@ -1,7 +1,7 @@
 package com.damian.xBank.banking.account;
 
 import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
-import com.damian.xBank.common.DTOBuilder;
+import com.damian.xBank.common.utils.DTOBuilder;
 import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
 

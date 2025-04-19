@@ -1,4 +1,4 @@
-package com.damian.xBank.utils;
+package com.damian.xBank.common.utils;
 
 import com.damian.xBank.customer.CustomerDetails;
 import io.jsonwebtoken.Claims;

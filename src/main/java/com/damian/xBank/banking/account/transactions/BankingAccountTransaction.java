@@ -1,7 +1,7 @@
 package com.damian.xBank.banking.account.transactions;
 
 import com.damian.xBank.banking.account.BankingAccount;
-import com.damian.xBank.common.DTOBuilder;
+import com.damian.xBank.common.utils.DTOBuilder;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;

@@ -2,6 +2,9 @@ package com.damian.xBank.profile;
 
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
+import com.damian.xBank.customer.profile.CustomerGender;
+import com.damian.xBank.customer.profile.Profile;
+import com.damian.xBank.customer.profile.ProfileRepository;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

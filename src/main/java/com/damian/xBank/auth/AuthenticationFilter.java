@@ -2,9 +2,9 @@ package com.damian.xBank.auth;
 
 
 import com.damian.xBank.auth.exception.JwtAuthenticationException;
+import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.CustomerDetails;
 import com.damian.xBank.customer.CustomerDetailsService;
-import com.damian.xBank.utils.JWTUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

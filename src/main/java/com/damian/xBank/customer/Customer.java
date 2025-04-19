@@ -2,8 +2,8 @@ package com.damian.xBank.customer;
 
 import com.damian.xBank.auth.Auth;
 import com.damian.xBank.banking.account.BankingAccount;
-import com.damian.xBank.common.DTOBuilder;
-import com.damian.xBank.profile.Profile;
+import com.damian.xBank.common.utils.DTOBuilder;
+import com.damian.xBank.customer.profile.Profile;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

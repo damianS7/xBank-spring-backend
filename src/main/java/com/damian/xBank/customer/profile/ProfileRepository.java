@@ -1,4 +1,4 @@
-package com.damian.xBank.profile;
+package com.damian.xBank.customer.profile;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

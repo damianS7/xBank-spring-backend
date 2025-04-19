@@ -1,6 +1,6 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.common.DTOBuilder;
+import com.damian.xBank.common.utils.DTOBuilder;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.customer.http.request.CustomerUpdateRequest;

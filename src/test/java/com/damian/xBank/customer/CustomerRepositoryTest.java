@@ -6,7 +6,7 @@ import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountCurrency;
 import com.damian.xBank.banking.account.BankingAccountRepository;
 import com.damian.xBank.banking.account.BankingAccountType;
-import com.damian.xBank.profile.CustomerGender;
+import com.damian.xBank.customer.profile.CustomerGender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,9 +1,9 @@
-package com.damian.xBank.profile;
+package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.auth.exception.AuthorizationException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.exception.CustomerException;
-import com.damian.xBank.profile.http.request.ProfileUpdateRequest;
+import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;

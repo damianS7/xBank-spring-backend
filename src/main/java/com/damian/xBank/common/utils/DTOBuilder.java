@@ -1,4 +1,4 @@
-package com.damian.xBank.common;
+package com.damian.xBank.common.utils;
 
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountDTO;
@@ -8,8 +8,8 @@ import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.card.BankingCardDTO;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerDTO;
-import com.damian.xBank.profile.Profile;
-import com.damian.xBank.profile.ProfileDTO;
+import com.damian.xBank.customer.profile.Profile;
+import com.damian.xBank.customer.profile.ProfileDTO;
 
 import java.util.stream.Collectors;
 

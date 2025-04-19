@@ -1,6 +1,6 @@
 package com.damian.xBank.banking.account;
 
-import com.damian.xBank.banking.transactions.BankingAccountTransactionDTO;
+import com.damian.xBank.banking.account.transactions.BankingAccountTransactionDTO;
 
 import java.math.BigDecimal;
 import java.time.Instant;

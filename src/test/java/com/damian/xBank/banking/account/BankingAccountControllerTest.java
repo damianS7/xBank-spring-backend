@@ -19,7 +19,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -40,7 +39,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestPropertySource(properties = "JWT_SECRET_KEY=THIS-IS-A-BIG-SECRET!-KEEP-IT-SAFE")
 public class BankingAccountControllerTest {
     private final String rawPassword = "123456";
 
@@ -160,7 +158,7 @@ public class BankingAccountControllerTest {
         bankingAccountRepository.save(bankingAccount1);
         bankingAccountRepository.save(bankingAccount2);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/customer/" + customerA.getId())
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/customers/" + customerA.getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
                 .andExpect(status().isOk())

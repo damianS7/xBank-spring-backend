@@ -34,7 +34,7 @@ public record CustomerRegistrationRequest(
         @NotNull(message = "Birthdate must not be null.")
         LocalDate birthdate,
 
-        @NotNull
+        @NotNull(message = "Gender must not be null")
         CustomerGender gender,
 
         String photo,

@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 public record CustomerUpdateRequest(
-        @NotBlank
-        @Email
+        @NotBlank(message = "Email must not be blank")
+        @Email(message = "Email must be a well-formed email address.")
         String newEmail,
 
         @NotBlank

@@ -2,10 +2,10 @@ package com.damian.xBank.common;
 
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountDTO;
+import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
+import com.damian.xBank.banking.account.transactions.BankingAccountTransactionDTO;
 import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.card.BankingCardDTO;
-import com.damian.xBank.banking.transactions.BankingAccountTransaction;
-import com.damian.xBank.banking.transactions.BankingAccountTransactionDTO;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerDTO;
 import com.damian.xBank.profile.Profile;
@@ -63,6 +63,7 @@ public class DTOBuilder {
                 accountTransaction.getAmount(),
                 accountTransaction.getTransactionType(),
                 accountTransaction.getTransactionStatus(),
+                accountTransaction.getDescription(),
                 accountTransaction.getCreatedAt()
         );
     }

@@ -1,7 +1,11 @@
 package com.damian.xBank.banking.account;
 
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
+import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountUpdateRequest;
+import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +22,20 @@ public class BankingAccountController {
         this.bankingAccountService = bankingAccountService;
     }
 
+    // endpoint to generate a transactions for of certain account
+    @PostMapping("/banking/accounts/{id}/transactions")
+    public ResponseEntity<?> createTransaction(
+            @PathVariable @NotNull(message = "This field cannot be null") @Positive Long id,
+            @Validated @RequestBody BankingAccountTransactionCreateRequest request) {
+        BankingAccountTransaction bankingAccountTransaction = bankingAccountService.createTransaction(id, request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(bankingAccountTransaction.getOwnerAccount().toDTO());
+    }
+
     // endpoint to modify a BankingAccount
-    @PutMapping("/banking_account/{id}")
+    @PutMapping("/banking/accounts/{id}")
     public ResponseEntity<?> updateBankingAccount(@Validated @RequestBody BankingAccountUpdateRequest request) {
         BankingAccount bankingAccount = bankingAccountService.updateBankingAccount(request);
 
@@ -29,7 +45,7 @@ public class BankingAccountController {
     }
 
     // endpoint to open a new BankingAccount
-    @PostMapping("/banking_account/open")
+    @PostMapping("/banking/accounts/open")
     public ResponseEntity<?> openBankingAccount(@Validated @RequestBody BankingAccountOpenRequest request) {
         BankingAccount bankingAccount = bankingAccountService.openBankingAccount(request);
 
@@ -39,7 +55,7 @@ public class BankingAccountController {
     }
 
     // endpoint to open a new BankingAccount
-    @GetMapping("/banking_account/{id}/close")
+    @GetMapping("/banking/accounts/{id}/close")
     public ResponseEntity<?> closeBankingAccount(@PathVariable Long id) {
         BankingAccount bankingAccount = bankingAccountService.closeBankingAccount(id);
 

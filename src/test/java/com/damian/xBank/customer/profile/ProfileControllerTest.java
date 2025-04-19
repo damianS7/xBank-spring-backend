@@ -136,7 +136,7 @@ public class ProfileControllerTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
-    //    @Test
+    @Test
     void shouldNotUpdateProfileWhenAnyFieldIsEmpty() throws Exception {
         // given
         ProfileUpdateRequest request = new ProfileUpdateRequest(
@@ -166,7 +166,7 @@ public class ProfileControllerTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
-    //    @Test
+    @Test
     void shouldNotUpdateProfileWhenAnyFieldIsNull() throws Exception {
         // given
         ProfileUpdateRequest request = new ProfileUpdateRequest(

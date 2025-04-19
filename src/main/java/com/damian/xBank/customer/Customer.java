@@ -132,6 +132,10 @@ public class Customer implements CustomerDetails {
         return profile;
     }
 
+    public String getFullName() {
+        return getProfile().getName() + " " + getProfile().getSurname();
+    }
+
     public void setProfile(Profile profile) {
         this.profile = profile;
     }

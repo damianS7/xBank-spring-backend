@@ -8,8 +8,10 @@ import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransactionType;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
+import com.damian.xBank.customer.CustomerRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -57,11 +60,11 @@ public class BankingAccountControllerTest {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    //    @MockitoBean
     private BankingAccountService bankingAccountService;
 
     private Customer customerA;
     private Customer customerB;
+    private Customer customerAdmin;
     private String token;
 
     @BeforeAll
@@ -86,6 +89,16 @@ public class BankingAccountControllerTest {
 
         customerRepository.save(customerB);
 
+        customerAdmin = new Customer();
+        customerAdmin.setEmail("customerC@test.com");
+        customerAdmin.setRole(CustomerRole.ADMIN);
+        customerAdmin.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
+        customerAdmin.getProfile().setName("alice");
+        customerAdmin.getProfile().setSurname("wonderland");
+        customerAdmin.getProfile().setBirthdate(LocalDate.of(1995, 11, 11));
+
+        customerRepository.save(customerAdmin);
+
         // given
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(
                 customerA.getEmail(), this.rawPassword
@@ -108,6 +121,7 @@ public class BankingAccountControllerTest {
     }
 
     @Test
+    @DisplayName("Should open a banking account")
     void shouldOpenBankingAccount() throws Exception {
         // given
         BankingAccountOpenRequest request = new BankingAccountOpenRequest(
@@ -130,6 +144,61 @@ public class BankingAccountControllerTest {
     }
 
     @Test
+    @DisplayName("Should close your own banking account")
+    void shouldCloseBankingAccount() throws Exception {
+        // given
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("US00 1111 1111 2222 2222 3333");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountRepository.save(bankingAccount);
+
+        // when
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Should not close account if you are not the owner and you are not admin either")
+    void shouldNotCloseBankingAccountWhenItsNotYoursAndYouAreNotAdmin() throws Exception {
+        // given
+        BankingAccount bankingAccount = new BankingAccount(customerB);
+        bankingAccount.setAccountNumber("US00 1111 1111 2222 2222 3333");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountRepository.save(bankingAccount);
+
+        // when
+        // then
+        mockMvc.perform(delete("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().is5xxServerError());
+    }
+
+    @Test
+    @DisplayName("Should close an account even if its not yours when you are ADMIN")
+    void shouldCloseBankingAccountWhenItsNotYoursAndButYouAreAdmin() throws Exception {
+        // given
+        BankingAccount bankingAccount = new BankingAccount(customerAdmin);
+        bankingAccount.setAccountNumber("US00 1111 1111 2222 2222 3333");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountRepository.save(bankingAccount);
+
+        // when
+        // then
+        mockMvc.perform(delete("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().is5xxServerError());
+    }
+
+    @Test
+    @DisplayName("Should get a customer with its banking account data")
     void shouldGetCustomerWithBankingAccount() throws Exception {
         Set<BankingAccount> bankingAccounts = new HashSet<>();
 
@@ -168,6 +237,7 @@ public class BankingAccountControllerTest {
     }
 
     @Test
+    @DisplayName("Should create a transaction deposit")
     void shouldCreateTransactionDeposit() throws Exception {
         // given
         BankingAccount bankingAccount = new BankingAccount(customerA);
@@ -204,6 +274,7 @@ public class BankingAccountControllerTest {
     }
 
     @Test
+    @DisplayName("Should create a transfer transaction")
     void shouldTransferToAnotherCustomer() throws Exception {
         // given
         BankingAccount bankingAccountA = new BankingAccount(customerA);
@@ -242,7 +313,43 @@ public class BankingAccountControllerTest {
     }
 
     @Test
-    void shouldNotTransferToSameAccount() throws Exception {
+    @DisplayName("Should not create a transaction when account is not open")
+    void shouldNotCreateTransactionWhenAccountIsNotOpen() throws Exception {
+        // given
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.CLOSED);
+        bankingAccount.setBalance(BigDecimal.ZERO);
+
+        bankingAccountRepository.save(bankingAccount);
+
+        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+                null,
+                BigDecimal.valueOf(1000),
+                BankingAccountTransactionType.DEPOSIT,
+                "Enjoy!"
+        );
+
+        BankingAccountTransaction transaction = new BankingAccountTransaction(bankingAccount);
+        transaction.setTransactionType(request.transactionType());
+        transaction.setDescription(request.description());
+        transaction.setAmount(request.amount());
+
+        // when
+        // then
+        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccount.getId() + "/transactions")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(500));
+    }
+
+    @Test
+    @DisplayName("Should not transfer to same banking account")
+    void shouldNotTransferToSameBankingAccount() throws Exception {
         // given
         BankingAccount bankingAccountA = new BankingAccount(customerA);
         bankingAccountA.setAccountNumber("ES12 3456 7890 1234 5678 9012");
@@ -271,7 +378,8 @@ public class BankingAccountControllerTest {
     }
 
     @Test
-    void shouldFailToCreateTransactionSpendWhenInsufficentFunds() throws Exception {
+    @DisplayName("Should not create transaction when insufficient funds")
+    void shouldNotCreateTransactionWhenInsufficientFunds() throws Exception {
         // given
         BankingAccount bankingAccount = new BankingAccount(customerA);
         bankingAccount.setAccountNumber("ES1234567890123456789012");

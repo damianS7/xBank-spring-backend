@@ -2,7 +2,6 @@ package com.damian.xBank.banking.account;
 
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
-import com.damian.xBank.banking.account.http.request.BankingAccountUpdateRequest;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -34,19 +33,11 @@ public class BankingAccountController {
                 .body(bankingAccountTransaction.getOwnerAccount().toDTO());
     }
 
-    // endpoint to modify a BankingAccount
-    @PutMapping("/banking/accounts/{id}")
-    public ResponseEntity<?> updateBankingAccount(@Validated @RequestBody BankingAccountUpdateRequest request) {
-        BankingAccount bankingAccount = bankingAccountService.updateBankingAccount(request);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(bankingAccount.toDTO());
-    }
-
     // endpoint to open a new BankingAccount
     @PostMapping("/banking/accounts/open")
-    public ResponseEntity<?> openBankingAccount(@Validated @RequestBody BankingAccountOpenRequest request) {
+    public ResponseEntity<?> openBankingAccount(
+            @Validated @RequestBody
+            BankingAccountOpenRequest request) {
         BankingAccount bankingAccount = bankingAccountService.openBankingAccount(request);
 
         return ResponseEntity
@@ -54,9 +45,11 @@ public class BankingAccountController {
                 .body(bankingAccount.toDTO());
     }
 
-    // endpoint to open a new BankingAccount
+    // endpoint to close a BankingAccount
     @GetMapping("/banking/accounts/{id}/close")
-    public ResponseEntity<?> closeBankingAccount(@PathVariable Long id) {
+    public ResponseEntity<?> closeBankingAccount(
+            @PathVariable @NotNull @Positive
+            Long id) {
         BankingAccount bankingAccount = bankingAccountService.closeBankingAccount(id);
 
         return ResponseEntity

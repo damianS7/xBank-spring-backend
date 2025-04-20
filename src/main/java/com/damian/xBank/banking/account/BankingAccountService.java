@@ -2,11 +2,11 @@ package com.damian.xBank.banking.account;
 
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
-import com.damian.xBank.banking.account.http.request.BankingAccountUpdateRequest;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransactionType;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
+import com.damian.xBank.customer.CustomerRole;
 import com.damian.xBank.customer.exception.CustomerException;
 import net.datafaker.Faker;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,7 +40,7 @@ public class BankingAccountService {
             BankingAccountTransactionCreateRequest request) {
         final boolean isTransfer = request.transactionType().equals(BankingAccountTransactionType.TRANSFER_TO);
 
-        // if it is not a transter we just create one transaction
+        // if it is not a transfer we just create one transaction.
         if (!isTransfer) {
             return this.createTransaction(
                     bankingAccountId_from,
@@ -50,15 +50,15 @@ public class BankingAccountService {
             );
         }
 
-        // this is a transter from bankingAccountId_source to bankingAccountId_to
-        // we check the receiver id is defined in the request and its not null
+        // this is a transfer from bankingAccountId_source to bankingAccountId_to
+        // we check the receiver ID is defined in the request, and it's not null.
         if (request.bankingAccountId_to() == null) {
             throw new BankingAccountException("Receiver id cannot be null");
         }
 
-        // check that you are no sending to same acc
+        // check that you are no sending to same banking account
         if (bankingAccountId_from.equals(request.bankingAccountId_to())) {
-            throw new BankingAccountException("You cannot transfer to the same account");
+            throw new BankingAccountException("You cannot transfer to the same banking account");
         }
 
         // we check if the banking account receiver exists
@@ -92,11 +92,15 @@ public class BankingAccountService {
             Long bankingAccountId,
             BigDecimal amount,
             BankingAccountTransactionType transactionType,
-            String description
-    ) {
+            String description) {
         BankingAccount customerBankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
                 () -> new BankingAccountException("Banking Account not found")
         );
+
+        // check if the account is not locked or closed
+        if (!customerBankingAccount.getAccountStatus().equals(BankingAccountStatus.OPEN)) {
+            throw new BankingAccountException("Banking account should be open to carry any transaction");
+        }
 
         // if the transaction is to spend from the account
         if (transactionType.equals(BankingAccountTransactionType.WITHDRAWAL)
@@ -154,10 +158,6 @@ public class BankingAccountService {
         ).collect(Collectors.toSet());
     }
 
-    public BankingAccount updateBankingAccount(BankingAccountUpdateRequest request) {
-        return null;
-    }
-
     public BankingAccount openBankingAccount(BankingAccountOpenRequest request) {
         // we extract the email from the Customer stored in the SecurityContext
         final Customer customerLogged = (Customer) SecurityContextHolder
@@ -186,17 +186,22 @@ public class BankingAccountService {
                 .getAuthentication()
                 .getPrincipal();
 
-        // we get the Customer entity so we can save at the end
-        final Customer customer = customerRepository.findByEmail(customerLogged.getEmail()).orElseThrow(
-                () -> new CustomerException("Customer cannot be found")
-        );
-
         final BankingAccount bankingAccount = bankingAccountRepository.findById(id).orElseThrow(
                 () -> new BankingAccountException("BankingAccount cannot be found")
         );
 
+        // check if the account to be closed belongs to this customer.
+        if (!bankingAccount.getCustomer().getId().equals(customerLogged.getId())) {
+            // in case CustomerRole.ADMIN it will no throw
+            if (customerLogged.getRole().equals(CustomerRole.CUSTOMER)) {
+                throw new BankingAccountException("You cannot close an account that is not yours");
+            }
+        }
+
+        // we mark the account as closed
         bankingAccount.setAccountStatus(BankingAccountStatus.CLOSED);
 
+        // save the data and return BankingAccount
         return bankingAccountRepository.save(bankingAccount);
     }
 

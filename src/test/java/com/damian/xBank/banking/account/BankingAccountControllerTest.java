@@ -32,7 +32,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -173,7 +173,7 @@ public class BankingAccountControllerTest {
 
         // when
         // then
-        mockMvc.perform(delete("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
+        mockMvc.perform(get("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
                 .andExpect(status().is5xxServerError());
@@ -191,7 +191,7 @@ public class BankingAccountControllerTest {
 
         // when
         // then
-        mockMvc.perform(delete("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
+        mockMvc.perform(get("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
                 .andExpect(status().is5xxServerError());

@@ -20,11 +20,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class BankingAccountService {
-
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final BankingAccountRepository bankingAccountRepository;
     private final CustomerRepository customerRepository;
-
     private final Faker faker;
 
     public BankingAccountService(BCryptPasswordEncoder bCryptPasswordEncoder, BankingAccountRepository bankingAccountRepository, CustomerRepository customerRepository, Faker faker) {
@@ -34,111 +32,171 @@ public class BankingAccountService {
         this.faker = faker;
     }
 
-    // create a new transaction
-    public BankingAccountTransaction createTransaction(
-            Long bankingAccountId_from,
+    // just check the request and pass it
+    @Transactional
+    public BankingAccountTransaction handleCreateTransactionRequest(
+            Long fromBankingAccountId,
             BankingAccountTransactionCreateRequest request) {
-        final boolean isTransfer = request.transactionType().equals(BankingAccountTransactionType.TRANSFER_TO);
 
-        // if it is not a transfer we just create one transaction.
-        if (!isTransfer) {
-            return this.createTransaction(
-                    bankingAccountId_from,
-                    request.amount(),
-                    request.transactionType(),
-                    request.description()
-            );
+        // checking for null for testing purposes since it is already validated in controller
+        if (fromBankingAccountId == null) {
+            throw new BankingAccountException("Banking account id cannot be null");
         }
 
-        // this is a transfer from bankingAccountId_source to bankingAccountId_to
-        // we check the receiver ID is defined in the request, and it's not null.
-        if (request.bankingAccountId_to() == null) {
-            throw new BankingAccountException("Receiver id cannot be null");
+        // check if it is a transfer to another account
+        if (isTransfer(request.transactionType())) {
+
+            // a transfer to another account must have an id
+            if (request.bankingAccountId_to() == null) {
+                throw new BankingAccountException("A transfer must contain the receiver id");
+            }
+
+            // check that you are no sending to same banking account
+            if (fromBankingAccountId.equals(request.bankingAccountId_to())) {
+                throw new BankingAccountException("You cannot transfer to the same banking account");
+            }
         }
 
-        // check that you are no sending to same banking account
-        if (bankingAccountId_from.equals(request.bankingAccountId_to())) {
-            throw new BankingAccountException("You cannot transfer to the same banking account");
-        }
-
-        // we check if the banking account receiver exists
-        BankingAccount toBankingAccount = bankingAccountRepository.findById(request.bankingAccountId_to())
-                .orElseThrow(
-                        () -> new BankingAccountException("Destination banking account not found")
-                );
-
-        // we create the senderTransaction for the sender
-        BankingAccountTransaction senderTransaction = this.createTransaction(
-                bankingAccountId_from,
+        return createTransactionByType(
+                fromBankingAccountId,
+                request.bankingAccountId_to(),
                 request.amount(),
                 request.transactionType(),
                 request.description()
         );
+    }
 
-        // we create a secondary senderTransaction for the receiver.
-        this.createTransaction(
-                request.bankingAccountId_to(),
-                request.amount(),
-                BankingAccountTransactionType.TRANSFER_FROM,
-                "Transfer from " + toBankingAccount.getCustomer().getFullName().toUpperCase()
+    private BankingAccountTransaction createTransactionByType(
+            Long fromBankAccountId,
+            Long toBankAccountId,
+            BigDecimal amount,
+            BankingAccountTransactionType transactionType,
+            String description
+    ) {
+        // if its transfer
+        return switch (transactionType) {
+            case TRANSFER_TO -> this.createTransferTransaction(
+                    fromBankAccountId,
+                    toBankAccountId,
+                    amount,
+                    transactionType,
+                    description
+            );
+            default -> this.validateAndCreateTransaction(fromBankAccountId, amount, transactionType, description);
+        };
+    }
+
+    private BankingAccountTransaction createTransferTransaction(
+            Long fromBankAccountId,
+            Long toBankAccountId,
+            BigDecimal amount,
+            BankingAccountTransactionType transactionType,
+            String description
+    ) {
+        BankingAccountTransaction senderTransaction = validateAndCreateTransaction(
+                fromBankAccountId,
+                amount,
+                transactionType,
+                description
         );
 
-        // we return the senderTransaction that would be returned to the customer
+        // receiver
+        validateAndCreateTransaction(
+                toBankAccountId,
+                amount,
+                BankingAccountTransactionType.TRANSFER_FROM,
+                "Transfer from "
+                        + senderTransaction.getOwnerAccount().getCustomer().getFullName().toUpperCase()
+        );
         return senderTransaction;
     }
 
-    @Transactional
-    public BankingAccountTransaction createTransaction(
+    private BankingAccountTransaction validateAndCreateTransaction(
             Long bankingAccountId,
             BigDecimal amount,
             BankingAccountTransactionType transactionType,
-            String description) {
-        BankingAccount customerBankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
-                () -> new BankingAccountException("Banking Account not found")
-        );
+            String description
+    ) {
+        // check if the banking account exists
+        final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId)
+                .orElseThrow(
+                        () -> new BankingAccountException("Banking Account not found")
+                );
 
         // check if the account is not locked or closed
-        if (!customerBankingAccount.getAccountStatus().equals(BankingAccountStatus.OPEN)) {
+        if (!bankingAccount.getAccountStatus().equals(BankingAccountStatus.OPEN)) {
             throw new BankingAccountException("Banking account should be open to carry any transaction");
         }
 
-        // if the transaction is to spend from the account
-        if (transactionType.equals(BankingAccountTransactionType.WITHDRAWAL)
-                || transactionType.equals(BankingAccountTransactionType.CARD_CHARGE)
-                || transactionType.equals(BankingAccountTransactionType.TRANSFER_TO)) {
+        //
+        final boolean isSpendingTransactionType =
+                transactionType.equals(BankingAccountTransactionType.WITHDRAWAL)
+                        || transactionType.equals(BankingAccountTransactionType.TRANSFER_TO)
+                        || transactionType.equals(BankingAccountTransactionType.CARD_CHARGE);
+
+        // ...
+        if (isSpendingTransactionType) {
+            // check if the customer associated to the account has the same id that the logged customer
+            // get logged customer from the context
+            final Customer customerLogged = (Customer) SecurityContextHolder
+                    .getContext()
+                    .getAuthentication()
+                    .getPrincipal();
+
+            // check if the account belongs to the customer
+            if (!bankingAccount.getCustomer().getId().equals(customerLogged.getId())) {
+                throw new BankingAccountException("This accounts is not yours!");
+            }
 
             // check if customer can afford the transaction
-            if (!this.hasSufficientBalance(customerBankingAccount.getBalance(), amount)) {
+            if (!this.hasSufficientBalance(bankingAccount.getBalance(), amount)) {
                 throw new BankingAccountException("Insufficient funds");
             }
 
             // deduce the amount from the balance
-            customerBankingAccount.setBalance(
-                    customerBankingAccount.getBalance().subtract(amount)
+            bankingAccount.setBalance(
+                    bankingAccount.getBalance().subtract(amount)
             );
+
         }
+
+        final boolean isReceivingFundsTransactionType =
+                transactionType.equals(BankingAccountTransactionType.DEPOSIT)
+                        || transactionType.equals(BankingAccountTransactionType.TRANSFER_FROM);
 
         // if the transaction is receive to customer account
-        if (transactionType.equals(BankingAccountTransactionType.DEPOSIT)
-                || transactionType.equals(BankingAccountTransactionType.TRANSFER_FROM)) {
-
+        if (isReceivingFundsTransactionType) {
             // add the amount to the balance
-            customerBankingAccount.setBalance(
-                    customerBankingAccount.getBalance().add(amount)
+            bankingAccount.setBalance(
+                    bankingAccount.getBalance().add(amount)
             );
         }
 
+        return this.storeTransaction(
+                bankingAccount,
+                transactionType,
+                amount,
+                description
+        );
+    }
+
+    private BankingAccountTransaction storeTransaction(
+            BankingAccount bankingAccount,
+            BankingAccountTransactionType transactionType,
+            BigDecimal amount,
+            String description
+    ) {
         // we create the transaction in order to save it
-        BankingAccountTransaction transaction = new BankingAccountTransaction(customerBankingAccount);
+        BankingAccountTransaction transaction = new BankingAccountTransaction(bankingAccount);
         transaction.setTransactionType(transactionType);
         transaction.setAmount(amount);
         transaction.setDescription(description);
 
         // we add the transaction to the account
-        customerBankingAccount.addAccountTransaction(transaction);
+        bankingAccount.addAccountTransaction(transaction);
 
         // we save the transaction
-        bankingAccountRepository.save(customerBankingAccount);
+        bankingAccountRepository.save(bankingAccount);
 
         // we return the created transaction
         return transaction;
@@ -180,7 +238,7 @@ public class BankingAccountService {
     }
 
     public BankingAccount closeBankingAccount(Long id) {
-        // we extract the email from the Customer stored in the SecurityContext
+        // ...
         final Customer customerLogged = (Customer) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
@@ -203,6 +261,10 @@ public class BankingAccountService {
 
         // save the data and return BankingAccount
         return bankingAccountRepository.save(bankingAccount);
+    }
+
+    private boolean isTransfer(BankingAccountTransactionType transactionType) {
+        return transactionType.equals(BankingAccountTransactionType.TRANSFER_TO);
     }
 
     public String generateAccountNumber() {

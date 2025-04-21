@@ -26,7 +26,7 @@ public class BankingAccountController {
     public ResponseEntity<?> createTransaction(
             @PathVariable @NotNull(message = "This field cannot be null") @Positive Long id,
             @Validated @RequestBody BankingAccountTransactionCreateRequest request) {
-        BankingAccountTransaction bankingAccountTransaction = bankingAccountService.createTransaction(id, request);
+        BankingAccountTransaction bankingAccountTransaction = bankingAccountService.handleCreateTransactionRequest(id, request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

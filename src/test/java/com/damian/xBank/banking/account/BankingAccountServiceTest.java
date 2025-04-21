@@ -485,9 +485,33 @@ public class BankingAccountServiceTest {
         assertThat(bankingAccountA.getBalance()).isEqualTo(BigDecimal.valueOf(bankingAccountA_StartBalance));
     }
 
-    //    @DisplayName("Should test @Transactional")
-//    @DisplayName("Should check destination account")
-    // test @transactional
-    // test null ids
-    // test account its yours
+    @Test
+    @DisplayName("Should throw BankingAccountException when fromBankingAccountId is null")
+    public void shouldThrowExceptionWhenFromBankingAccountIdIsNull() {
+        // Given
+        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+                1L, // Assuming a valid banking account ID for the transaction
+                BigDecimal.valueOf(100),
+                BankingAccountTransactionType.TRANSFER_TO,
+                "Test Transaction"
+        );
+
+        // When & Then
+        assertThrows(BankingAccountException.class, () -> {
+            bankingAccountService.handleCreateTransactionRequest(null, request);
+        });
+    }
+
+    @Test
+    @DisplayName("Should throw BankingAccountException when request is null")
+    public void shouldThrowExceptionWhenRequestIsNull() {
+        // Given
+        Long fromBankingAccountId = 1L; // Assuming a valid banking account ID
+
+        // When & Then
+        assertThrows(BankingAccountException.class, () -> {
+            bankingAccountService.handleCreateTransactionRequest(fromBankingAccountId, null);
+        });
+    }
+
 }

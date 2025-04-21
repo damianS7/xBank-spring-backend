@@ -51,6 +51,11 @@ public class BankingAccountService {
             throw new BankingAccountException("Banking account id cannot be null");
         }
 
+        // validate that the request is not null
+        if (request == null) {
+            throw new BankingAccountException("Request cannot be null");
+        }
+
         // Check if the transaction is a transfer
         if (isTransfer(request.transactionType())) {
 

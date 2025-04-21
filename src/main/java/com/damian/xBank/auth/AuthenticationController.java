@@ -25,17 +25,21 @@ public class AuthenticationController {
 
     // endpoint for registration
     @PostMapping("register")
-    public ResponseEntity<?> register(@Validated @RequestBody CustomerRegistrationRequest request) {
-        Customer customer = authenticationService.register(request);
+    public ResponseEntity<?> register(
+            @Validated @RequestBody
+            CustomerRegistrationRequest request) {
+        Customer registeredCustomer = authenticationService.register(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(customer.toDTO());
+                .body(registeredCustomer.toDTO());
     }
 
     // endpoint for login
     @PostMapping("login")
-    public ResponseEntity<?> login(@Validated @RequestBody AuthenticationRequest request) {
+    public ResponseEntity<?> login(
+            @Validated @RequestBody
+            AuthenticationRequest request) {
         AuthenticationResponse authResponse = authenticationService.login(request);
 
         return ResponseEntity

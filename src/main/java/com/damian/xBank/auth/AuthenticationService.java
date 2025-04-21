@@ -24,12 +24,19 @@ public class AuthenticationService {
         this.customerService = customerService;
     }
 
+    /**
+     * Register a new customer.
+     *
+     * @param request Contains the fields needed for the customer creation
+     * @return The customer created
+     */
     public Customer register(CustomerRegistrationRequest request) {
+        // It uses the customer service to create a new customer
         return customerService.createCustomer(request);
     }
 
     /**
-     * It controls the login flow
+     * Controls the login flow.
      *
      * @param request Contains the fields needed to login into the service
      * @return Contains the data (Customer, Profile) and the token
@@ -39,6 +46,7 @@ public class AuthenticationService {
         final String email = request.email();
         final String password = request.password();
 
+        // Authenticate the user
         Authentication auth;
 
         try {
@@ -50,16 +58,16 @@ public class AuthenticationService {
             throw new AuthenticationException("Bad credentials"); // 403 Forbidden
         }
 
-        // Token generation
+        // Generate a token for the authenticated user
         final String token = jwtUtil.generateToken(email);
 
-        // id from the authenticated customer
+        // Get the id from the authenticated customer
         Long customerId = ((Customer) auth.getPrincipal()).getId();
 
-        // fetch the customer logged from the service
+        // Fetch the customer logged from the service
         Customer customer = customerService.getCustomer(customerId);
 
-        // Enviamos al usuario de vuelta los datos necesarios para el cliente
+        // Return the customer data and the token
         return new AuthenticationResponse(
                 customer.toDTO(), token
         );

@@ -2,18 +2,15 @@ package com.damian.xBank.auth.http.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 /**
  * Request with required fields for login
  */
 public record AuthenticationRequest(
-        @NotNull
-        @NotBlank
-        @Email
+        @NotBlank(message = "Email must not be blank")
+        @Email(message = "Email must be a well-formed email address.")
         String email,
 
-        @NotNull
-        @NotBlank
+        @NotBlank(message = "Password must not be blank")
         String password) {
 }

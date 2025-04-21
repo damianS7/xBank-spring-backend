@@ -21,7 +21,8 @@ public class BankingAccount {
     @JoinColumn(name = "customer_id", referencedColumnName = "id", nullable = false)
     private Customer customer;
 
-    @OneToMany(mappedBy = "ownerAccount", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "ownerAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+//    @OneToMany(mappedBy = "ownerAccount", cascade = CascadeType.ALL)
     private Set<BankingAccountTransaction> accountTransactions;
 
     @Column(length = 32, nullable = false)

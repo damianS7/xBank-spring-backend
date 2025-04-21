@@ -32,32 +32,41 @@ public class BankingAccountService {
         this.faker = faker;
     }
 
-    // just check the request and pass it
-    @Transactional
+    /**
+     * Handles the creation of a banking account transaction.
+     * This method checks the validity of the transaction request and processes it.
+     *
+     * @param fromBankingAccountId the ID of the source banking account
+     * @param request              the transaction request containing details of the transaction
+     * @return the created BankingAccountTransaction
+     * @throws BankingAccountException if any validation fails
+     */
+    @Transactional(rollbackFor = BankingAccountException.class)
     public BankingAccountTransaction handleCreateTransactionRequest(
             Long fromBankingAccountId,
             BankingAccountTransactionCreateRequest request) {
 
-        // checking for null for testing purposes since it is already validated in controller
+        // Validate that the source banking account ID is not null
         if (fromBankingAccountId == null) {
             throw new BankingAccountException("Banking account id cannot be null");
         }
 
-        // check if it is a transfer to another account
+        // Check if the transaction is a transfer
         if (isTransfer(request.transactionType())) {
 
-            // a transfer to another account must have an id
+            // Validate that the transfer request contains a receiver ID
             if (request.bankingAccountId_to() == null) {
                 throw new BankingAccountException("A transfer must contain the receiver id");
             }
 
-            // check that you are no sending to same banking account
+            // Ensure that the transfer is not to the same banking account
             if (fromBankingAccountId.equals(request.bankingAccountId_to())) {
                 throw new BankingAccountException("You cannot transfer to the same banking account");
             }
         }
 
-        return createTransactionByType(
+        // Generate and return the transaction
+        return generateTransaction(
                 fromBankingAccountId,
                 request.bankingAccountId_to(),
                 request.amount(),
@@ -66,59 +75,74 @@ public class BankingAccountService {
         );
     }
 
-    private BankingAccountTransaction createTransactionByType(
+    /**
+     * Creates a BankingAccountTransaction and persists it. If the transaction is of type
+     * {@link BankingAccountTransactionType#TRANSFER_TO}, it also creates and persists a second transaction of type
+     * {@link BankingAccountTransactionType#TRANSFER_FROM} for the destination account.
+     *
+     * @param fromBankAccountId the ID of the source banking account
+     * @param toBankAccountId   the ID of the destination banking account, or null if not a transfer
+     * @param amount            the amount of the transaction
+     * @param transactionType   the type of the transaction
+     * @param description       the description of the transaction
+     * @return the created BankingAccountTransaction
+     */
+    private BankingAccountTransaction generateTransaction(
             Long fromBankAccountId,
             Long toBankAccountId,
             BigDecimal amount,
             BankingAccountTransactionType transactionType,
             String description
     ) {
-        // if its transfer
-        return switch (transactionType) {
-            case TRANSFER_TO -> this.createTransferTransaction(
-                    fromBankAccountId,
-                    toBankAccountId,
-                    amount,
-                    transactionType,
-                    description
-            );
-            default -> this.validateAndCreateTransaction(fromBankAccountId, amount, transactionType, description);
-        };
-    }
 
-    private BankingAccountTransaction createTransferTransaction(
-            Long fromBankAccountId,
-            Long toBankAccountId,
-            BigDecimal amount,
-            BankingAccountTransactionType transactionType,
-            String description
-    ) {
-        BankingAccountTransaction senderTransaction = validateAndCreateTransaction(
+        // Create a transaction for the source account
+        BankingAccountTransaction fromTransaction = createTransaction(
                 fromBankAccountId,
                 amount,
                 transactionType,
                 description
         );
 
-        // receiver
-        validateAndCreateTransaction(
-                toBankAccountId,
-                amount,
-                BankingAccountTransactionType.TRANSFER_FROM,
-                "Transfer from "
-                        + senderTransaction.getOwnerAccount().getCustomer().getFullName().toUpperCase()
-        );
-        return senderTransaction;
+        // If the transaction is a transfer, create a corresponding transaction for the destination account
+        if (transactionType.equals(BankingAccountTransactionType.TRANSFER_TO)) {
+            BankingAccountTransaction toTransaction = createTransaction(
+                    toBankAccountId,
+                    amount,
+                    BankingAccountTransactionType.TRANSFER_FROM,
+                    "Transfer from "
+                            + fromTransaction.getOwnerAccount().getCustomer().getFullName().toUpperCase()
+            );
+            // Persist the transaction for the destination account
+            storeTransaction(toTransaction);
+        }
+
+        // Persist and return the transaction for the source account
+        return storeTransaction(fromTransaction);
     }
 
-    private BankingAccountTransaction validateAndCreateTransaction(
-            Long bankingAccountId,
+    /**
+     * Creates a BankingAccountTransaction and configures it with the given parameters.
+     * This method also performs the following checks:
+     * - the banking account exists
+     * - the account is not locked or closed
+     * - the customer associated to the account is the same as the logged customer
+     * - the customer can afford the transaction (if it's a spending transaction)
+     * - the balance is updated according to the transaction type
+     *
+     * @param fromBankAccountId the ID of the source banking account
+     * @param amount            the amount of the transaction
+     * @param transactionType   the type of the transaction
+     * @param description       the description of the transaction
+     * @return the created BankingAccountTransaction
+     */
+    private BankingAccountTransaction createTransaction(
+            Long fromBankAccountId,
             BigDecimal amount,
             BankingAccountTransactionType transactionType,
             String description
     ) {
         // check if the banking account exists
-        final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId)
+        final BankingAccount bankingAccount = bankingAccountRepository.findById(fromBankAccountId)
                 .orElseThrow(
                         () -> new BankingAccountException("Banking Account not found")
                 );
@@ -128,15 +152,14 @@ public class BankingAccountService {
             throw new BankingAccountException("Banking account should be open to carry any transaction");
         }
 
-        //
+        // check if the transaction is a spending transaction
         final boolean isSpendingTransactionType =
                 transactionType.equals(BankingAccountTransactionType.WITHDRAWAL)
                         || transactionType.equals(BankingAccountTransactionType.TRANSFER_TO)
                         || transactionType.equals(BankingAccountTransactionType.CARD_CHARGE);
 
-        // ...
+        // if it's a spending transaction
         if (isSpendingTransactionType) {
-            // check if the customer associated to the account has the same id that the logged customer
             // get logged customer from the context
             final Customer customerLogged = (Customer) SecurityContextHolder
                     .getContext()
@@ -172,33 +195,29 @@ public class BankingAccountService {
             );
         }
 
-        return this.storeTransaction(
-                bankingAccount,
-                transactionType,
-                amount,
-                description
-        );
-    }
-
-    private BankingAccountTransaction storeTransaction(
-            BankingAccount bankingAccount,
-            BankingAccountTransactionType transactionType,
-            BigDecimal amount,
-            String description
-    ) {
-        // we create the transaction in order to save it
+        // create the transaction
         BankingAccountTransaction transaction = new BankingAccountTransaction(bankingAccount);
         transaction.setTransactionType(transactionType);
         transaction.setAmount(amount);
         transaction.setDescription(description);
 
-        // we add the transaction to the account
-        bankingAccount.addAccountTransaction(transaction);
+        return transaction;
+    }
 
-        // we save the transaction
-        bankingAccountRepository.save(bankingAccount);
+    /**
+     * Stores a banking account transaction by adding it to the owner's account and persisting the account.
+     *
+     * @param transaction the banking account transaction to store
+     * @return the stored banking account transaction
+     */
+    private BankingAccountTransaction storeTransaction(BankingAccountTransaction transaction) {
+        // Add the transaction to the owner's account
+        transaction.getOwnerAccount().addAccountTransaction(transaction);
 
-        // we return the created transaction
+        // Persist the owner's account with the new transaction
+        bankingAccountRepository.save(transaction.getOwnerAccount());
+
+        // Return the stored transaction
         return transaction;
     }
 

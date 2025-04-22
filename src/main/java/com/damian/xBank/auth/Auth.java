@@ -14,19 +14,20 @@ public class Auth {
     @JoinColumn(name = "customer_id", referencedColumnName = "id")
     private Customer customer;
 
-    @Column(name = "email_verified")
-    private boolean emailVerified;
-
-    @Column(name = "auth_status")
+    @Column(name = "email_verification_status")
     @Enumerated(EnumType.STRING)
-    private AuthenticationStatus status;
+    private AuthEmailVerificationStatus emailVerificationStatus;
+
+    @Column(name = "auth_account_status")
+    @Enumerated(EnumType.STRING)
+    private AuthAccountStatus authAccountStatus;
 
     @Column(name = "password_hash")
     private String passwordHash;
 
     public Auth() {
-        this.status = AuthenticationStatus.ENABLED_ACCOUNT;
-        this.emailVerified = false;
+        this.authAccountStatus = AuthAccountStatus.ENABLED;
+        this.emailVerificationStatus = AuthEmailVerificationStatus.NOT_VERIFIED;
     }
 
     public Auth(Customer customer) {
@@ -37,6 +38,7 @@ public class Auth {
     public Customer getCustomer() {
         return this.customer;
     }
+
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
@@ -63,15 +65,15 @@ public class Auth {
     }
 
     public boolean isEmailVerified() {
-        return this.emailVerified;
+        return this.emailVerificationStatus.equals(AuthEmailVerificationStatus.VERIFIED);
     }
 
-    public AuthenticationStatus getStatus() {
-        return this.status;
+    public AuthAccountStatus getAuthAccountStatus() {
+        return this.authAccountStatus;
     }
 
-    public void setStatus(AuthenticationStatus status) {
-        this.status = status;
+    public void setAuthAccountStatus(AuthAccountStatus authAccountStatus) {
+        this.authAccountStatus = authAccountStatus;
     }
 
 }

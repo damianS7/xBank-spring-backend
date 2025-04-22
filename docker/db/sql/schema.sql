@@ -6,13 +6,21 @@ COMMENT ON SCHEMA public IS 'standard public schema';
 
 -- DROP TYPE public."auth_status";
 
-CREATE TYPE public."auth_status" AS ENUM (
-	'RESET_PASSWORD',
-	'ENABLED_ACCOUNT',
-	'DISABLED_ACCOUNT'
+CREATE TYPE public."auth_account_status" AS ENUM (
+	'ENABLED',
+	'DISABLED'
 );
 
-CREATE CAST (varchar as auth_status) WITH INOUT AS IMPLICIT;
+CREATE CAST (varchar as auth_account_status) WITH INOUT AS IMPLICIT;
+
+
+CREATE TYPE public."email_verification_type" AS ENUM (
+	'NOT_VERIFIED',
+	'VERIFIED'
+);
+
+CREATE CAST (varchar as email_verification_type) WITH INOUT AS IMPLICIT;
+
 -- DROP TYPE public."banking_account_currency";
 
 CREATE TYPE public.banking_account_currency AS ENUM (
@@ -174,8 +182,8 @@ CREATE TABLE public.customer_auth (
 	id int8 GENERATED ALWAYS AS IDENTITY NOT NULL,
 	customer_id int8 NOT NULL,
 	password_hash varchar(60) NOT NULL,
-	"auth_status" public."auth_status" DEFAULT 'ACTIVE'::auth_status NULL,
-	email_verified bool DEFAULT false NOT NULL,
+	"auth_account_status" public."auth_account_status" DEFAULT 'ENABLED'::auth_status NULL,
+	"email_verification_status" public."email_verfication_type" DEFAULT 'NOT_VERIFIED'::auth_status NULL,
 	CONSTRAINT auth_customer_id_key UNIQUE (customer_id),
 	CONSTRAINT auth_pkey PRIMARY KEY (id),
 	CONSTRAINT auth_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id) ON DELETE CASCADE

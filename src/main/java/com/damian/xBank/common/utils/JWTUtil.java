@@ -78,5 +78,4 @@ public class JWTUtil {
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
-
 }

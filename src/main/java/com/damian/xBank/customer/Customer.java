@@ -124,7 +124,7 @@ public class Customer implements CustomerDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         SimpleGrantedAuthority authority =
-                new SimpleGrantedAuthority(CustomerRole.CUSTOMER.name());
+                new SimpleGrantedAuthority("ROLE_" + this.role.name());
         return Collections.singletonList(authority);
     }
 

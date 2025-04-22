@@ -2,8 +2,9 @@ package com.damian.xBank.customer;
 
 import com.damian.xBank.common.utils.DTOBuilder;
 import com.damian.xBank.customer.exception.CustomerException;
+import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
+import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
-import com.damian.xBank.customer.http.request.CustomerUpdateRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,29 +13,12 @@ import java.util.List;
 
 @Service
 public class CustomerService {
-
     private final CustomerRepository customerRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public CustomerService(CustomerRepository customerRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.customerRepository = customerRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
-
-    // return all the customers transformed to DTO
-    public List<CustomerDTO> getCustomers() {
-        return customerRepository.findAll()
-                .stream()
-                .map(
-                        DTOBuilder::build
-                ).toList();
-    }
-
-    // return the users
-    public Customer getCustomer(Long customerId) {
-        return customerRepository.findById(customerId).orElseThrow(
-                () -> new CustomerException("Customer not found.")
-        );
     }
 
     /**
@@ -69,22 +53,74 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    // it deletes a customer
-    public boolean deleteCustomer(Long userId) {
-        if (!customerRepository.existsById(userId)) {
+    /**
+     * Deletes a customer
+     *
+     * @param customerId the id of the customer to be deleted
+     * @return true if the customer was deleted
+     * @throws CustomerException if the customer does not exist or if the logged user is not ADMIN
+     */
+    public boolean deleteCustomer(Long customerId) {
+        // if the customer does not exist we throw an exception
+        if (!customerRepository.existsById(customerId)) {
             throw new CustomerException("Customer do not exist.");
         }
-        customerRepository.deleteById(userId);
+
+        // we delete the customer
+        customerRepository.deleteById(customerId);
+
+        // if no exception is thrown we return true
         return true;
     }
 
-    // it checks if an email exist in the database
+    /**
+     * Returns all the customers transformed to DTO
+     *
+     * @return a list of CustomerDTO
+     * @throws CustomerException if the logged user is not ADMIN
+     */
+    public List<CustomerDTO> getCustomers() {
+        // we return all the customers transformed to DTO
+        return customerRepository.findAll()
+                .stream()
+                .map(
+                        DTOBuilder::build
+                ).toList();
+    }
+
+    /**
+     * Returns a customer
+     *
+     * @param customerId the id of the customer to be returned
+     * @return the customer
+     * @throws CustomerException if the customer does not exist or if the logged user is not ADMIN
+     */
+    public Customer getCustomer(Long customerId) {
+        // if the customer does not exist we throw an exception
+        return customerRepository.findById(customerId).orElseThrow(
+                () -> new CustomerException("Customer not found.")
+        );
+    }
+
+    /**
+     * It checks if an email exist in the database
+     *
+     * @param email the email to be checked
+     * @return true if the email exists, false otherwise
+     */
     private boolean emailExist(String email) {
+        // we search the email in the database
         return customerRepository.findByEmail(email).isPresent();
     }
 
-    // it modifies the customer data
-    public Customer updateCustomer(CustomerUpdateRequest request) {
+    /**
+     * It updates the password of a customer
+     *
+     * @param request the request body that contains the current password and the new password
+     * @return the customer updated
+     * @throws CustomerException if the password does not match, or if the customer does not exist
+     */
+    public Customer updatePassword(CustomerPasswordUpdateRequest request) {
         // we extract the email from the Customer stored in the SecurityContext
         final String customerEmail = ((Customer) SecurityContextHolder
                 .getContext()
@@ -107,6 +143,35 @@ public class CustomerService {
             customer.setPassword(
                     bCryptPasswordEncoder.encode(request.newPassword())
             );
+        }
+
+        // save the changes
+        return customerRepository.save(customer);
+    }
+
+    /**
+     * It updates the email of a customer
+     *
+     * @param request the request body that contains the current password and the new email
+     * @return the customer updated
+     * @throws CustomerException if the password does not match, or if the customer does not exist
+     */
+    public Customer updateEmail(CustomerEmailUpdateRequest request) {
+        // we extract the email from the Customer stored in the SecurityContext
+        final String customerEmail = ((Customer) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal())
+                .getEmail();
+
+        // we get the Customer entity so we can save at the end
+        Customer customer = customerRepository.findByEmail(customerEmail).orElseThrow(
+                () -> new CustomerException("Customer cannot be found.")
+        );
+
+        // Before making any changes we check that the password sent by the customer matches the one in the entity
+        if (!bCryptPasswordEncoder.matches(request.currentPassword(), customer.getPassword())) {
+            throw new CustomerException("Password does not match.");
         }
 
         // if the email is not null we modify in the customer

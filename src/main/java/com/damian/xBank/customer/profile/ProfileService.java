@@ -2,7 +2,8 @@ package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.auth.exception.AuthorizationException;
 import com.damian.xBank.customer.Customer;
-import com.damian.xBank.customer.exception.CustomerException;
+import com.damian.xBank.customer.CustomerGender;
+import com.damian.xBank.customer.CustomerRole;
 import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class ProfileService {
@@ -52,13 +54,21 @@ public class ProfileService {
         return patchProfile(profileId, patchRequest);
     }
 
+    public Profile patchCustomerProfile(ProfilePatchRequest request) {
+        return this.patchProfile(null, request);
+    }
+
     public Profile patchProfile(Long profileId, ProfilePatchRequest request) {
         // We get the customer logged in the context
         Customer customerLogged = (Customer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        // before making any changes we check that the user sent the current password
-        if (!bCryptPasswordEncoder.matches(request.currentPassword(), customerLogged.getPassword())) {
-            throw new CustomerException("Password does not match.");
+        // if profiledId is null, we get the logged user profile id
+        if (profileId == null) {
+            profileId = Optional.ofNullable(customerLogged.getProfile()).map(
+                    Profile::getId
+            ).orElseThrow(
+                    () -> new ProfileException("Cannot patch profile because profileId could not be determined.")
+            );
         }
 
         // We get the profile we want to modify
@@ -66,9 +76,17 @@ public class ProfileService {
                 () -> new ProfileException("Profile cannot be found.")
         );
 
-        // we make sure that this profile belongs to the customer logged
-        if (!profile.getCustomerId().equals(customerLogged.getId())) {
-            throw new AuthorizationException("This profile does not belongs to the logged user.");
+        // if the logged user is not admin
+        if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
+            // before making any changes we check that the user sent the current password
+            if (!bCryptPasswordEncoder.matches(request.currentPassword(), customerLogged.getPassword())) {
+                throw new ProfileException("Password does not match.");
+            }
+
+            // we make sure that this profile belongs to the customer logged
+            if (!profile.getCustomerId().equals(customerLogged.getId())) {
+                throw new AuthorizationException("This profile does not belongs to the logged user.");
+            }
         }
 
         // we iterate over the fields (if any)

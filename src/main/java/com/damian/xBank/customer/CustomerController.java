@@ -28,7 +28,7 @@ public class CustomerController {
 
     // endpoint to modify customer password
     @PatchMapping("/customers/password")
-    public ResponseEntity<?> updatePassword(
+    public ResponseEntity<?> updateCustomerPassword(
             @Validated @RequestBody
             CustomerPasswordUpdateRequest request) {
         Customer customer = customerService.updatePassword(request);
@@ -40,7 +40,7 @@ public class CustomerController {
 
     // endpoint to modify customer email
     @PatchMapping("/customers/email")
-    public ResponseEntity<?> updateEmail(
+    public ResponseEntity<?> updateCustomerEmail(
             @Validated @RequestBody
             CustomerEmailUpdateRequest request) {
         Customer customer = customerService.updateEmail(request);

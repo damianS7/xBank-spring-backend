@@ -55,7 +55,7 @@ public class AuthenticationService {
                             email, password)
             );
         } catch (org.springframework.security.core.AuthenticationException e) {
-            throw new AuthenticationException("Bad credentials"); // 403 Forbidden
+            throw new AuthenticationException(e.getMessage()); // 403 Forbidden
         }
 
         // Generate a token for the authenticated user

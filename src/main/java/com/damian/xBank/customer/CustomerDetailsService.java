@@ -20,6 +20,7 @@ public class CustomerDetailsService implements UserDetailsService {
 
     public CustomerDetails loadCustomerByEmail(String email) throws UsernameNotFoundException {
         return customerRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Customer with this email not found."));
+                .orElseThrow(() -> new UsernameNotFoundException("Customer not found with this email")
+                );
     }
 }

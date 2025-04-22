@@ -1,5 +1,7 @@
 package com.damian.xBank.customer.profile;
 
+import com.damian.xBank.customer.CustomerGender;
+
 import java.time.LocalDate;
 
 public record ProfileDTO(

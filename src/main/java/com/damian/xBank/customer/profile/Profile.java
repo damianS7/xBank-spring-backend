@@ -2,6 +2,7 @@ package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.common.utils.DTOBuilder;
 import com.damian.xBank.customer.Customer;
+import com.damian.xBank.customer.CustomerGender;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;

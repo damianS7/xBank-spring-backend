@@ -5,6 +5,7 @@ import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
+import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerService;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,11 +18,13 @@ public class AuthenticationService {
     private final JWTUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final CustomerService customerService;
+    private final CustomerRepository customerRepository;
 
-    public AuthenticationService(JWTUtil jwtUtil, AuthenticationManager authenticationManager, CustomerService customerService) {
+    public AuthenticationService(JWTUtil jwtUtil, AuthenticationManager authenticationManager, CustomerService customerService, CustomerRepository customerRepository) {
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
         this.customerService = customerService;
+        this.customerRepository = customerRepository;
     }
 
     /**
@@ -65,7 +68,9 @@ public class AuthenticationService {
         Long customerId = ((Customer) auth.getPrincipal()).getId();
 
         // Fetch the customer logged from the service
-        Customer customer = customerService.getCustomer(customerId);
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new AuthenticationException("Customer not found.")
+                );
 
         // Return the customer data and the token
         return new AuthenticationResponse(

@@ -20,11 +20,24 @@ public class ProfileController {
         this.profileService = profileService;
     }
 
+    @PatchMapping("/profiles")
+    public ResponseEntity<?> patchCustomerProfile(
+            @Validated @RequestBody
+            ProfilePatchRequest request) {
+        Profile profile = profileService.patchCustomerProfile(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(profile.toDTO());
+    }
+
     // endpoint to modify a profile
-    @PutMapping("/profiles/{id}")
+    @PutMapping("/admin/profiles/{id}")
     public ResponseEntity<?> updateProfile(
-            @PathVariable @NotNull @Positive Long id,
-            @Validated @RequestBody ProfileUpdateRequest request) {
+            @PathVariable @NotNull @Positive
+            Long id,
+            @Validated @RequestBody
+            ProfileUpdateRequest request) {
         Profile profile = profileService.updateProfile(id, request);
 
         return ResponseEntity
@@ -33,10 +46,12 @@ public class ProfileController {
     }
 
     // endpoint to modify some parts of the profile
-    @PatchMapping("/profiles/{id}")
+    @PatchMapping("/admin/profiles/{id}")
     public ResponseEntity<?> patchProfile(
-            @PathVariable @NotNull @Positive Long id,
-            @Validated @RequestBody ProfilePatchRequest request) {
+            @PathVariable @NotNull @Positive
+            Long id,
+            @Validated @RequestBody
+            ProfilePatchRequest request) {
         Profile profile = profileService.patchProfile(id, request);
 
         return ResponseEntity

@@ -4,13 +4,14 @@ import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
+import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
-import com.damian.xBank.customer.profile.CustomerGender;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -35,8 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
-public class AuthenticationControllerTest {
-    private final String email = "john@gmail.com";
+public class AuthenticationIntegrationTest {
+    private final String email = "customer@test.com";
     private final String rawPassword = "123456";
 
     @Autowired
@@ -44,11 +45,6 @@ public class AuthenticationControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    private Faker faker;
-
-    @Autowired
-    private AuthenticationService authenticationService;
 
     @Autowired
     private CustomerRepository customerRepository;
@@ -63,7 +59,6 @@ public class AuthenticationControllerTest {
 
     @BeforeEach
     void setUp() {
-        faker = new Faker();
         customerRepository.deleteAll();
         customer = new Customer();
         customer.setEmail(this.email);
@@ -83,6 +78,7 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    @DisplayName("Should login when valid credentials")
     void shouldLoginWhenValidCredentials() throws Exception {
         // given
         AuthenticationRequest request = new AuthenticationRequest(
@@ -115,8 +111,9 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    @DisplayName("Should not login when invalid credentials")
     void shouldNotLoginWhenInvalidCredentials() throws Exception {
-        // Given
+        // given
         AuthenticationRequest request = new AuthenticationRequest(
                 this.email, "badPassword"
         );
@@ -125,27 +122,18 @@ public class AuthenticationControllerTest {
         String jsonRequest = objectMapper.writeValueAsString(request);
 
         // when
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+        mockMvc.perform(MockMvcRequestBuilders
                         .post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().is(500))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn();
-
-        // json response to AuthenticationResponse
-        AuthenticationResponse response = objectMapper.readValue(
-                result.getResponse().getContentAsString(),
-                AuthenticationResponse.class
-        );
-
-        // then
-        assertThat(response.customer()).isNull();
-        assertThat(response.token()).isNull();
+                .andExpect(jsonPath("$.message").value("Bad credentials"));
     }
 
     @Test
+    @DisplayName("Should not login when invalid email format")
     void shouldNotLoginWhenInvalidEmailFormat() throws Exception {
         // Given
         AuthenticationRequest request = new AuthenticationRequest(
@@ -168,6 +156,7 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    @DisplayName("Should not login when null fields")
     void shouldNotLoginWhenNullFields() throws Exception {
         // Given
         AuthenticationRequest request = new AuthenticationRequest(
@@ -178,19 +167,19 @@ public class AuthenticationControllerTest {
         String jsonRequest = objectMapper.writeValueAsString(request);
 
         // when
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+        mockMvc.perform(MockMvcRequestBuilders
                         .post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().is(400))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value(containsString("Validation error")))
-                .andReturn();
+                .andExpect(jsonPath("$.message").value(containsString("Validation error")));
     }
 
     @Test
-    void shouldRegisterCustomer() throws Exception {
+    @DisplayName("Should register customer when request is valid")
+    void shouldRegisterCustomerWhenValidRequest() throws Exception {
         // given
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
                 "david@gmail.com",
@@ -231,6 +220,7 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    @DisplayName("Should not register customer when missing fields")
     void shouldNotRegisterCustomerWhenMissingFields() throws Exception {
         // given
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
@@ -262,6 +252,7 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    @DisplayName("Should not register customer when email is not well-formed")
     void shouldNotRegisterCustomerWhenEmailIsNotWellFormed() throws Exception {
         // given
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
@@ -294,6 +285,7 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    @DisplayName("Should not register customer when email is taken")
     void shouldNotRegisterCustomerWhenEmailIsTaken() throws Exception {
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
                 this.email,
@@ -325,6 +317,7 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    @DisplayName("Should not register customer when password policy not satisfied")
     void shouldNotRegisterCustomerWhenPasswordPolicyNotSatisfied() throws Exception {
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
                 this.email,
@@ -357,6 +350,7 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    @DisplayName("Should not have access when token has expired")
     void shouldNotHaveAccessWhenTokenHasExpired() throws Exception {
         // given
         final String expiredToken = jwtUtil.generateToken(
@@ -393,4 +387,49 @@ public class AuthenticationControllerTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
+    // TODO
+    @Test
+    @Disabled
+    @DisplayName("Should not login when account is disabled")
+    void shouldNotLoginWhenAccountIsDisabled() throws Exception {
+        // given
+        AuthenticationRequest request = new AuthenticationRequest(
+                this.email, "123456"
+        );
+
+        String jsonRequest = objectMapper.writeValueAsString(request);
+
+        // when
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().is(403))
+                .andExpect(jsonPath("$.message").value("Account is disabled"))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    // TODO
+    @Test
+    @Disabled
+    @DisplayName("Should not login when account email is not verified")
+    void shouldNotLoginWhenAccountEmailIsNotVerified() throws Exception {
+        // given
+        AuthenticationRequest request = new AuthenticationRequest(
+                this.email, "123456"
+        );
+
+        String jsonRequest = objectMapper.writeValueAsString(request);
+
+        // when
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().is(403))
+                .andExpect(jsonPath("$.message").value("Account is disabled"))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
 }

@@ -35,7 +35,13 @@ public class AuthenticationService {
      */
     public Customer register(CustomerRegistrationRequest request) {
         // It uses the customer service to create a new customer
-        return customerService.createCustomer(request);
+        Customer registeredCustomer = customerService.createCustomer(request);
+
+        // send welcome email
+        // Generate token for email validation
+        // send email to confirm registration
+
+        return registeredCustomer;
     }
 
     /**
@@ -77,6 +83,4 @@ public class AuthenticationService {
                 customer.toDTO(), token
         );
     }
-
-
 }

@@ -4,8 +4,10 @@ import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
+import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerService;
+import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,10 +17,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 
+import java.time.LocalDate;
+import java.util.Optional;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class) // Habilita Mockito en JUnit 5
 public class AuthenticationServiceTest {
@@ -44,6 +48,57 @@ public class AuthenticationServiceTest {
     }
 
     @Test
+    void shouldRegisterCustomer() {
+        // given
+        Customer givenCustomer = new Customer();
+        givenCustomer.setEmail("customer@test.com");
+        givenCustomer.setPassword("123456");
+        givenCustomer.getProfile().setNationalId("123456789Z");
+        givenCustomer.getProfile().setName("John");
+        givenCustomer.getProfile().setSurname("Wick");
+        givenCustomer.getProfile().setPhone("123 123 123");
+        givenCustomer.getProfile().setGender(CustomerGender.MALE);
+        givenCustomer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
+        givenCustomer.getProfile().setCountry("USA");
+        givenCustomer.getProfile().setAddress("fake ave");
+        givenCustomer.getProfile().setPostalCode("050012");
+        givenCustomer.getProfile().setPhotoPath("no photoPath");
+
+        CustomerRegistrationRequest registrationRequest = new CustomerRegistrationRequest(
+                givenCustomer.getEmail(),
+                givenCustomer.getPassword(),
+                givenCustomer.getProfile().getName(),
+                givenCustomer.getProfile().getSurname(),
+                givenCustomer.getProfile().getPhone(),
+                givenCustomer.getProfile().getBirthdate(),
+                givenCustomer.getProfile().getGender(),
+                givenCustomer.getProfile().getPhotoPath(),
+                givenCustomer.getProfile().getAddress(),
+                givenCustomer.getProfile().getPostalCode(),
+                givenCustomer.getProfile().getCountry(),
+                givenCustomer.getProfile().getNationalId()
+        );
+
+        // when
+        when(customerService.createCustomer(any(CustomerRegistrationRequest.class))).thenReturn(givenCustomer);
+        Customer registeredCustomer = authenticationService.register(registrationRequest);
+
+        // then
+        verify(customerService, times(1)).createCustomer(registrationRequest);
+        assertThat(registeredCustomer).isNotNull();
+        assertThat(registeredCustomer.getEmail()).isEqualTo(givenCustomer.getEmail());
+        assertThat(registeredCustomer.getProfile().getName()).isEqualTo(givenCustomer.getProfile().getName());
+        assertThat(registeredCustomer.getProfile().getSurname()).isEqualTo(givenCustomer.getProfile().getSurname());
+        assertThat(registeredCustomer.getProfile().getPhone()).isEqualTo(givenCustomer.getProfile().getPhone());
+        assertThat(registeredCustomer.getProfile().getGender()).isEqualTo(givenCustomer.getProfile().getGender());
+        assertThat(registeredCustomer.getProfile().getBirthdate()).isEqualTo(givenCustomer.getProfile().getBirthdate());
+        assertThat(registeredCustomer.getProfile().getCountry()).isEqualTo(givenCustomer.getProfile().getCountry());
+        assertThat(registeredCustomer.getProfile().getAddress()).isEqualTo(givenCustomer.getProfile().getAddress());
+        assertThat(registeredCustomer.getProfile().getPostalCode()).isEqualTo(givenCustomer.getProfile().getPostalCode());
+        assertThat(registeredCustomer.getProfile().getNationalId()).isEqualTo(givenCustomer.getProfile().getNationalId());
+    }
+
+    @Test
     void shouldLoginWhenValidCredentials() {
         // given
         Authentication authentication = mock(Authentication.class);
@@ -61,7 +116,7 @@ public class AuthenticationServiceTest {
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
         when(jwtUtil.generateToken(request.email())).thenReturn(token);
         when(authentication.getPrincipal()).thenReturn(customer);
-        when(customerService.getCustomer(customer.getId())).thenReturn(customer);
+        when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
 
         AuthenticationResponse response = authenticationService.login(request);
 

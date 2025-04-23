@@ -7,7 +7,6 @@ import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerService;
-import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -97,7 +96,7 @@ public class AuthenticationService {
      *
      * @param request the request body that contains the current password and the new password
      * @return the customer updated
-     * @throws CustomerException if the password does not match, or if the customer does not exist
+     * @throws AuthenticationException if the password does not match, or if the customer does not exist
      */
     public void updatePassword(CustomerPasswordUpdateRequest request) {
         // we extract the email from the Customer stored in the SecurityContext

@@ -4,11 +4,15 @@ import com.damian.xBank.auth.AuthenticationService;
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
+import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRepository;
+import com.damian.xBank.customer.CustomerRole;
+import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +28,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -32,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class ProfileControllerTest {
+public class ProfileIntegrationTest {
     private final String rawPassword = "123456";
 
     @Autowired
@@ -52,38 +59,51 @@ public class ProfileControllerTest {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    private Customer customer;
-    private String token;
+    private Customer customerA;
+    private Customer customerB;
+    private Customer customerAdmin;
 
     @BeforeAll
     void setUp() throws Exception {
         customerRepository.deleteAll();
 
-        customer = new Customer();
-        customer.setEmail("customer@test.com");
-        customer.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
-        customer.getProfile().setNationalId("123456789Z");
-        customer.getProfile().setName("John");
-        customer.getProfile().setSurname("Wick");
-        customer.getProfile().setGender(CustomerGender.MALE);
-        customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
-        customer.getProfile().setCountry("USA");
-        customer.getProfile().setAddress("fake ave");
-        customer.getProfile().setPostalCode("050012");
-        customer.getProfile().setPhotoPath("no photoPath");
+        customerA = new Customer();
+        customerA.setEmail("customerA@test.com");
+        customerA.setRole(CustomerRole.CUSTOMER);
+        customerA.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
+        customerA.getProfile().setNationalId("123456789Z");
+        customerA.getProfile().setName("John");
+        customerA.getProfile().setSurname("Wick");
+        customerA.getProfile().setGender(CustomerGender.MALE);
+        customerA.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
+        customerA.getProfile().setCountry("USA");
+        customerA.getProfile().setAddress("fake ave");
+        customerA.getProfile().setPostalCode("050012");
+        customerA.getProfile().setPhotoPath("no photoPath");
+        customerRepository.save(customerA);
 
-        customerRepository.save(customer);
+        customerB = new Customer();
+        customerB.setPassword(bCryptPasswordEncoder.encode("123456"));
+        customerB.setEmail("customerB@test.com");
+        customerRepository.save(customerB);
 
+        customerAdmin = new Customer();
+        customerAdmin.setPassword(bCryptPasswordEncoder.encode("123456"));
+        customerAdmin.setEmail("admin@test.com");
+        customerAdmin.setRole(CustomerRole.ADMIN);
+        customerRepository.save(customerAdmin);
+    }
+
+    String loginWithCustomer(Customer customer) throws Exception {
         // given
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(
-                customer.getEmail(), this.rawPassword
+                customer.getEmail(), "123456"
         );
 
         String jsonRequest = objectMapper.writeValueAsString(authenticationRequest);
 
         // when
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/login")
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andReturn();
@@ -93,52 +113,85 @@ public class ProfileControllerTest {
                 AuthenticationResponse.class
         );
 
-        token = response.token();
+        return response.token();
     }
 
     @Test
-    void shouldUpdateProfile() throws Exception {
+    @DisplayName("Should update own profile")
+    void shouldUpdateOwnProfile() throws Exception {
         // given
-        ProfileUpdateRequest request = new ProfileUpdateRequest(
-                "david",
-                "white",
-                "123 123 123",
-                LocalDate.of(1989, 1, 1),
-                CustomerGender.MALE,
-                "-",
-                "Fake AV 51",
-                "50120",
-                "USA",
-                "123123123Z",
-                this.rawPassword
+        final String token = loginWithCustomer(customerA);
+
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("name", "alice");
+        fields.put("surname", "white");
+        fields.put("phone", "999 999 999");
+        fields.put("birthdate", "1983-03-13");
+        fields.put("gender", "FEMALE");
+
+        ProfilePatchRequest patchProfileRequest = new ProfilePatchRequest(
+                this.rawPassword,
+                fields
         );
 
-        String jsonRequest = objectMapper.writeValueAsString(request);
+        String jsonRequest = objectMapper.writeValueAsString(patchProfileRequest);
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/v1/profiles/" + customer.getProfile().getId())
+                        .patch("/api/v1/profiles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .content(jsonRequest))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().is(200))
-                .andExpect(jsonPath("$.name").value(request.name()))
-                .andExpect(jsonPath("$.surname").value(request.surname()))
-                .andExpect(jsonPath("$.phone").value(request.phone()))
-                .andExpect(jsonPath("$.birthdate").value(request.birthdate().toString()))
-                .andExpect(jsonPath("$.gender").value(request.gender().toString()))
-                .andExpect(jsonPath("$.address").value(request.address()))
-                .andExpect(jsonPath("$.postalCode").value(request.postalCode()))
-                .andExpect(jsonPath("$.country").value(request.country()))
-                .andExpect(jsonPath("$.photoPath").value(request.photoPath()))
-                .andExpect(jsonPath("$.nationalId").value(request.nationalId()))
+                .andExpect(jsonPath("$.name").value(fields.get("name")))
+                .andExpect(jsonPath("$.surname").value(fields.get("surname")))
+                .andExpect(jsonPath("$.phone").value(fields.get("phone")))
+                .andExpect(jsonPath("$.birthdate").value(fields.get("birthdate")))
+                .andExpect(jsonPath("$.gender").value(fields.get("gender")))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @DisplayName("Should update any profile when logged as admin")
+    void shouldUpdateAnyProfileWhenLoggedAsAdmin() throws Exception {
+        // given
+        final String token = loginWithCustomer(customerAdmin);
+
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("name", "alice");
+        fields.put("surname", "white");
+        fields.put("phone", "999 999 999");
+        fields.put("birthdate", "1983-03-13");
+        fields.put("gender", "FEMALE");
+
+        ProfilePatchRequest patchProfileRequest = new ProfilePatchRequest(
+                this.rawPassword,
+                fields
+        );
+
+        String jsonRequest = objectMapper.writeValueAsString(patchProfileRequest);
+
+        // when
+        mockMvc.perform(MockMvcRequestBuilders
+                        .patch("/api/v1/admin/profiles/" + customerA.getProfile().getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .content(jsonRequest))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().is(200))
+                .andExpect(jsonPath("$.name").value(fields.get("name")))
+                .andExpect(jsonPath("$.surname").value(fields.get("surname")))
+                .andExpect(jsonPath("$.phone").value(fields.get("phone")))
+                .andExpect(jsonPath("$.birthdate").value(fields.get("birthdate")))
+                .andExpect(jsonPath("$.gender").value(fields.get("gender")))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
     void shouldNotUpdateProfileWhenAnyFieldIsEmpty() throws Exception {
         // given
+        final String token = loginWithCustomer(customerAdmin);
         ProfileUpdateRequest request = new ProfileUpdateRequest(
                 "david",
                 "",
@@ -157,7 +210,7 @@ public class ProfileControllerTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/v1/profiles/" + customer.getProfile().getId())
+                        .put("/api/v1/admin/profiles/" + customerA.getProfile().getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .content(jsonRequest))
@@ -169,6 +222,8 @@ public class ProfileControllerTest {
     @Test
     void shouldNotUpdateProfileWhenAnyFieldIsNull() throws Exception {
         // given
+        final String token = loginWithCustomer(customerAdmin);
+
         ProfileUpdateRequest request = new ProfileUpdateRequest(
                 "david",
                 null,
@@ -187,7 +242,7 @@ public class ProfileControllerTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/v1/profiles/" + customer.getProfile().getId())
+                        .put("/api/v1/admin/profiles/" + customerA.getProfile().getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .content(jsonRequest))

@@ -75,7 +75,7 @@ public class ProfileRepositoryTest {
     }
 
     @Test
-    void shouldThrowWhenProfileIdIsNull() {
+    void shouldNotFindProfileWhenIdIsNull() {
         // given
         Long profileId = null;
 

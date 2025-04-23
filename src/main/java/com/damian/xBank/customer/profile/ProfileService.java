@@ -62,7 +62,7 @@ public class ProfileService {
         // We get the customer logged in the context
         Customer customerLogged = (Customer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        // if profiledId is null, we get the logged user profile id
+        // if profiledId is null, then is a customer modifying its own profile.
         if (profileId == null) {
             profileId = Optional.ofNullable(customerLogged.getProfile()).map(
                     Profile::getId

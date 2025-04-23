@@ -2,7 +2,7 @@ package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.auth.exception.AuthorizationException;
 import com.damian.xBank.customer.Customer;
-import com.damian.xBank.customer.exception.CustomerException;
+import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -177,9 +177,10 @@ public class ProfileServiceTest {
         );
 
         // when
+        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
         when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(false);
 
-        CustomerException exception = assertThrows(CustomerException.class,
+        ProfileException exception = assertThrows(ProfileException.class,
                 () -> profileService.updateProfile(customer.getProfile().getId(), updateRequest)
         );
 

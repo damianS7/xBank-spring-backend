@@ -3,18 +3,16 @@ package com.damian.xBank.auth;
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
+import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/v1/auth")
+@RequestMapping("api/v1")
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
@@ -24,7 +22,7 @@ public class AuthenticationController {
     }
 
     // endpoint for registration
-    @PostMapping("register")
+    @PostMapping("/auth/register")
     public ResponseEntity<?> register(
             @Validated @RequestBody
             CustomerRegistrationRequest request) {
@@ -36,7 +34,7 @@ public class AuthenticationController {
     }
 
     // endpoint for login
-    @PostMapping("login")
+    @PostMapping("/auth/login")
     public ResponseEntity<?> login(
             @Validated @RequestBody
             AuthenticationRequest request) {
@@ -46,5 +44,17 @@ public class AuthenticationController {
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.AUTHORIZATION, authResponse.token())
                 .body(authResponse);
+    }
+
+    // endpoint to modify customer password
+    @PatchMapping("/auth/customers/password")
+    public ResponseEntity<?> updateCustomerPassword(
+            @Validated @RequestBody
+            CustomerPasswordUpdateRequest request) {
+        authenticationService.updatePassword(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body("Password updated");
     }
 }

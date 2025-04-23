@@ -1,5 +1,6 @@
 package com.damian.xBank.auth;
 
+import com.damian.xBank.auth.exception.AuthenticationException;
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.common.utils.JWTUtil;
@@ -7,20 +8,27 @@ import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerService;
+import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -29,6 +37,9 @@ public class AuthenticationServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
+
+    @Mock
+    private AuthenticationRepository authenticationRepository;
 
     @InjectMocks
     private AuthenticationService authenticationService;
@@ -40,7 +51,11 @@ public class AuthenticationServiceTest {
     private AuthenticationManager authenticationManager;
 
     @Mock
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Mock
     private JWTUtil jwtUtil;
+    private String hashedPassword = "3hri2rhid;/!";
 
     @BeforeEach
     void setUp() {
@@ -124,5 +139,71 @@ public class AuthenticationServiceTest {
         assertThat(response.token()).isEqualTo(token);
         assertThat(customer.getId()).isEqualTo(response.customer().id());
         assertThat(customer.getEmail()).isEqualTo(response.customer().email());
+    }
+
+    @Test
+    @DisplayName("Should update customer password")
+    void shouldUpdateCustomerPassword() {
+        // given
+        final String currentRawPassword = "123456";
+        final String currentEncodedPassword = this.hashedPassword;
+        final String rawNewPassword = "1234";
+        final String encodedNewPassword = "encodedNewPassword";
+
+        Customer customer = new Customer(
+                10L,
+                "customer@test.com",
+                currentEncodedPassword
+        );
+
+        CustomerPasswordUpdateRequest updateRequest = new CustomerPasswordUpdateRequest(
+                currentRawPassword,
+                rawNewPassword
+        );
+
+        // set the customer on the context
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                customer, null, Collections.emptyList()));
+
+        // when
+        when(bCryptPasswordEncoder.encode(rawNewPassword)).thenReturn(encodedNewPassword);
+        when(bCryptPasswordEncoder.matches(currentRawPassword, currentEncodedPassword)).thenReturn(true);
+        when(authenticationRepository.findByCustomer_Id(customer.getId())).thenReturn(Optional.of(customer.getAuth()));
+        authenticationService.updatePassword(updateRequest);
+
+        // then
+        verify(authenticationRepository, times(1)).save(customer.getAuth());
+        assertThat(customer.getPassword()).isEqualTo(encodedNewPassword);
+    }
+
+    @Test
+    @DisplayName("Should not update password when current password does not match")
+    void shouldNotUpdatePasswordWhenCurrentPasswordDoesNotMatch() {
+        // given
+        Customer customer = new Customer(
+                10L,
+                "customer@test.com",
+                "currentEncodedPassword"
+        );
+
+        // set the customer on the context
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                customer, null, Collections.emptyList()));
+
+        CustomerPasswordUpdateRequest updateRequest = new CustomerPasswordUpdateRequest(
+                "wrongPassword",
+                "1234"
+        );
+
+        // when
+        when(authenticationRepository.findByCustomer_Id(customer.getId())).thenReturn(Optional.of(customer.getAuth()));
+        when(bCryptPasswordEncoder.matches(updateRequest.currentPassword(), customer.getPassword())).thenReturn(false);
+        AuthenticationException ex = assertThrows(AuthenticationException.class,
+                () -> authenticationService.updatePassword(
+                        updateRequest
+                )
+        );
+        // Then
+        assertThat(ex.getMessage()).isEqualTo("Password does not match.");
     }
 }

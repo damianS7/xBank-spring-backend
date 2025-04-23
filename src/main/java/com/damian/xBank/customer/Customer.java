@@ -53,6 +53,10 @@ public class Customer implements CustomerDetails {
         this(null, email, password);
     }
 
+    public Auth getAuth() {
+        return this.auth;
+    }
+
     public void setAuth(Auth auth) {
         this.auth = auth;
     }

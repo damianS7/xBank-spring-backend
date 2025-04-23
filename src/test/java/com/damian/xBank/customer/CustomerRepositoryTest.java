@@ -6,8 +6,8 @@ import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountCurrency;
 import com.damian.xBank.banking.account.BankingAccountRepository;
 import com.damian.xBank.banking.account.BankingAccountType;
-import com.damian.xBank.customer.profile.CustomerGender;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -35,14 +35,15 @@ public class CustomerRepositoryTest {
     }
 
     @Test
+    @DisplayName("Should find a customer")
     void shouldFindCustomer() {
         // given
         final String customerEmail = "customer@test.com";
         final String customerPassword = "123456";
         Customer givenCustomer = new Customer(null, customerEmail, customerPassword);
+        customerRepository.save(givenCustomer);
 
         // when
-        customerRepository.save(givenCustomer);
         Optional<Customer> optionalCustomer = customerRepository.findById(givenCustomer.getId());
 
         // then
@@ -52,6 +53,7 @@ public class CustomerRepositoryTest {
     }
 
     @Test
+    @DisplayName("Should not find a customer")
     void shouldNotFindCustomer() {
         // given
         Long customerId = -1L;
@@ -64,6 +66,7 @@ public class CustomerRepositoryTest {
     }
 
     @Test
+    @DisplayName("Should save a customer")
     void shouldSaveCustomer() {
         // given
         final String customerEmail = "customer@test.com";
@@ -81,7 +84,26 @@ public class CustomerRepositoryTest {
     }
 
     @Test
-    void shouldSaveCustomerAndProfile() {
+    @DisplayName("Should delete a customer")
+    void shouldDeleteCustomerByIdCustomer() {
+        // given
+        final String customerEmail = "customer@test.com";
+        final String customerPassword = "123456";
+
+        Customer savedCustomer = customerRepository.save(
+                new Customer(null, customerEmail, customerPassword)
+        );
+
+        // when
+        customerRepository.deleteById(savedCustomer.getId());
+
+        // then
+        assertThat(customerRepository.existsById(savedCustomer.getId())).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should save customer with profile")
+    void shouldSaveCustomerWithProfile() {
         // given
         final String customerName = "david";
         final String customerSurname = "white";
@@ -94,7 +116,7 @@ public class CustomerRepositoryTest {
         final String customerNationalId = "444111222J";
         final String customerPhotoPath = "/upload/images/9sdf324283sdf47293479fsdff23232347.jpg";
 
-        Customer givenCustomer = new Customer(null, "customer@test.com", "123456");
+        final Customer givenCustomer = new Customer(null, "customer@test.com", "123456");
         givenCustomer.getProfile().setName(customerName);
         givenCustomer.getProfile().setSurname(customerSurname);
         givenCustomer.getProfile().setPhone(customerPhone);
@@ -107,7 +129,7 @@ public class CustomerRepositoryTest {
         givenCustomer.getProfile().setPhotoPath(customerPhotoPath);
 
         // when
-        Customer savedCustomer = customerRepository.save(givenCustomer);
+        final Customer savedCustomer = customerRepository.save(givenCustomer);
 
         // then
         assertThat(customerRepository.existsById(savedCustomer.getId())).isTrue();
@@ -125,7 +147,8 @@ public class CustomerRepositoryTest {
     }
 
     @Test
-    void shouldSaveCustomerAndAuth() {
+    @DisplayName("Should save customer with auth")
+    void shouldSaveCustomerWithAuth() {
         // given
         Customer customer = customerRepository.save(
                 new Customer(null, "customer@test.com", "123456")
@@ -135,54 +158,48 @@ public class CustomerRepositoryTest {
         Auth auth = authRepository.findByCustomer_Id(customer.getId()).orElseThrow();
 
         // then
-        assertThat(customerRepository.existsById(customer.getId())).isTrue();
         assertThat(customer.getId()).isNotNull();
+        assertThat(customerRepository.existsById(customer.getId())).isTrue();
         assertThat(customer.getPassword()).isEqualTo(auth.getPassword());
         assertThat(auth).isNotNull();
         assertThat(auth.getCustomerId()).isEqualTo(customer.getId());
     }
 
     @Test
-    void shouldSaveCustomerAndBankingAccounts() {
+    @DisplayName("Should save customer with banking accounts")
+    void shouldSaveCustomerWithBankingAccounts() {
         // given
         final String givenIban = "US00 0000 1111 2222 3333 4444";
-        Customer customer = customerRepository.save(
+        final Customer customer = customerRepository.save(
                 new Customer(null, "customer@test.com", "123456")
         );
 
-        BankingAccount bankingAccount = new BankingAccount();
+        final BankingAccount bankingAccount = new BankingAccount();
         bankingAccount.setAccountNumber(givenIban);
         bankingAccount.setAccountType(BankingAccountType.SAVINGS);
         bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
         bankingAccount.setCustomer(customer);
         customer.addBankingAccount(bankingAccount);
 
-        customerRepository.save(customer);
 
         // when
-        BankingAccount storedBankingAccount = bankingAccountRepository.findByCustomer_Id(customer.getId())
+        final Customer savedCustomer = customerRepository.save(customer);
+        final BankingAccount storedBankingAccount = bankingAccountRepository.findByCustomer_Id(customer.getId())
                 .getFirst();
 
         // then
-        assertThat(storedBankingAccount).isNotNull();
-        assertThat(bankingAccountRepository.existsById(storedBankingAccount.getId())).isTrue();
+        assertThat(savedCustomer.getId()).isNotNull();
+        assertThat(savedCustomer.getBankingAccounts().size()).isEqualTo(1);
+
+        BankingAccount savedAccount = savedCustomer.getBankingAccounts().iterator().next();
+
+        assertThat(savedAccount.getId()).isNotNull();
+        assertThat(savedAccount.getAccountNumber()).isEqualTo(givenIban);
+        assertThat(savedAccount.getAccountType()).isEqualTo(BankingAccountType.SAVINGS);
+        assertThat(savedAccount.getAccountCurrency()).isEqualTo(BankingAccountCurrency.EUR);
+        assertThat(savedAccount.getCustomer().getId()).isEqualTo(savedCustomer.getId());
+        assertThat(bankingAccountRepository.existsById(savedAccount.getId())).isTrue();
     }
 
-    @Test
-    void shouldDeleteCustomerByIdCustomer() {
-        // given
-        final String customerEmail = "customer@test.com";
-        final String customerPassword = "123456";
-
-        Customer savedCustomer = customerRepository.save(
-                new Customer(null, customerEmail, customerPassword)
-        );
-
-        // when
-        customerRepository.deleteById(savedCustomer.getId());
-
-        // then
-        assertThat(customerRepository.existsById(savedCustomer.getId())).isFalse();
-    }
 
 }

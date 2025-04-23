@@ -3,7 +3,6 @@ package com.damian.xBank.customer;
 import com.damian.xBank.banking.account.BankingAccountDTO;
 import com.damian.xBank.banking.account.BankingAccountService;
 import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
-import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,18 +25,6 @@ public class CustomerController {
         this.bankingAccountService = bankingAccountService;
     }
 
-    // endpoint to modify customer password
-    @PatchMapping("/customers/password")
-    public ResponseEntity<?> updateCustomerPassword(
-            @Validated @RequestBody
-            CustomerPasswordUpdateRequest request) {
-        Customer customer = customerService.updatePassword(request);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(customer.toDTO());
-    }
-
     // endpoint to modify customer email
     @PatchMapping("/customers/email")
     public ResponseEntity<?> updateCustomerEmail(
@@ -49,7 +36,6 @@ public class CustomerController {
                 .status(HttpStatus.OK)
                 .body(customer.toDTO());
     }
-
 
     // endpoint to receive certain customer
     @GetMapping("/admin/customers/{id}")
@@ -73,6 +59,17 @@ public class CustomerController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(bankingAccounts);
+    }
+
+    // endpoint to delete a customer
+    @DeleteMapping("/admin/customers/{id}")
+    public ResponseEntity<?> deleteCustomer(
+            @PathVariable @NotNull @Positive
+            Long id) {
+        customerService.deleteCustomer(id);
+
+        // returns 204
+        return ResponseEntity.noContent().build();
     }
 }
 

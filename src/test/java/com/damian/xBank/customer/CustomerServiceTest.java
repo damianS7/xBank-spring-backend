@@ -1,10 +1,10 @@
 package com.damian.xBank.customer;
 
 import com.damian.xBank.customer.exception.CustomerException;
+import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
-import com.damian.xBank.customer.http.request.CustomerUpdateRequest;
-import com.damian.xBank.customer.profile.CustomerGender;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -37,29 +37,19 @@ public class CustomerServiceTest {
     @InjectMocks
     private CustomerService customerService;
 
-    private Customer customer;
-    private String hashedPassword = "3hri2rhid;/!";
-
     @BeforeEach
     void setUp() {
-        customerService = new CustomerService(
-                customerRepository,
-                bCryptPasswordEncoder
-        );
         customerRepository.deleteAll();
-
-        customer = new Customer(99L, "customer@test.com", this.hashedPassword);
-
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customer, null, Collections.emptyList()));
     }
 
     @Test
+    @DisplayName("Should get all customers")
     void shouldGetAllCustomers() {
         // given
+
         List<Customer> customers = List.of(
-                new Customer(1L, "alicia@gmail.com", "123455"),
-                new Customer(2L, "david@gmail.com", "123456")
+                new Customer(1L, "customer1@test.com", "123455"),
+                new Customer(2L, "customer2@test.com", "123456")
         );
 
         // when
@@ -69,13 +59,15 @@ public class CustomerServiceTest {
 
         // then
         verify(customerRepository, times(1)).findAll();
-        assertThat(result.get(0).email()).isEqualTo("alicia@gmail.com");
-        assertThat(result.get(1).email()).isEqualTo("david@gmail.com");
+        assertThat(result.get(0).email()).isEqualTo("customer1@test.com");
+        assertThat(result.get(1).email()).isEqualTo("customer2@test.com");
     }
 
     @Test
+    @DisplayName("Should not get any customers")
     void shouldNotGetAnyCustomers() {
         // given
+
         List<Customer> customers = List.of();
 
         // when
@@ -88,11 +80,12 @@ public class CustomerServiceTest {
     }
 
     @Test
-    void shouldGetOneCustomer() {
+    @DisplayName("Should find customer")
+    void shouldFindCustomer() {
         // given
         Customer customer = new Customer(
                 1L,
-                "alice@gmail.com",
+                "customer@test.com",
                 "1234"
         );
 
@@ -103,11 +96,12 @@ public class CustomerServiceTest {
         // then
         verify(customerRepository, times(1)).findById(customer.getId());
         assertEquals(customer.getId(), storedCustomer.getId());
-        assertEquals("alice@gmail.com", storedCustomer.getEmail());
+        assertEquals(customer.getEmail(), storedCustomer.getEmail());
     }
 
     @Test
-    void shouldNotGetAnyCustomerWhenNotExistAndWillThrow() {
+    @DisplayName("Should not find customer when not exist")
+    void shouldNotFindCustomerWhenNotExist() {
         // given
         Long id = -1L;
 
@@ -121,6 +115,7 @@ public class CustomerServiceTest {
     }
 
     @Test
+    @DisplayName("Should create customer")
     void shouldCreateCustomer() {
         // given
         final String passwordHash = "¢5554ml;f;lsd";
@@ -156,7 +151,8 @@ public class CustomerServiceTest {
     }
 
     @Test
-    void shouldNotCreateAnyCustomerWhenEmailIsTakenAndWillThrow() {
+    @DisplayName("Should not create any customer when email is taken")
+    void shouldNotCreateAnyCustomerWhenEmailIsTaken() {
         // given
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
                 "david@gmail.com",
@@ -185,6 +181,7 @@ public class CustomerServiceTest {
     }
 
     @Test
+    @DisplayName("Should delete customer")
     void shouldDeleteCustomer() {
         // given
         Long id = 7L;
@@ -200,9 +197,10 @@ public class CustomerServiceTest {
     }
 
     @Test
-    void shouldNotDeleteCustomerWhenNotExistAndThrow() {
+    @DisplayName("Should not delete customer when not exist")
+    void shouldNotDeleteCustomerWhenNotExist() {
         // given
-        Long id = 7L;
+        Long id = -1L;
 
         // when
         when(customerRepository.existsById(id)).thenReturn(false);
@@ -216,89 +214,32 @@ public class CustomerServiceTest {
     }
 
     @Test
-    void shouldUpdateCustomerPasswordOnly() {
-        // given
-        final String currentRawPassword = "123456";
-        final String currentEncodedPassword = this.hashedPassword;
-        final String rawNewPassword = "1234";
-        final String encodedNewPassword = "encodedNewPassword";
-
-        Customer customer = new Customer(
-                10L,
-                "david@gmail.com",
-                currentEncodedPassword
-        );
-
-        // we change the context customer
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customer, null, Collections.emptyList()));
-
-        CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(
-                "david@test.com",
-                currentRawPassword,
-                rawNewPassword
-        );
-
-        // when
-        when(bCryptPasswordEncoder.encode(rawNewPassword)).thenReturn(encodedNewPassword);
-        when(bCryptPasswordEncoder.matches(currentRawPassword, currentEncodedPassword)).thenReturn(true);
-        when(customerRepository.findByEmail(customer.getEmail())).thenReturn(Optional.of(customer));
-        customerService.updateCustomer(updateRequest);
-
-        // then
-        verify(customerRepository, times(1)).save(customer);
-        assertThat(customer.getEmail()).isEqualTo(updateRequest.newEmail());
-        assertThat(customer.getPassword()).isEqualTo(encodedNewPassword);
-    }
-
-    @Test
-    void shouldNotUpdatePasswordWhenCurrentPasswordDoesNotMatch() {
-        // Given
-        CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(
-                customer.getEmail(),
-                "wrongPassword",
-                "1234"
-        );
-
-        // when
-        when(customerRepository.findByEmail(customer.getEmail())).thenReturn(Optional.of(customer));
-        when(bCryptPasswordEncoder.matches(updateRequest.currentPassword(), customer.getPassword())).thenReturn(false);
-        CustomerException ex = assertThrows(CustomerException.class,
-                () -> customerService.updateCustomer(
-                        updateRequest
-                )
-        );
-        // Then
-        assertThat(ex.getMessage()).isEqualTo("Password does not match.");
-    }
-
-    @Test
-    void shouldUpdateCustomerEmailOnly() {
+    @DisplayName("Should update customer email")
+    void shouldUpdateCustomerEmail() {
         // given
         String currentRawPassword = "123456";
         String currentEncodedPassword = "encodedActualPassword";
 
         Customer customer = new Customer(
                 10L,
-                "david@gmail.com",
+                "customer@test.com",
                 currentEncodedPassword
         );
 
-        // we change the context customer
+        // set the customer on the context
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 customer, null, Collections.emptyList()));
 
-        CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(
-                "david@gmail.com",
+        CustomerEmailUpdateRequest updateRequest = new CustomerEmailUpdateRequest(
                 currentRawPassword,
-                null
+                "david@test.com"
         );
 
         // when
         when(bCryptPasswordEncoder.matches(currentRawPassword, currentEncodedPassword)).thenReturn(true);
-        when(customerRepository.findByEmail(updateRequest.newEmail())).thenReturn(Optional.of(customer));
+        when(customerRepository.findByEmail(customer.getEmail())).thenReturn(Optional.of(customer));
 
-        customerService.updateCustomer(updateRequest);
+        customerService.updateEmail(updateRequest);
 
         // then
         verify(customerRepository, times(1)).save(customer);

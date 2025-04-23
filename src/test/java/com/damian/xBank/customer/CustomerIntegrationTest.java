@@ -5,10 +5,10 @@ import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountCurrency;
 import com.damian.xBank.banking.account.BankingAccountType;
-import com.damian.xBank.customer.profile.CustomerGender;
+import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +26,14 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class CustomerControllerTest {
+public class CustomerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -41,8 +42,6 @@ public class CustomerControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    private Faker faker;
 
     private String token;
 
@@ -53,16 +52,17 @@ public class CustomerControllerTest {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private Customer customer;
+    private Customer customerAdmin;
 
     @BeforeAll
     void setUp() throws Exception {
         customerRepository.deleteAll();
 
-        final String rawPassword = "123456";
-
         customer = new Customer();
+        customer.setRole(CustomerRole.CUSTOMER);
         customer.setEmail("customer@test.com");
-        customer.setPassword(bCryptPasswordEncoder.encode(rawPassword));
+        customer.setPassword(bCryptPasswordEncoder.encode("123456"));
+
         customer.getProfile().setNationalId("123456789Z");
         customer.getProfile().setName("John");
         customer.getProfile().setSurname("Wick");
@@ -85,21 +85,26 @@ public class CustomerControllerTest {
         bankingAccountB.setAccountType(BankingAccountType.SAVINGS);
         bankingAccountB.setAccountNumber("US99 0000 1111 1122 3333 6666");
         bankingAccounts.add(bankingAccountB);
-
         customer.setBankingAccounts(bankingAccounts);
-
         customerRepository.save(customer);
 
+        customerAdmin = new Customer();
+        customerAdmin.setPassword(bCryptPasswordEncoder.encode("123456"));
+        customerAdmin.setEmail("admin@test.com");
+        customerAdmin.setRole(CustomerRole.ADMIN);
+        customerRepository.save(customerAdmin);
+    }
+
+    String loginWithCustomer(Customer customer) throws Exception {
         // given
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(
-                customer.getEmail(), rawPassword
+                customer.getEmail(), "123456"
         );
 
         String jsonRequest = objectMapper.writeValueAsString(authenticationRequest);
 
         // when
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/login")
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andReturn();
@@ -109,12 +114,18 @@ public class CustomerControllerTest {
                 AuthenticationResponse.class
         );
 
-        token = response.token();
+        return response.token();
     }
 
     @Test
+    @DisplayName("Should get customer")
     void shouldGetCustomer() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/customers/" + customer.getId())
+        // given
+        token = loginWithCustomer(customerAdmin);
+
+        // when
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/customers/" + customer.getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -124,11 +135,52 @@ public class CustomerControllerTest {
     }
 
     @Test
+    @DisplayName("Should get customer accounts")
     void shouldGetCustomerAccounts() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/customers/" + customer.getId() + "/banking/accounts")
+        // given
+        token = loginWithCustomer(customerAdmin);
+        // when
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/customers/" + customer.getId() + "/banking/accounts")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @DisplayName("Should delete customer")
+    void shouldDeleteCustomer() throws Exception {
+        // given
+        token = loginWithCustomer(customerAdmin);
+
+        // when
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/admin/customers/" + customer.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Should update email")
+    void shouldUpdateEmail() throws Exception {
+        // given
+        token = loginWithCustomer(customer);
+
+        CustomerEmailUpdateRequest customerEmailUpdateRequest = new CustomerEmailUpdateRequest(
+                "123456",
+                "customer2@test.com"
+        );
+
+        // when
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/customers/email")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(customerEmailUpdateRequest)))
+                .andDo(print())
+                .andExpect(jsonPath("$.email").value("customer2@test.com"))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 }

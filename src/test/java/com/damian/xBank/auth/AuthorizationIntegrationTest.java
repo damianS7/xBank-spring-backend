@@ -9,6 +9,7 @@ import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -100,6 +101,7 @@ public class AuthorizationIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should have access when admin")
     void shouldHaveAccessWhenAdmin() throws Exception {
         // given
         final String token = loginWithCustomer(admin);
@@ -114,6 +116,7 @@ public class AuthorizationIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should not have access when not admin")
     void shouldNotHaveAccessWhenNotAdmin() throws Exception {
         // given
         final String token = loginWithCustomer(customer);
@@ -126,6 +129,4 @@ public class AuthorizationIntegrationTest {
                 .andExpect(MockMvcResultMatchers.status().is(403))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
-
-
 }

@@ -7,10 +7,14 @@ import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerService;
+import com.damian.xBank.customer.exception.CustomerException;
+import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,12 +23,16 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final CustomerService customerService;
     private final CustomerRepository customerRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final AuthenticationRepository authenticationRepository;
 
-    public AuthenticationService(JWTUtil jwtUtil, AuthenticationManager authenticationManager, CustomerService customerService, CustomerRepository customerRepository) {
+    public AuthenticationService(JWTUtil jwtUtil, AuthenticationManager authenticationManager, CustomerService customerService, CustomerRepository customerRepository, BCryptPasswordEncoder bCryptPasswordEncoder, AuthenticationRepository authenticationRepository) {
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
         this.customerService = customerService;
         this.customerRepository = customerRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.authenticationRepository = authenticationRepository;
     }
 
     /**
@@ -82,5 +90,40 @@ public class AuthenticationService {
         return new AuthenticationResponse(
                 customer.toDTO(), token
         );
+    }
+
+    /**
+     * It updates the password of a customer
+     *
+     * @param request the request body that contains the current password and the new password
+     * @return the customer updated
+     * @throws CustomerException if the password does not match, or if the customer does not exist
+     */
+    public void updatePassword(CustomerPasswordUpdateRequest request) {
+        // we extract the email from the Customer stored in the SecurityContext
+        final Customer loggedCustomer = (Customer) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        // we get the Customer entity so we can save at the end
+        Auth customerAuth = authenticationRepository.findByCustomer_Id(loggedCustomer.getId()).orElseThrow(
+                () -> new AuthenticationException("Customer cannot be found.")
+        );
+
+        // Before making any changes we check that the password sent by the customer matches the one in the entity
+        if (!bCryptPasswordEncoder.matches(request.currentPassword(), customerAuth.getPassword())) {
+            throw new AuthenticationException("Password does not match.");
+        }
+
+        // if a new password is specified we set in the customer entity
+        if (request.newPassword() != null) {
+            customerAuth.setPassword(
+                    bCryptPasswordEncoder.encode(request.newPassword())
+            );
+        }
+
+        // save the changes
+        authenticationRepository.save(customerAuth);
     }
 }

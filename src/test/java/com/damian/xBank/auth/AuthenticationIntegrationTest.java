@@ -6,6 +6,8 @@ import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRepository;
+import com.damian.xBank.customer.CustomerRole;
+import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +32,7 @@ import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -61,6 +64,7 @@ public class AuthenticationIntegrationTest {
     void setUp() {
         customerRepository.deleteAll();
         customer = new Customer();
+        customer.setRole(CustomerRole.ADMIN);
         customer.setEmail(this.email);
         customer.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
         customer.getProfile().setNationalId("123456789Z");
@@ -75,6 +79,28 @@ public class AuthenticationIntegrationTest {
         customer.getProfile().setPhotoPath("no photoPath");
 
         customerRepository.save(customer);
+    }
+
+    String loginWithCustomer(Customer customer) throws Exception {
+        // given
+        AuthenticationRequest authenticationRequest = new AuthenticationRequest(
+                customer.getEmail(), "123456"
+        );
+
+        String jsonRequest = objectMapper.writeValueAsString(authenticationRequest);
+
+        // when
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
+                .andReturn();
+
+        AuthenticationResponse response = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                AuthenticationResponse.class
+        );
+
+        return response.token();
     }
 
     @Test
@@ -385,6 +411,26 @@ public class AuthenticationIntegrationTest {
                 .andExpect(MockMvcResultMatchers.status().is(401))
                 .andExpect(jsonPath("$.message").value("Token expired"))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @DisplayName("Should update password")
+    void shouldUpdatePassword() throws Exception {
+        // given
+        String token = loginWithCustomer(customer);
+        CustomerPasswordUpdateRequest updatePasswordRequest = new CustomerPasswordUpdateRequest(
+                "123456",
+                "12345678$Xa"
+        );
+
+        // when
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/password")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updatePasswordRequest)))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     // TODO

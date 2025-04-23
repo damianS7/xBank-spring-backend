@@ -3,7 +3,6 @@ package com.damian.xBank.customer;
 import com.damian.xBank.common.utils.DTOBuilder;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
-import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -114,42 +113,6 @@ public class CustomerService {
     }
 
     /**
-     * It updates the password of a customer
-     *
-     * @param request the request body that contains the current password and the new password
-     * @return the customer updated
-     * @throws CustomerException if the password does not match, or if the customer does not exist
-     */
-    public Customer updatePassword(CustomerPasswordUpdateRequest request) {
-        // we extract the email from the Customer stored in the SecurityContext
-        final String customerEmail = ((Customer) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal())
-                .getEmail();
-
-        // we get the Customer entity so we can save at the end
-        Customer customer = customerRepository.findByEmail(customerEmail).orElseThrow(
-                () -> new CustomerException("Customer cannot be found.")
-        );
-
-        // Before making any changes we check that the password sent by the customer matches the one in the entity
-        if (!bCryptPasswordEncoder.matches(request.currentPassword(), customer.getPassword())) {
-            throw new CustomerException("Password does not match.");
-        }
-
-        // if a new password is specified we set in the customer entity
-        if (request.newPassword() != null) {
-            customer.setPassword(
-                    bCryptPasswordEncoder.encode(request.newPassword())
-            );
-        }
-
-        // save the changes
-        return customerRepository.save(customer);
-    }
-
-    /**
      * It updates the email of a customer
      *
      * @param request the request body that contains the current password and the new email
@@ -158,14 +121,13 @@ public class CustomerService {
      */
     public Customer updateEmail(CustomerEmailUpdateRequest request) {
         // we extract the email from the Customer stored in the SecurityContext
-        final String customerEmail = ((Customer) SecurityContextHolder
+        final Customer loggedCustomer = (Customer) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
-                .getPrincipal())
-                .getEmail();
+                .getPrincipal();
 
         // we get the Customer entity so we can save at the end
-        Customer customer = customerRepository.findByEmail(customerEmail).orElseThrow(
+        Customer customer = customerRepository.findByEmail(loggedCustomer.getEmail()).orElseThrow(
                 () -> new CustomerException("Customer cannot be found.")
         );
 

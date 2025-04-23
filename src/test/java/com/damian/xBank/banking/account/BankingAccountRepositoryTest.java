@@ -2,7 +2,6 @@ package com.damian.xBank.banking.account;
 
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
-import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +21,8 @@ public class BankingAccountRepositoryTest {
     @Autowired
     private CustomerRepository customerRepository;
 
-    private Faker faker;
-
     @BeforeEach
     void setUp() {
-        faker = new Faker();
         accountRepository.deleteAll();
     }
 

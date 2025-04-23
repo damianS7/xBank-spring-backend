@@ -513,5 +513,4 @@ public class BankingAccountServiceTest {
             bankingAccountService.handleCreateTransactionRequest(fromBankingAccountId, null);
         });
     }
-
 }

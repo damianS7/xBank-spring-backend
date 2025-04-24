@@ -172,7 +172,7 @@ public class BankingAccountServiceTest {
 
     @Test
     @DisplayName("Should get a customer with its banking account data")
-    void shouldGetBankingAccountsFromCustomer() {
+    void shouldGetCustomerBankingAccountsFromCustomer() {
         // given
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 customerA, null, Collections.emptyList()));
@@ -193,7 +193,7 @@ public class BankingAccountServiceTest {
         // when
         when(bankingAccountRepository.findByCustomer_Id(anyLong())).thenReturn(bankingAccounts);
 
-        Set<BankingAccountDTO> result = bankingAccountService.getBankingAccounts(customerA.getId());
+        Set<BankingAccountDTO> result = bankingAccountService.getCustomerBankingAccounts(customerA.getId());
 
         // then
         assertThat(result.size()).isEqualTo(2);

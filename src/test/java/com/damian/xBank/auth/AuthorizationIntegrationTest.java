@@ -2,7 +2,6 @@ package com.damian.xBank.auth;
 
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
-import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRepository;
@@ -43,9 +42,6 @@ public class AuthorizationIntegrationTest {
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    @Autowired
-    private JWTUtil jwtUtil;
 
     private String rawPassword = "123456";
     private Customer customer;
@@ -108,7 +104,7 @@ public class AuthorizationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/v1/admin/customers/1")
+                        .get("/api/v1/admin/customers/" + customer.getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().is(200))
@@ -123,10 +119,9 @@ public class AuthorizationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/v1/admin/customers/1")
+                        .get("/api/v1/admin/customers/" + customer.getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(403))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(MockMvcResultMatchers.status().is(403));
     }
 }

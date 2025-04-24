@@ -78,4 +78,8 @@ public class JWTUtil {
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
+
+    public void printToken(String token) {
+        getAllClaims(token).forEach((k, v) -> System.out.println(k + ": " + v));
+    }
 }

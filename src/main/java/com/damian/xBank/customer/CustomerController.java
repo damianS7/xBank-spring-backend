@@ -43,7 +43,6 @@ public class CustomerController {
             @PathVariable @NotNull @Positive
             Long id) {
         Customer customer = customerService.getCustomer(id);
-
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(customer.toDTO());
@@ -51,10 +50,10 @@ public class CustomerController {
 
     // endpoint to receive all BankingAccounts from user
     @GetMapping("/admin/customers/{id}/banking/accounts")
-    public ResponseEntity<?> getCustomerBankingAccounts(
+    public ResponseEntity<?> getBankingAccounts(
             @PathVariable @NotNull @Positive
             Long id) {
-        Set<BankingAccountDTO> bankingAccounts = bankingAccountService.getBankingAccounts(id);
+        Set<BankingAccountDTO> bankingAccounts = bankingAccountService.getCustomerBankingAccounts(id);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

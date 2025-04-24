@@ -234,7 +234,7 @@ public class BankingAccountService {
     }
 
     // return all the BankingsAccount that belongs to customerId
-    public Set<BankingAccountDTO> getBankingAccounts(Long customerId) {
+    public Set<BankingAccountDTO> getCustomerBankingAccounts(Long customerId) {
         return bankingAccountRepository.findByCustomer_Id(customerId).stream().map(
                 BankingAccount::toDTO
         ).collect(Collectors.toSet());

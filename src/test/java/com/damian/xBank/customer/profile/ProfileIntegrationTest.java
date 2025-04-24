@@ -11,10 +11,9 @@ import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,7 +37,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ProfileIntegrationTest {
     private final String rawPassword = "123456";
 
@@ -63,7 +61,7 @@ public class ProfileIntegrationTest {
     private Customer customerB;
     private Customer customerAdmin;
 
-    @BeforeAll
+    @BeforeEach
     void setUp() throws Exception {
         customerRepository.deleteAll();
 

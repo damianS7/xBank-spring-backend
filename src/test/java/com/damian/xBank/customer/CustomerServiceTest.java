@@ -1,6 +1,7 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.customer.exception.CustomerException;
+import com.damian.xBank.customer.exception.CustomerEmailTakenException;
+import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -23,8 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -121,12 +121,12 @@ public class CustomerServiceTest {
         Long id = -1L;
 
         // when
-        CustomerException exception = assertThrows(CustomerException.class,
+        CustomerNotFoundException exception = assertThrows(CustomerNotFoundException.class,
                 () -> customerService.getCustomer(id)
         );
 
         // then
-        assertEquals("Customer not found.", exception.getMessage());
+        assertTrue(exception.getMessage().contains("Customer not found"));
     }
 
     @Test
@@ -186,13 +186,13 @@ public class CustomerServiceTest {
 
         // when
         when(customerRepository.findByEmail(request.email())).thenReturn(Optional.of(new Customer()));
-        CustomerException exception = assertThrows(CustomerException.class,
+        CustomerEmailTakenException exception = assertThrows(CustomerEmailTakenException.class,
                 () -> customerService.createCustomer(request)
         );
 
         // then
         verify(customerRepository, times(0)).save(any());
-        assertEquals("Email is taken.", exception.getMessage());
+        assertTrue(exception.getMessage().contains("is already taken."));
     }
 
     @Test
@@ -221,10 +221,10 @@ public class CustomerServiceTest {
         when(customerRepository.existsById(id)).thenReturn(false);
 
         // then
-        CustomerException ex = assertThrows(CustomerException.class,
+        CustomerNotFoundException exception = assertThrows(CustomerNotFoundException.class,
                 () -> customerService.deleteCustomer(id)
         );
-        assertThat(ex.getMessage()).isEqualTo("Customer do not exist.");
+        assertTrue(exception.getMessage().contains("Customer not found"));
         verify(customerRepository, never()).deleteById(anyLong());
     }
 

@@ -2,6 +2,7 @@ package com.damian.xBank.banking.account;
 
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.banking.account.exception.BankingAccountException;
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
@@ -143,7 +144,7 @@ public class BankingAccountIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isCreated())
+                .andExpect(status().is(201))
                 .andExpect(jsonPath("$.accountNumber").isNotEmpty())
                 .andExpect(jsonPath("$.accountType").value("SAVINGS"))
                 .andExpect(jsonPath("$.accountCurrency").value("EUR"))
@@ -166,7 +167,7 @@ public class BankingAccountIntegrationTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().is(200));
     }
 
     @Test
@@ -185,15 +186,15 @@ public class BankingAccountIntegrationTest {
         mockMvc.perform(get("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().is(403));
     }
 
     @Test
     @DisplayName("Should close an account even if its not yours when you are ADMIN")
     void shouldCloseBankingAccountWhenItsNotYoursAndButYouAreAdmin() throws Exception {
         // given
-        loginWithCustomer(customerA);
-        BankingAccount bankingAccount = new BankingAccount(customerAdmin);
+        loginWithCustomer(customerAdmin);
+        BankingAccount bankingAccount = new BankingAccount(customerA);
         bankingAccount.setAccountNumber("US00 1111 1111 2222 2222 3333");
         bankingAccount.setAccountType(BankingAccountType.SAVINGS);
         bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
@@ -204,7 +205,7 @@ public class BankingAccountIntegrationTest {
         mockMvc.perform(get("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().is(200));
     }
 
     @Test
@@ -241,7 +242,7 @@ public class BankingAccountIntegrationTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/customers/" + customerAdmin.getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andDo(print())
-                .andExpect(status().isOk())
+                .andExpect(status().is(200))
                 .andExpect(jsonPath("$.bankingAccounts.[?(@.id == " + bankingAccount1.getId() + ")].accountNumber").value(bankingAccount1.getAccountNumber()))
                 .andExpect(jsonPath("$.bankingAccounts.[?(@.id == " + bankingAccount2.getId() + ")].accountNumber").value(bankingAccount2.getAccountNumber()))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
@@ -282,7 +283,7 @@ public class BankingAccountIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isCreated());
+                .andExpect(status().is(201));
     }
 
     @Test
@@ -322,7 +323,7 @@ public class BankingAccountIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().isCreated());
+                .andExpect(status().is(201));
     }
 
     @Test
@@ -425,7 +426,7 @@ public class BankingAccountIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().is(500));
+                .andExpect(status().is(409));
     }
 
     @Test

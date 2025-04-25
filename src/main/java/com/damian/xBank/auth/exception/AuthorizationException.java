@@ -1,7 +1,9 @@
 package com.damian.xBank.auth.exception;
 
-public class AuthorizationException extends RuntimeException {
+import com.damian.xBank.common.exception.ApplicationException;
+
+public class AuthorizationException extends ApplicationException {
     public AuthorizationException(String message) {
-        super(message);
+        super("Unauthorized access: " + message);
     }
 }

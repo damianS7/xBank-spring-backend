@@ -43,8 +43,6 @@ public class CustomerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private String token;
-
     @Autowired
     private CustomerRepository customerRepository;
 
@@ -121,7 +119,7 @@ public class CustomerIntegrationTest {
     @DisplayName("Should get customer")
     void shouldGetCustomer() throws Exception {
         // given
-        token = loginWithCustomer(customerAdmin);
+        final String token = loginWithCustomer(customerAdmin);
 
         // when
         // then
@@ -138,7 +136,7 @@ public class CustomerIntegrationTest {
     @DisplayName("Should get customer accounts")
     void shouldGetCustomerAccounts() throws Exception {
         // given
-        token = loginWithCustomer(customerAdmin);
+        final String token = loginWithCustomer(customerAdmin);
         // when
         // then
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/customers/" + customer.getId() + "/banking/accounts")
@@ -152,7 +150,7 @@ public class CustomerIntegrationTest {
     @DisplayName("Should delete customer")
     void shouldDeleteCustomer() throws Exception {
         // given
-        token = loginWithCustomer(customerAdmin);
+        final String token = loginWithCustomer(customerAdmin);
 
         // when
         // then
@@ -166,7 +164,7 @@ public class CustomerIntegrationTest {
     @DisplayName("Should update email")
     void shouldUpdateEmail() throws Exception {
         // given
-        token = loginWithCustomer(customer);
+        final String token = loginWithCustomer(customer);
 
         CustomerEmailUpdateRequest customerEmailUpdateRequest = new CustomerEmailUpdateRequest(
                 "123456",

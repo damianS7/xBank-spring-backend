@@ -153,9 +153,8 @@ public class AuthenticationIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(500))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value("Bad credentials"));
+                .andExpect(MockMvcResultMatchers.status().is(401))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -337,8 +336,8 @@ public class AuthenticationIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(500))
-                .andExpect(jsonPath("$.message").value("Email is taken."))
+                .andExpect(MockMvcResultMatchers.status().is(409))
+                .andExpect(jsonPath("$.message").value(containsString("is already taken.")))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 

@@ -1,5 +1,9 @@
 package com.damian.xBank.banking.account;
 
+import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationException;
+import com.damian.xBank.banking.account.exception.BankingAccountException;
+import com.damian.xBank.banking.account.exception.BankingAccountInsufficientFundsException;
+import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
@@ -30,6 +34,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -152,12 +157,12 @@ public class BankingAccountServiceTest {
         // when
         when(bankingAccountRepository.findById(bankingAccount.getId())).thenReturn(Optional.of(bankingAccount));
 
-        BankingAccountException exception = assertThrows(BankingAccountException.class,
+        BankingAccountAuthorizationException exception = assertThrows(BankingAccountAuthorizationException.class,
                 () -> bankingAccountService.closeBankingAccount(bankingAccount.getId())
         );
 
         // then
-        assertThat(exception.getMessage()).isEqualTo("You cannot close an account that is not yours");
+        assertTrue(exception.getMessage().contains("You are not the owner of this account."));
     }
 
     @Test
@@ -189,7 +194,6 @@ public class BankingAccountServiceTest {
     @DisplayName("Should get a customer with its banking account data")
     void shouldGetCustomerBankingAccountsFromCustomer() {
         // given
-//        setUpContext(customerA);
 
         List<BankingAccount> bankingAccounts = new ArrayList<>();
         BankingAccount bankingAccountA = new BankingAccount(customerA);
@@ -290,10 +294,7 @@ public class BankingAccountServiceTest {
         );
 
         verify(bankingAccountRepository, times(0)).save(any(BankingAccount.class));
-        assertThat(exception.getMessage()).isEqualTo(
-                "Banking account should be open to carry any transaction"
-        );
-
+        assertTrue(exception.getMessage().contains("Banking account is closed."));
     }
 
     @Test
@@ -327,7 +328,7 @@ public class BankingAccountServiceTest {
         when(bankingAccountRepository.findById(bankingAccount.getId())).thenReturn(Optional.of(bankingAccount));
 
         // then
-        BankingAccountException exception = assertThrows(BankingAccountException.class,
+        BankingAccountInsufficientFundsException exception = assertThrows(BankingAccountInsufficientFundsException.class,
                 () -> bankingAccountService.handleCreateTransactionRequest(
                         bankingAccount.getId(),
                         request
@@ -335,9 +336,7 @@ public class BankingAccountServiceTest {
         );
 
         verify(bankingAccountRepository, times(0)).save(any(BankingAccount.class));
-        assertThat(exception.getMessage()).isEqualTo(
-                "Insufficient funds"
-        );
+        assertTrue(exception.getMessage().contains("Insufficient funds"));
     }
 
     @Test
@@ -472,7 +471,7 @@ public class BankingAccountServiceTest {
         );
 
         // when
-        BankingAccountException exception = assertThrows(BankingAccountException.class,
+        BankingAccountNotFoundException exception = assertThrows(BankingAccountNotFoundException.class,
                 () -> bankingAccountService.handleCreateTransactionRequest(
                         bankingAccountA.getId(),
                         request
@@ -481,9 +480,8 @@ public class BankingAccountServiceTest {
 
         // then
         verify(bankingAccountRepository, times(0)).save(any(BankingAccount.class));
-        assertThat(exception.getMessage()).isEqualTo(
-                "Banking Account not found");
         assertThat(bankingAccountA.getBalance()).isEqualTo(BigDecimal.valueOf(bankingAccountA_StartBalance));
+        assertTrue(exception.getMessage().contains("Banking account not found"));
     }
 
     @Test

@@ -1,15 +1,18 @@
 package com.damian.xBank.auth;
 
-import com.damian.xBank.auth.exception.AuthenticationException;
+import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerService;
+import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -56,7 +59,8 @@ public class AuthenticationService {
      *
      * @param request Contains the fields needed to login into the service
      * @return Contains the data (Customer, Profile) and the token
-     * @throws AuthenticationException
+     * @throws AuthenticationBadCredentialsException
+     * @throws CustomerNotFoundException
      */
     public AuthenticationResponse login(AuthenticationRequest request) {
         final String email = request.email();
@@ -70,19 +74,20 @@ public class AuthenticationService {
                     new UsernamePasswordAuthenticationToken(
                             email, password)
             );
-        } catch (org.springframework.security.core.AuthenticationException e) {
-            throw new AuthenticationException(e.getMessage()); // 403 Forbidden
+//        } catch (org.springframework.security.core.AuthenticationException e) {
+        } catch (BadCredentialsException e) {
+            throw new AuthenticationBadCredentialsException(); // 403 Forbidden
         }
 
         // Generate a token for the authenticated user
         final String token = jwtUtil.generateToken(email);
 
         // Get the id from the authenticated customer
-        Long customerId = ((Customer) auth.getPrincipal()).getId();
+        final Long customerId = ((Customer) auth.getPrincipal()).getId();
 
         // Fetch the customer logged from the service
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new AuthenticationException("Customer not found.")
+                .orElseThrow(() -> new CustomerNotFoundException(customerId)
                 );
 
         // Return the customer data and the token
@@ -96,7 +101,8 @@ public class AuthenticationService {
      *
      * @param request the request body that contains the current password and the new password
      * @return the customer updated
-     * @throws AuthenticationException if the password does not match, or if the customer does not exist
+     * @throws CustomerNotFoundException if the customer does not exist
+     * @throws PasswordMismatchException if the password does not match
      */
     public void updatePassword(CustomerPasswordUpdateRequest request) {
         // we extract the email from the Customer stored in the SecurityContext
@@ -107,12 +113,12 @@ public class AuthenticationService {
 
         // we get the Customer entity so we can save at the end
         Auth customerAuth = authenticationRepository.findByCustomer_Id(loggedCustomer.getId()).orElseThrow(
-                () -> new AuthenticationException("Customer cannot be found.")
+                () -> new CustomerNotFoundException(loggedCustomer.getId())
         );
 
         // Before making any changes we check that the password sent by the customer matches the one in the entity
         if (!bCryptPasswordEncoder.matches(request.currentPassword(), customerAuth.getPassword())) {
-            throw new AuthenticationException("Password does not match.");
+            throw new PasswordMismatchException("Password does not match.");
         }
 
         // if a new password is specified we set in the customer entity

@@ -1,5 +1,9 @@
 package com.damian.xBank.banking.account;
 
+import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationException;
+import com.damian.xBank.banking.account.exception.BankingAccountException;
+import com.damian.xBank.banking.account.exception.BankingAccountInsufficientFundsException;
+import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
@@ -7,7 +11,7 @@ import com.damian.xBank.banking.account.transactions.BankingAccountTransactionTy
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
-import com.damian.xBank.customer.exception.CustomerException;
+import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import net.datafaker.Faker;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -149,12 +153,12 @@ public class BankingAccountService {
         // check if the banking account exists
         final BankingAccount bankingAccount = bankingAccountRepository.findById(fromBankAccountId)
                 .orElseThrow(
-                        () -> new BankingAccountException("Banking Account not found")
+                        () -> new BankingAccountNotFoundException(fromBankAccountId)
                 );
 
         // check if the account is not locked or closed
         if (!bankingAccount.getAccountStatus().equals(BankingAccountStatus.OPEN)) {
-            throw new BankingAccountException("Banking account should be open to carry any transaction");
+            throw new BankingAccountException("Banking account is closed. Transactions are not allowed.");
         }
 
         // check if the transaction is a spending transaction
@@ -173,12 +177,13 @@ public class BankingAccountService {
 
             // check if the account belongs to the customer
             if (!bankingAccount.getCustomer().getId().equals(customerLogged.getId())) {
-                throw new BankingAccountException("This accounts is not yours!");
+                // banking account does not belong to this customer
+                throw new BankingAccountAuthorizationException();
             }
 
             // check if customer can afford the transaction
             if (!this.hasSufficientBalance(bankingAccount.getBalance(), amount)) {
-                throw new BankingAccountException("Insufficient funds");
+                throw new BankingAccountInsufficientFundsException();
             }
 
             // deduce the amount from the balance
@@ -249,7 +254,7 @@ public class BankingAccountService {
 
         // we get the Customer entity so we can save at the end
         final Customer customer = customerRepository.findByEmail(customerLogged.getEmail()).orElseThrow(
-                () -> new CustomerException("Customer cannot be found")
+                () -> new CustomerNotFoundException(customerLogged.getEmail())
         );
 
         BankingAccount bankingAccount = new BankingAccount();
@@ -261,22 +266,24 @@ public class BankingAccountService {
         return bankingAccountRepository.save(bankingAccount);
     }
 
-    public BankingAccount closeBankingAccount(Long id) {
-        // ...
+    public BankingAccount closeBankingAccount(Long bankingAccountId) {
+        // Customer logged
         final Customer customerLogged = (Customer) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getPrincipal();
 
-        final BankingAccount bankingAccount = bankingAccountRepository.findById(id).orElseThrow(
-                () -> new BankingAccountException("BankingAccount cannot be found")
+        // Banking account to be closed
+        final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
+                () -> new BankingAccountNotFoundException(bankingAccountId) // Banking account not found
         );
 
-        // check if the account to be closed belongs to this customer.
-        if (!bankingAccount.getCustomer().getId().equals(customerLogged.getId())) {
-            // in case CustomerRole.ADMIN it will no throw
-            if (customerLogged.getRole().equals(CustomerRole.CUSTOMER)) {
-                throw new BankingAccountException("You cannot close an account that is not yours");
+        // if the logged customer is not admin
+        if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
+            // check if the account to be closed belongs to this customer.
+            if (!bankingAccount.getCustomer().getId().equals(customerLogged.getId())) {
+                // banking account does not belong to this customer
+                throw new BankingAccountAuthorizationException();
             }
         }
 

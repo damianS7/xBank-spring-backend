@@ -1,8 +1,9 @@
 package com.damian.xBank.auth;
 
-import com.damian.xBank.auth.exception.AuthenticationException;
+import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
@@ -30,6 +31,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -156,6 +158,28 @@ public class AuthenticationServiceTest {
     }
 
     @Test
+    void shouldNotLoginWhenInvalidCredentials() {
+        // given
+        Customer customer = new Customer(
+                1L,
+                "alice@gmail.com",
+                "123456"
+        );
+
+        AuthenticationRequest request = new AuthenticationRequest(customer.getEmail(), customer.getPassword());
+
+        // when
+        when(authenticationManager.authenticate(any())).thenThrow(AuthenticationBadCredentialsException.class);
+
+        AuthenticationBadCredentialsException exception = assertThrows(AuthenticationBadCredentialsException.class,
+                () -> authenticationService.login(request)
+        );
+
+        // Then
+        assertTrue(exception.getMessage().contains("Bad credentials."));
+    }
+
+    @Test
     @DisplayName("Should update customer password")
     void shouldUpdateCustomerPassword() {
         // given
@@ -210,12 +234,12 @@ public class AuthenticationServiceTest {
         // when
         when(authenticationRepository.findByCustomer_Id(customer.getId())).thenReturn(Optional.of(customer.getAuth()));
         when(bCryptPasswordEncoder.matches(updateRequest.currentPassword(), customer.getPassword())).thenReturn(false);
-        AuthenticationException ex = assertThrows(AuthenticationException.class,
+        PasswordMismatchException exception = assertThrows(PasswordMismatchException.class,
                 () -> authenticationService.updatePassword(
                         updateRequest
                 )
         );
         // Then
-        assertThat(ex.getMessage()).isEqualTo("Password does not match.");
+        assertTrue(exception.getMessage().contains("Password does not match."));
     }
 }

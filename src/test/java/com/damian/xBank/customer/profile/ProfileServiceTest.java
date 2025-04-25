@@ -1,8 +1,10 @@
 package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.auth.exception.AuthorizationException;
+import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
+import com.damian.xBank.customer.profile.exception.ProfileException;
 import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -24,8 +26,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -193,13 +195,13 @@ public class ProfileServiceTest {
         when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
         when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(false);
 
-        ProfileException exception = assertThrows(ProfileException.class,
+        PasswordMismatchException exception = assertThrows(PasswordMismatchException.class,
                 () -> profileService.updateProfile(customer.getProfile().getId(), updateRequest)
         );
 
         // Then
         verify(profileRepository, times(0)).save(customer.getProfile());
-        assertEquals("Password does not match.", exception.getMessage());
+        assertTrue(exception.getMessage().contains("Password does not match."));
     }
 
     @Test
@@ -232,6 +234,6 @@ public class ProfileServiceTest {
 
         // Then
         verify(profileRepository, times(0)).save(customer.getProfile());
-        assertEquals("This profile does not belongs to the logged user.", exception.getMessage());
+        assertTrue(exception.getMessage().contains("You are not the owner of this profile."));
     }
 }

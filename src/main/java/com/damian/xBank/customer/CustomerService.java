@@ -1,7 +1,10 @@
 package com.damian.xBank.customer;
 
+import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.DTOBuilder;
+import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerException;
+import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,7 +34,7 @@ public class CustomerService {
 
         // check if the email is already taken
         if (emailExist(request.email())) {
-            throw new CustomerException("Email is taken.");
+            throw new CustomerEmailTakenException(request.email());
         }
 
         // we create the customer and assign the data
@@ -62,7 +65,7 @@ public class CustomerService {
     public boolean deleteCustomer(Long customerId) {
         // if the customer does not exist we throw an exception
         if (!customerRepository.existsById(customerId)) {
-            throw new CustomerException("Customer do not exist.");
+            throw new CustomerNotFoundException(customerId);
         }
 
         // we delete the customer
@@ -97,7 +100,7 @@ public class CustomerService {
     public Customer getCustomer(Long customerId) {
         // if the customer does not exist we throw an exception
         return customerRepository.findById(customerId).orElseThrow(
-                () -> new CustomerException("Customer not found.")
+                () -> new CustomerNotFoundException(customerId)
         );
     }
 
@@ -128,12 +131,12 @@ public class CustomerService {
 
         // we get the Customer entity so we can save at the end
         Customer customer = customerRepository.findByEmail(loggedCustomer.getEmail()).orElseThrow(
-                () -> new CustomerException("Customer cannot be found.")
+                () -> new CustomerNotFoundException(loggedCustomer.getEmail())
         );
 
         // Before making any changes we check that the password sent by the customer matches the one in the entity
         if (!bCryptPasswordEncoder.matches(request.currentPassword(), customer.getPassword())) {
-            throw new CustomerException("Password does not match.");
+            throw new PasswordMismatchException();
         }
 
         // if the email is not null we modify in the customer

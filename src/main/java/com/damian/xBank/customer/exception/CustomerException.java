@@ -1,6 +1,8 @@
 package com.damian.xBank.customer.exception;
 
-public class CustomerException extends RuntimeException {
+import com.damian.xBank.common.exception.ApplicationException;
+
+public class CustomerException extends ApplicationException {
     public CustomerException(String message) {
         super(message);
     }

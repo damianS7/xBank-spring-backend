@@ -1,9 +1,12 @@
 package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.auth.exception.AuthorizationException;
+import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRole;
+import com.damian.xBank.customer.profile.exception.ProfileException;
+import com.damian.xBank.customer.profile.exception.ProfileNotFoundException;
 import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -64,28 +67,28 @@ public class ProfileService {
 
         // if profiledId is null, then is a customer modifying its own profile.
         if (profileId == null) {
-            profileId = Optional.ofNullable(customerLogged.getProfile()).map(
-                    Profile::getId
-            ).orElseThrow(
-                    () -> new ProfileException("Cannot patch profile because profileId could not be determined.")
-            );
+            profileId = Optional.ofNullable(customerLogged.getProfile())
+                    .map(Profile::getId)
+                    .orElseThrow(() -> new ProfileException("Cannot access to customer profile.")
+                    );
         }
 
         // We get the profile we want to modify
-        Profile profile = profileRepository.findById(profileId).orElseThrow(
-                () -> new ProfileException("Profile cannot be found.")
-        );
+        Profile profile = profileRepository.findById(profileId)
+                .orElseThrow(
+                        ProfileNotFoundException::new
+                );
 
         // if the logged user is not admin
         if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
-            // before making any changes we check that the user sent the current password
+            // before making any changes we check that the user sent the current password.
             if (!bCryptPasswordEncoder.matches(request.currentPassword(), customerLogged.getPassword())) {
-                throw new ProfileException("Password does not match.");
+                throw new PasswordMismatchException();
             }
 
             // we make sure that this profile belongs to the customer logged
             if (!profile.getCustomerId().equals(customerLogged.getId())) {
-                throw new AuthorizationException("This profile does not belongs to the logged user.");
+                throw new AuthorizationException("You are not the owner of this profile.");
             }
         }
 

@@ -3,6 +3,7 @@ package com.damian.xBank.customer;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,13 +11,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +42,19 @@ public class CustomerServiceTest {
     @BeforeEach
     void setUp() {
         customerRepository.deleteAll();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    void setUpContext(Customer customer) {
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        Mockito.when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(customer);
     }
 
     @Test
@@ -227,8 +242,7 @@ public class CustomerServiceTest {
         );
 
         // set the customer on the context
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customer, null, Collections.emptyList()));
+        setUpContext(customer);
 
         CustomerEmailUpdateRequest updateRequest = new CustomerEmailUpdateRequest(
                 currentRawPassword,

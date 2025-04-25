@@ -10,21 +10,22 @@ import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerService;
 import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -60,6 +61,19 @@ public class AuthenticationServiceTest {
     @BeforeEach
     void setUp() {
         customerRepository.deleteAll();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    void setUpContext(Customer customer) {
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        Mockito.when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(customer);
     }
 
     @Test
@@ -162,8 +176,7 @@ public class AuthenticationServiceTest {
         );
 
         // set the customer on the context
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customer, null, Collections.emptyList()));
+        setUpContext(customer);
 
         // when
         when(bCryptPasswordEncoder.encode(rawNewPassword)).thenReturn(encodedNewPassword);
@@ -187,8 +200,7 @@ public class AuthenticationServiceTest {
         );
 
         // set the customer on the context
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customer, null, Collections.emptyList()));
+        setUpContext(customer);
 
         CustomerPasswordUpdateRequest updateRequest = new CustomerPasswordUpdateRequest(
                 "wrongPassword",

@@ -9,18 +9,24 @@ import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import net.datafaker.Faker;
 import net.datafaker.providers.base.Finance;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,12 +64,24 @@ public class BankingAccountServiceTest {
         customerAdmin.setRole(CustomerRole.ADMIN);
     }
 
+    @AfterEach
+    public void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    void setUpContext(Customer customer) {
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        Mockito.when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(customer);
+    }
+
     @Test
     @DisplayName("Should open a BankingAccount")
     void shouldOpenBankingAccount() {
         // given
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerA, null, Collections.emptyList()));
+        setUpContext(customerA);
 
         final String accountNumber = "US99 0000 1111 1122 3333 4444";
         BankingAccountOpenRequest request = new BankingAccountOpenRequest(
@@ -96,8 +114,7 @@ public class BankingAccountServiceTest {
     @DisplayName("Should close a BankingAccount")
     void shouldCloseBankingAccount() {
         // given
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerA, null, Collections.emptyList()));
+        setUpContext(customerA);
 
         final String accountNumber = "US99 0000 1111 1122 3333 4444";
 
@@ -122,8 +139,7 @@ public class BankingAccountServiceTest {
     @DisplayName("Should not close account if you are not the owner and you are not admin either")
     void shouldNotCloseBankingAccountWhenItsNotYoursAndYouAreNotAdmin() {
         // given
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerA, null, Collections.emptyList()));
+        setUpContext(customerA);
 
         final String accountNumber = "US99 0000 1111 1122 3333 4444";
 
@@ -148,8 +164,7 @@ public class BankingAccountServiceTest {
     @DisplayName("Should close an account even if its not yours when you are ADMIN")
     void shouldCloseBankingAccountWhenItsNotYoursAndButYouAreAdmin() {
         // given
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerAdmin, null, Collections.emptyList()));
+        setUpContext(customerAdmin);
 
         final String accountNumber = "US99 0000 1111 1122 3333 4444";
 
@@ -174,8 +189,7 @@ public class BankingAccountServiceTest {
     @DisplayName("Should get a customer with its banking account data")
     void shouldGetCustomerBankingAccountsFromCustomer() {
         // given
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerA, null, Collections.emptyList()));
+//        setUpContext(customerA);
 
         List<BankingAccount> bankingAccounts = new ArrayList<>();
         BankingAccount bankingAccountA = new BankingAccount(customerA);
@@ -204,9 +218,6 @@ public class BankingAccountServiceTest {
     @DisplayName("Should create a transaction deposit")
     void shouldDeposit() {
         // given
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerA, null, Collections.emptyList()));
-
         BankingAccount bankingAccount = new BankingAccount(customerA);
         bankingAccount.setId(12L);
         bankingAccount.setAccountNumber("ES1234567890123456789012");
@@ -246,9 +257,6 @@ public class BankingAccountServiceTest {
     @DisplayName("Should not create a transaction when account is not open")
     void shouldNotCreateTransactionWhenAccountIsNotOpen() {
         // given
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerA, null, Collections.emptyList()));
-
         BankingAccount bankingAccount = new BankingAccount(customerA);
         bankingAccount.setId(13L);
         bankingAccount.setAccountNumber("ES1234567890123456789012");
@@ -292,8 +300,7 @@ public class BankingAccountServiceTest {
     @DisplayName("Should not create transaction when insufficient funds")
     void shouldNotCreateTransactionWhenInsufficientFunds() {
         // given
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerA, null, Collections.emptyList()));
+        setUpContext(customerA);
 
         BankingAccount bankingAccount = new BankingAccount(customerA);
         bankingAccount.setId(10L);
@@ -337,8 +344,7 @@ public class BankingAccountServiceTest {
     @DisplayName("Should create a transfer transaction")
     void shouldTransferToAnotherCustomer() {
         // given
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerA, null, Collections.emptyList()));
+        setUpContext(customerA);
 
         final long bankingAccountA_StartBalance = 1000;
         BankingAccount bankingAccountA = new BankingAccount(customerA);
@@ -401,9 +407,6 @@ public class BankingAccountServiceTest {
     @DisplayName("Should not transfer to same banking account")
     void shouldNotTransferToSameBankingAccount() {
         // given
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerA, null, Collections.emptyList()));
-
         final long bankingAccountA_StartBalance = 1000;
         BankingAccount bankingAccountA = new BankingAccount(customerA);
         bankingAccountA.setAccountNumber("ES1234567890123444449013");
@@ -445,8 +448,6 @@ public class BankingAccountServiceTest {
     @DisplayName("Should not transfer when account not exists and balance must remain same")
     void shouldNotTransferWhenDestinyNotExist() {
         // given
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerA, null, Collections.emptyList()));
 
         final long bankingAccountA_StartBalance = 1000;
         BankingAccount bankingAccountA = new BankingAccount(customerA);

@@ -5,18 +5,20 @@ import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -60,17 +62,25 @@ public class ProfileServiceTest {
         customer.getProfile().setAddress("fake ave");
         customer.getProfile().setPostalCode("050012");
         customer.getProfile().setPhotoPath("no photoPath");
+    }
 
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(
-                        customer, null, Collections.emptyList()
-                )
-        );
+    @AfterEach
+    public void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    void setUpContext(Customer customer) {
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        Mockito.when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(customer);
     }
 
     @Test
     void shouldUpdateProfile() {
         // given
+        setUpContext(customer);
         ProfileUpdateRequest updateRequest = new ProfileUpdateRequest(
                 "david",
                 "white",
@@ -107,6 +117,7 @@ public class ProfileServiceTest {
     @Test
     void shouldPatchProfile() {
         // given
+        setUpContext(customer);
         Map<String, Object> fields = new HashMap<>();
         fields.put("name", "alice");
         fields.put("surname", "white");
@@ -139,6 +150,7 @@ public class ProfileServiceTest {
     @Test
     void shouldNotPatchProfileWhenInvalidFields() {
         // given
+        setUpContext(customer);
         Map<String, Object> fields = new HashMap<>();
         fields.put("name", "alice");
         fields.put("surname", "white");
@@ -162,6 +174,7 @@ public class ProfileServiceTest {
     @Test
     void shouldNotUpdateProfileWhenPasswordDoesNotMatch() {
         // given
+        setUpContext(customer);
         ProfileUpdateRequest updateRequest = new ProfileUpdateRequest(
                 "david",
                 "white",
@@ -192,6 +205,7 @@ public class ProfileServiceTest {
     @Test
     void shouldNotUpdateProfileWhenProfileDoesNotBelongToCustomer() {
         // given
+        setUpContext(customer);
         ProfileUpdateRequest updateRequest = new ProfileUpdateRequest(
                 "david",
                 "white",

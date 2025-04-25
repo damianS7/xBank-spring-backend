@@ -53,7 +53,8 @@ public class CustomerController {
     public ResponseEntity<?> getBankingAccounts(
             @PathVariable @NotNull @Positive
             Long id) {
-        Set<BankingAccountDTO> bankingAccounts = bankingAccountService.getCustomerBankingAccounts(id);
+        Set<BankingAccountDTO> bankingAccounts = bankingAccountService
+                .getCustomerBankingAccountsDTO(id);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

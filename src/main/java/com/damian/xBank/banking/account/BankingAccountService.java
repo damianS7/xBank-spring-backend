@@ -8,6 +8,7 @@ import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransactionType;
+import com.damian.xBank.common.utils.DTOMapper;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -237,9 +238,16 @@ public class BankingAccountService {
         return balance.compareTo(amountToSpend) >= 0;
     }
 
-    // return all the BankingsAccount that belongs to customerId
+    // return all the BankingAccounts that belongs to customerId.
     public Set<BankingAccount> getCustomerBankingAccounts(Long customerId) {
         return bankingAccountRepository.findByCustomer_Id(customerId);
+    }
+
+    // return all the BankingAccounts that belongs to customerId converted to DTOs.
+    public Set<BankingAccountDTO> getCustomerBankingAccountsDTO(Long customerId) {
+        return DTOMapper.map(
+                this.getCustomerBankingAccounts(customerId)
+        );
     }
 
     public BankingAccount openBankingAccount(BankingAccountOpenRequest request) {

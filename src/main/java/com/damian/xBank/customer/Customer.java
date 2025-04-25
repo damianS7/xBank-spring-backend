@@ -23,13 +23,13 @@ public class Customer implements CustomerDetails {
     @Column
     private String email;
 
-    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL) // FetchType EAGER por defecto
     private Auth auth;
 
-    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL) // FetchType EAGER por defecto
     private Profile profile;
 
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL) // FetchType LAZY por defecto
     private Set<BankingAccount> bankingAccounts;
 
     @Enumerated(EnumType.STRING)

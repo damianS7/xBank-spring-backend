@@ -12,7 +12,6 @@ import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -432,14 +431,19 @@ public class AuthenticationIntegrationTest {
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
-    // TODO
     @Test
-    @Disabled
     @DisplayName("Should not login when account is disabled")
     void shouldNotLoginWhenAccountIsDisabled() throws Exception {
         // given
+        Customer givenCustomer = new Customer();
+        givenCustomer.setEmail("disabled-customer@test.com");
+        givenCustomer.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
+        givenCustomer.getAuth().setAuthAccountStatus(AuthAccountStatus.DISABLED);
+
+        customerRepository.save(givenCustomer);
+
         AuthenticationRequest request = new AuthenticationRequest(
-                this.email, "123456"
+                givenCustomer.getEmail(), "123456"
         );
 
         String jsonRequest = objectMapper.writeValueAsString(request);
@@ -450,31 +454,8 @@ public class AuthenticationIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(403))
-                .andExpect(jsonPath("$.message").value("Account is disabled"))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    // TODO
-    @Test
-    @Disabled
-    @DisplayName("Should not login when account email is not verified")
-    void shouldNotLoginWhenAccountEmailIsNotVerified() throws Exception {
-        // given
-        AuthenticationRequest request = new AuthenticationRequest(
-                this.email, "123456"
-        );
-
-        String jsonRequest = objectMapper.writeValueAsString(request);
-
-        // when
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(403))
-                .andExpect(jsonPath("$.message").value("Account is disabled"))
+                .andExpect(MockMvcResultMatchers.status().is(401))
+                .andExpect(jsonPath("$.message").value("Account is disabled."))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 }

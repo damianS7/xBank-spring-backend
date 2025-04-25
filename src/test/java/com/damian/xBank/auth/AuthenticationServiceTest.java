@@ -147,7 +147,7 @@ public class AuthenticationServiceTest {
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
         when(jwtUtil.generateToken(request.email())).thenReturn(token);
         when(authentication.getPrincipal()).thenReturn(customer);
-        when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
+//        when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
 
         AuthenticationResponse response = authenticationService.login(request);
 

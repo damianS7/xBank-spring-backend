@@ -1,5 +1,6 @@
 package com.damian.xBank.auth;
 
+import com.damian.xBank.auth.exception.AuthenticationAccountDisabledException;
 import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
 import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
@@ -74,21 +75,28 @@ public class AuthenticationService {
                     new UsernamePasswordAuthenticationToken(
                             email, password)
             );
-//        } catch (org.springframework.security.core.AuthenticationException e) {
         } catch (BadCredentialsException e) {
             throw new AuthenticationBadCredentialsException(); // 403 Forbidden
         }
 
         // Generate a token for the authenticated user
         final String token = jwtUtil.generateToken(email);
-
+        // TODO review this
         // Get the id from the authenticated customer
-        final Long customerId = ((Customer) auth.getPrincipal()).getId();
+//        final Long customerId = ((Customer) auth.getPrincipal()).getId();
 
         // Fetch the customer logged from the service
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException(customerId)
-                );
+//        Customer customer = customerRepository.findById(customerId)
+//                .orElseThrow(() -> new CustomerNotFoundException(customerId)
+//                );
+        final Customer customer = (Customer) auth.getPrincipal();
+
+        // check if the account is disabled
+        if (customer.getAuth().getAuthAccountStatus().equals(AuthAccountStatus.DISABLED)) {
+            throw new AuthenticationAccountDisabledException("Account is disabled.");
+        }
+
+        // load the banking accounts of the customer
 
         // Return the customer data and the token
         return new AuthenticationResponse(

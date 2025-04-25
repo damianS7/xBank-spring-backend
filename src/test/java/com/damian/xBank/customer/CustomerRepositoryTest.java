@@ -184,15 +184,12 @@ public class CustomerRepositoryTest {
 
         // when
         final Customer savedCustomer = customerRepository.save(customer);
-        final BankingAccount storedBankingAccount = bankingAccountRepository.findByCustomer_Id(customer.getId())
-                .getFirst();
+        final BankingAccount savedAccount = bankingAccountRepository.findByCustomer_Id(customer.getId())
+                .iterator().next();
 
         // then
         assertThat(savedCustomer.getId()).isNotNull();
         assertThat(savedCustomer.getBankingAccounts().size()).isEqualTo(1);
-
-        BankingAccount savedAccount = savedCustomer.getBankingAccounts().iterator().next();
-
         assertThat(savedAccount.getId()).isNotNull();
         assertThat(savedAccount.getAccountNumber()).isEqualTo(givenIban);
         assertThat(savedAccount.getAccountType()).isEqualTo(BankingAccountType.SAVINGS);

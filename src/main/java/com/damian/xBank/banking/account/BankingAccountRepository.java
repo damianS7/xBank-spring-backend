@@ -3,10 +3,10 @@ package com.damian.xBank.banking.account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface BankingAccountRepository extends JpaRepository<BankingAccount, Long> {
-    List<BankingAccount> findByCustomer_Id(Long customerId);
+    Set<BankingAccount> findByCustomer_Id(Long customerId);
 }
 

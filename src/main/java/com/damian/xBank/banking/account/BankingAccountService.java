@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class BankingAccountService {
@@ -239,10 +238,8 @@ public class BankingAccountService {
     }
 
     // return all the BankingsAccount that belongs to customerId
-    public Set<BankingAccountDTO> getCustomerBankingAccounts(Long customerId) {
-        return bankingAccountRepository.findByCustomer_Id(customerId).stream().map(
-                BankingAccount::toDTO
-        ).collect(Collectors.toSet());
+    public Set<BankingAccount> getCustomerBankingAccounts(Long customerId) {
+        return bankingAccountRepository.findByCustomer_Id(customerId);
     }
 
     public BankingAccount openBankingAccount(BankingAccountOpenRequest request) {

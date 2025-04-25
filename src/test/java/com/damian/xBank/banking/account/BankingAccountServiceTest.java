@@ -27,8 +27,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -194,8 +193,7 @@ public class BankingAccountServiceTest {
     @DisplayName("Should get a customer with its banking account data")
     void shouldGetCustomerBankingAccountsFromCustomer() {
         // given
-
-        List<BankingAccount> bankingAccounts = new ArrayList<>();
+        Set<BankingAccount> bankingAccounts = new HashSet<>();
         BankingAccount bankingAccountA = new BankingAccount(customerA);
         bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
         bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
@@ -211,7 +209,7 @@ public class BankingAccountServiceTest {
         // when
         when(bankingAccountRepository.findByCustomer_Id(anyLong())).thenReturn(bankingAccounts);
 
-        Set<BankingAccountDTO> result = bankingAccountService.getCustomerBankingAccounts(customerA.getId());
+        Set<BankingAccount> result = bankingAccountService.getCustomerBankingAccounts(customerA.getId());
 
         // then
         assertThat(result.size()).isEqualTo(2);

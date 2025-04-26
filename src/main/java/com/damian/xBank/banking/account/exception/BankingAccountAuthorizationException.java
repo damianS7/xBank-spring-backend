@@ -7,6 +7,10 @@ public class BankingAccountAuthorizationException extends AuthorizationException
         super(message);
     }
 
+    public BankingAccountAuthorizationException(Long id) {
+        this("You are not the owner of this account. Account id: " + id);
+    }
+
     public BankingAccountAuthorizationException() {
         this("You are not the owner of this account.");
     }

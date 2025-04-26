@@ -1,6 +1,7 @@
 package com.damian.xBank.banking.account;
 
 import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
+import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.common.utils.DTOBuilder;
 import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
@@ -23,6 +24,9 @@ public class BankingAccount {
 
     @OneToMany(mappedBy = "ownerAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BankingAccountTransaction> accountTransactions;
+
+    @OneToOne(mappedBy = "bankingAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private BankingCard bankingCard;
 
     @Column(length = 32, nullable = false)
     private String accountNumber;
@@ -54,9 +58,11 @@ public class BankingAccount {
         this.customer.addBankingAccount(this);
     }
 
-    public BankingAccount(String accountNumber,
-                          BankingAccountType accountType,
-                          BankingAccountCurrency accountCurrency) {
+    public BankingAccount(
+            String accountNumber,
+            BankingAccountType accountType,
+            BankingAccountCurrency accountCurrency
+    ) {
         this();
         this.accountNumber = accountNumber;
         this.accountType = accountType;
@@ -142,5 +148,14 @@ public class BankingAccount {
     public void addAccountTransaction(BankingAccountTransaction transaction) {
         transaction.setOwnerAccount(this);
         this.accountTransactions.add(transaction);
+    }
+
+    public BankingCard getBankingCard() {
+        return bankingCard;
+    }
+
+    public void addBankingCard(BankingCard bankingCard) {
+        bankingCard.setLinkedBankingAccount(this);
+        this.bankingCard = bankingCard;
     }
 }

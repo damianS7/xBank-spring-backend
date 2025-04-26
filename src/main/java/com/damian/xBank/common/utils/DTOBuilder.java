@@ -10,19 +10,31 @@ import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerDTO;
 import com.damian.xBank.customer.profile.Profile;
 import com.damian.xBank.customer.profile.ProfileDTO;
+import com.damian.xBank.customer.profile.exception.ProfileNotFoundException;
 
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+// TODO CHECK FOR NULLS WHEN BUILDING
 public class DTOBuilder {
     public static CustomerDTO build(Customer customer) {
+        ProfileDTO profileDTO = Optional.ofNullable(customer.getProfile().toDTO())
+                                        .orElseThrow(ProfileNotFoundException::new);
+
+        Set<BankingAccountDTO> bankingAccountsDTO = Optional.ofNullable(customer.getBankingAccounts())
+                                                            .orElseGet(Collections::emptySet)
+                                                            .stream()
+                                                            .map(BankingAccount::toDTO)
+                                                            .collect(Collectors.toSet());
+
         return new CustomerDTO(
                 customer.getId(),
                 customer.getEmail(),
                 customer.getRole(),
-                customer.getProfile().toDTO(),
-                customer.getBankingAccounts().stream().map(
-                        BankingAccount::toDTO
-                ).collect(Collectors.toSet())
+                profileDTO,
+                bankingAccountsDTO
         );
     }
 
@@ -43,6 +55,16 @@ public class DTOBuilder {
     }
 
     public static BankingAccountDTO build(BankingAccount bankingAccount) {
+        BankingCardDTO bankingCardDTO =
+                bankingAccount.getBankingCard() != null ? bankingAccount.getBankingCard().toDTO() : null;
+
+        Set<BankingAccountTransactionDTO> bankingTransactionsDTO = Optional
+                .ofNullable(bankingAccount.getAccountTransactions())
+                .orElseGet(Collections::emptySet)
+                .stream()
+                .map(BankingAccountTransaction::toDTO)
+                .collect(Collectors.toSet());
+
         return new BankingAccountDTO(
                 bankingAccount.getId(),
                 bankingAccount.getAccountNumber(),
@@ -51,9 +73,8 @@ public class DTOBuilder {
                 bankingAccount.getAccountCurrency(),
                 bankingAccount.getAccountStatus(),
                 bankingAccount.getCreatedAt(),
-                bankingAccount.getAccountTransactions().stream().map(
-                        BankingAccountTransaction::toDTO
-                ).collect(Collectors.toSet())
+                bankingCardDTO,
+                bankingTransactionsDTO
         );
     }
 

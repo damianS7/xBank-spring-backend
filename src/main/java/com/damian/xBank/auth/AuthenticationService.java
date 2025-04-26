@@ -29,7 +29,14 @@ public class AuthenticationService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final AuthenticationRepository authenticationRepository;
 
-    public AuthenticationService(JWTUtil jwtUtil, AuthenticationManager authenticationManager, CustomerService customerService, CustomerRepository customerRepository, BCryptPasswordEncoder bCryptPasswordEncoder, AuthenticationRepository authenticationRepository) {
+    public AuthenticationService(
+            JWTUtil jwtUtil,
+            AuthenticationManager authenticationManager,
+            CustomerService customerService,
+            CustomerRepository customerRepository,
+            BCryptPasswordEncoder bCryptPasswordEncoder,
+            AuthenticationRepository authenticationRepository
+    ) {
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
         this.customerService = customerService;
@@ -81,22 +88,14 @@ public class AuthenticationService {
 
         // Generate a token for the authenticated user
         final String token = jwtUtil.generateToken(email);
-        // TODO review this
-        // Get the id from the authenticated customer
-//        final Long customerId = ((Customer) auth.getPrincipal()).getId();
 
-        // Fetch the customer logged from the service
-//        Customer customer = customerRepository.findById(customerId)
-//                .orElseThrow(() -> new CustomerNotFoundException(customerId)
-//                );
+        // Get the authenticated user
         final Customer customer = (Customer) auth.getPrincipal();
 
         // check if the account is disabled
         if (customer.getAuth().getAuthAccountStatus().equals(AuthAccountStatus.DISABLED)) {
             throw new AuthenticationAccountDisabledException("Account is disabled.");
         }
-
-        // load the banking accounts of the customer
 
         // Return the customer data and the token
         return new AuthenticationResponse(

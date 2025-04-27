@@ -15,7 +15,6 @@ import com.damian.xBank.customer.CustomerRole;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import net.datafaker.Faker;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,13 +23,15 @@ import java.util.Set;
 
 @Service
 public class BankingAccountService {
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final BankingAccountRepository bankingAccountRepository;
     private final CustomerRepository customerRepository;
     private final Faker faker;
 
-    public BankingAccountService(BCryptPasswordEncoder bCryptPasswordEncoder, BankingAccountRepository bankingAccountRepository, CustomerRepository customerRepository, Faker faker) {
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    public BankingAccountService(
+            BankingAccountRepository bankingAccountRepository,
+            CustomerRepository customerRepository,
+            Faker faker
+    ) {
         this.bankingAccountRepository = bankingAccountRepository;
         this.customerRepository = customerRepository;
         this.faker = faker;
@@ -48,7 +49,8 @@ public class BankingAccountService {
     @Transactional(rollbackFor = BankingAccountException.class)
     public BankingAccountTransaction handleCreateTransactionRequest(
             Long fromBankingAccountId,
-            BankingAccountTransactionCreateRequest request) {
+            BankingAccountTransactionCreateRequest request
+    ) {
 
         // Validate that the source banking account ID is not null
         if (fromBankingAccountId == null) {
@@ -119,7 +121,7 @@ public class BankingAccountService {
                     amount,
                     BankingAccountTransactionType.TRANSFER_FROM,
                     "Transfer from "
-                            + fromTransaction.getOwnerAccount().getCustomer().getFullName().toUpperCase()
+                    + fromTransaction.getOwnerAccount().getCustomer().getFullName().toUpperCase()
             );
             // Persist the transaction for the destination account
             storeTransaction(toTransaction);
@@ -152,9 +154,10 @@ public class BankingAccountService {
     ) {
         // check if the banking account exists
         final BankingAccount bankingAccount = bankingAccountRepository.findById(fromBankAccountId)
-                .orElseThrow(
-                        () -> new BankingAccountNotFoundException(fromBankAccountId)
-                );
+                                                                      .orElseThrow(
+                                                                              () -> new BankingAccountNotFoundException(
+                                                                                      fromBankAccountId)
+                                                                      );
 
         // check if the account is not locked or closed
         if (!bankingAccount.getAccountStatus().equals(BankingAccountStatus.OPEN)) {
@@ -164,8 +167,8 @@ public class BankingAccountService {
         // check if the transaction is a spending transaction
         final boolean isSpendingTransactionType =
                 transactionType.equals(BankingAccountTransactionType.WITHDRAWAL)
-                        || transactionType.equals(BankingAccountTransactionType.TRANSFER_TO)
-                        || transactionType.equals(BankingAccountTransactionType.CARD_CHARGE);
+                || transactionType.equals(BankingAccountTransactionType.TRANSFER_TO)
+                || transactionType.equals(BankingAccountTransactionType.CARD_CHARGE);
 
         // if it's a spending transaction
         if (isSpendingTransactionType) {
@@ -195,7 +198,7 @@ public class BankingAccountService {
 
         final boolean isReceivingFundsTransactionType =
                 transactionType.equals(BankingAccountTransactionType.DEPOSIT)
-                        || transactionType.equals(BankingAccountTransactionType.TRANSFER_FROM);
+                || transactionType.equals(BankingAccountTransactionType.TRANSFER_FROM);
 
         // if the transaction is receive to customer account
         if (isReceivingFundsTransactionType) {

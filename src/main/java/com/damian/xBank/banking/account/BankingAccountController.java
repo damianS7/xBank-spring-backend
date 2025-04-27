@@ -24,9 +24,15 @@ public class BankingAccountController {
     // endpoint to generate a transactions for of certain account
     @PostMapping("/banking/accounts/{id}/transactions")
     public ResponseEntity<?> createTransaction(
-            @PathVariable @NotNull(message = "This field cannot be null") @Positive Long id,
-            @Validated @RequestBody BankingAccountTransactionCreateRequest request) {
-        BankingAccountTransaction bankingAccountTransaction = bankingAccountService.handleCreateTransactionRequest(id, request);
+            @PathVariable @NotNull(message = "This field cannot be null") @Positive
+            Long id,
+            @Validated @RequestBody
+            BankingAccountTransactionCreateRequest request
+    ) {
+        BankingAccountTransaction bankingAccountTransaction = bankingAccountService.handleCreateTransactionRequest(
+                id,
+                request
+        );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -37,7 +43,8 @@ public class BankingAccountController {
     @PostMapping("/banking/accounts/open")
     public ResponseEntity<?> openBankingAccount(
             @Validated @RequestBody
-            BankingAccountOpenRequest request) {
+            BankingAccountOpenRequest request
+    ) {
         BankingAccount bankingAccount = bankingAccountService.openBankingAccount(request);
 
         return ResponseEntity
@@ -49,7 +56,8 @@ public class BankingAccountController {
     @GetMapping("/banking/accounts/{id}/close")
     public ResponseEntity<?> closeBankingAccount(
             @PathVariable @NotNull @Positive
-            Long id) {
+            Long id
+    ) {
         BankingAccount bankingAccount = bankingAccountService.closeBankingAccount(id);
 
         return ResponseEntity

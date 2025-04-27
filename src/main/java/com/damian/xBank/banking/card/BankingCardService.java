@@ -8,7 +8,7 @@ import com.damian.xBank.banking.account.exception.BankingAccountNotFoundExceptio
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
-import com.damian.xBank.banking.card.exception.BankingCardLimitCardsPerAccountException;
+import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccountLimitReached;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
@@ -98,7 +98,7 @@ public class BankingCardService {
 
         // count how many active (ENABLED) cards has this account and check if exceeds the limit.
         if (countActiveCards(bankingAccount) >= MAX_CARDS_PER_ACCOUNT) {
-            throw new BankingCardLimitCardsPerAccountException();
+            throw new BankingCardMaximumCardsPerAccountLimitReached();
         }
 
         // create the card and associate to the account

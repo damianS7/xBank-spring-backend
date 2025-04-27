@@ -8,7 +8,7 @@ import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationExc
 import com.damian.xBank.banking.account.exception.BankingAccountException;
 import com.damian.xBank.banking.account.exception.BankingAccountInsufficientFundsException;
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
-import com.damian.xBank.banking.card.exception.BankingCardLimitCardsPerAccountException;
+import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccountLimitReached;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.common.http.ApiResponse;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
@@ -72,7 +72,7 @@ public class GlobalExceptionHandler {
             {
                     CustomerEmailTakenException.class,
                     BankingAccountInsufficientFundsException.class,
-                    BankingCardLimitCardsPerAccountException.class
+                    BankingCardMaximumCardsPerAccountLimitReached.class
             }
     )
     public ResponseEntity<ApiResponse<String>> handleConflitException(ApplicationException ex) {

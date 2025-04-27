@@ -15,7 +15,7 @@ public record BankingAccountDTO(
         BankingAccountCurrency accountCurrency,
         BankingAccountStatus accountStatus,
         Instant updatedAt,
-        BankingCardDTO bankingCard,
+        Set<BankingCardDTO> bankingCards,
         Set<BankingAccountTransactionDTO> bankingAccountTransactions
 ) {
 }

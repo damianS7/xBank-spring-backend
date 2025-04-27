@@ -6,8 +6,8 @@ import com.damian.xBank.banking.account.exception.BankingAccountInsufficientFund
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
-import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
-import com.damian.xBank.banking.account.transactions.BankingAccountTransactionType;
+import com.damian.xBank.banking.transactions.BankingTransaction;
+import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -156,7 +156,8 @@ public class BankingAccountServiceTest {
         // when
         when(bankingAccountRepository.findById(bankingAccount.getId())).thenReturn(Optional.of(bankingAccount));
 
-        BankingAccountAuthorizationException exception = assertThrows(BankingAccountAuthorizationException.class,
+        BankingAccountAuthorizationException exception = assertThrows(
+                BankingAccountAuthorizationException.class,
                 () -> bankingAccountService.closeBankingAccount(bankingAccount.getId())
         );
 
@@ -228,8 +229,8 @@ public class BankingAccountServiceTest {
         bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
         bankingAccount.setBalance(BigDecimal.ZERO);
 
-        BankingAccountTransaction givenTransaction = new BankingAccountTransaction();
-        givenTransaction.setTransactionType(BankingAccountTransactionType.DEPOSIT);
+        BankingTransaction givenTransaction = new BankingTransaction();
+        givenTransaction.setTransactionType(BankingTransactionType.DEPOSIT);
         givenTransaction.setId(5L);
         givenTransaction.setAmount(BigDecimal.valueOf(200));
         givenTransaction.setDescription("Just a gift :)");
@@ -243,7 +244,7 @@ public class BankingAccountServiceTest {
 
         // when
         when(bankingAccountRepository.findById(bankingAccount.getId())).thenReturn(Optional.of(bankingAccount));
-        BankingAccountTransaction storedTransaction = bankingAccountService.handleCreateTransactionRequest(
+        BankingTransaction storedTransaction = bankingAccountService.handleCreateTransactionRequest(
                 bankingAccount.getId(),
                 request
         );
@@ -267,8 +268,8 @@ public class BankingAccountServiceTest {
         bankingAccount.setAccountStatus(BankingAccountStatus.CLOSED);
         bankingAccount.setBalance(BigDecimal.ZERO);
 
-        BankingAccountTransaction givenTransaction = new BankingAccountTransaction();
-        givenTransaction.setTransactionType(BankingAccountTransactionType.DEPOSIT);
+        BankingTransaction givenTransaction = new BankingTransaction();
+        givenTransaction.setTransactionType(BankingTransactionType.DEPOSIT);
         givenTransaction.setId(5L);
         givenTransaction.setAmount(BigDecimal.valueOf(200));
         givenTransaction.setDescription("Just a gift :)");
@@ -284,7 +285,8 @@ public class BankingAccountServiceTest {
         when(bankingAccountRepository.findById(bankingAccount.getId())).thenReturn(Optional.of(bankingAccount));
 
         // then
-        BankingAccountException exception = assertThrows(BankingAccountException.class,
+        BankingAccountException exception = assertThrows(
+                BankingAccountException.class,
                 () -> bankingAccountService.handleCreateTransactionRequest(
                         bankingAccount.getId(),
                         request
@@ -309,8 +311,8 @@ public class BankingAccountServiceTest {
         bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
         bankingAccount.setBalance(BigDecimal.ZERO);
 
-        BankingAccountTransaction givenTransaction = new BankingAccountTransaction();
-        givenTransaction.setTransactionType(BankingAccountTransactionType.CARD_CHARGE);
+        BankingTransaction givenTransaction = new BankingTransaction();
+        givenTransaction.setTransactionType(BankingTransactionType.CARD_CHARGE);
         givenTransaction.setId(5L);
         givenTransaction.setAmount(BigDecimal.valueOf(200));
         givenTransaction.setDescription("Just a gift :)");
@@ -326,7 +328,8 @@ public class BankingAccountServiceTest {
         when(bankingAccountRepository.findById(bankingAccount.getId())).thenReturn(Optional.of(bankingAccount));
 
         // then
-        BankingAccountInsufficientFundsException exception = assertThrows(BankingAccountInsufficientFundsException.class,
+        BankingAccountInsufficientFundsException exception = assertThrows(
+                BankingAccountInsufficientFundsException.class,
                 () -> bankingAccountService.handleCreateTransactionRequest(
                         bankingAccount.getId(),
                         request
@@ -361,8 +364,8 @@ public class BankingAccountServiceTest {
         bankingAccountB.setAccountStatus(BankingAccountStatus.OPEN);
         bankingAccountB.setBalance(BigDecimal.valueOf(bankingAccountB_StartBalance));
 
-        BankingAccountTransaction givenTransaction = new BankingAccountTransaction();
-        givenTransaction.setTransactionType(BankingAccountTransactionType.TRANSFER_TO);
+        BankingTransaction givenTransaction = new BankingTransaction();
+        givenTransaction.setTransactionType(BankingTransactionType.TRANSFER_TO);
         givenTransaction.setId(5L);
         givenTransaction.setAmount(BigDecimal.valueOf(200));
         givenTransaction.setDescription("Just a gift :)");
@@ -379,7 +382,7 @@ public class BankingAccountServiceTest {
         when(bankingAccountRepository.save(bankingAccountB)).thenReturn(bankingAccountB);
         when(bankingAccountRepository.findById(bankingAccountA.getId())).thenReturn(Optional.of(bankingAccountA));
         when(bankingAccountRepository.save(bankingAccountA)).thenReturn(bankingAccountA);
-        BankingAccountTransaction storedTransaction = bankingAccountService.handleCreateTransactionRequest(
+        BankingTransaction storedTransaction = bankingAccountService.handleCreateTransactionRequest(
                 bankingAccountA.getId(),
                 request
         );
@@ -413,8 +416,8 @@ public class BankingAccountServiceTest {
         bankingAccountA.setAccountStatus(BankingAccountStatus.OPEN);
         bankingAccountA.setBalance(BigDecimal.valueOf(bankingAccountA_StartBalance));
 
-        BankingAccountTransaction givenTransaction = new BankingAccountTransaction();
-        givenTransaction.setTransactionType(BankingAccountTransactionType.TRANSFER_TO);
+        BankingTransaction givenTransaction = new BankingTransaction();
+        givenTransaction.setTransactionType(BankingTransactionType.TRANSFER_TO);
         givenTransaction.setId(5L);
         givenTransaction.setAmount(BigDecimal.valueOf(200));
         givenTransaction.setDescription("Just a gift :)");
@@ -427,7 +430,8 @@ public class BankingAccountServiceTest {
         );
 
         // when
-        BankingAccountException exception = assertThrows(BankingAccountException.class,
+        BankingAccountException exception = assertThrows(
+                BankingAccountException.class,
                 () -> bankingAccountService.handleCreateTransactionRequest(
                         bankingAccountA.getId(),
                         request
@@ -455,8 +459,8 @@ public class BankingAccountServiceTest {
         bankingAccountA.setAccountStatus(BankingAccountStatus.OPEN);
         bankingAccountA.setBalance(BigDecimal.valueOf(bankingAccountA_StartBalance));
 
-        BankingAccountTransaction givenTransaction = new BankingAccountTransaction();
-        givenTransaction.setTransactionType(BankingAccountTransactionType.TRANSFER_TO);
+        BankingTransaction givenTransaction = new BankingTransaction();
+        givenTransaction.setTransactionType(BankingTransactionType.TRANSFER_TO);
         givenTransaction.setId(5L);
         givenTransaction.setAmount(BigDecimal.valueOf(200));
         givenTransaction.setDescription("Just a gift :)");
@@ -469,7 +473,8 @@ public class BankingAccountServiceTest {
         );
 
         // when
-        BankingAccountNotFoundException exception = assertThrows(BankingAccountNotFoundException.class,
+        BankingAccountNotFoundException exception = assertThrows(
+                BankingAccountNotFoundException.class,
                 () -> bankingAccountService.handleCreateTransactionRequest(
                         bankingAccountA.getId(),
                         request
@@ -489,14 +494,16 @@ public class BankingAccountServiceTest {
         BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
                 1L, // Assuming a valid banking account ID for the transaction
                 BigDecimal.valueOf(100),
-                BankingAccountTransactionType.TRANSFER_TO,
+                BankingTransactionType.TRANSFER_TO,
                 "Test Transaction"
         );
 
         // When & Then
-        assertThrows(BankingAccountException.class, () -> {
-            bankingAccountService.handleCreateTransactionRequest(null, request);
-        });
+        assertThrows(
+                BankingAccountException.class, () -> {
+                    bankingAccountService.handleCreateTransactionRequest(null, request);
+                }
+        );
     }
 
     @Test
@@ -506,8 +513,10 @@ public class BankingAccountServiceTest {
         Long fromBankingAccountId = 1L; // Assuming a valid banking account ID
 
         // When & Then
-        assertThrows(BankingAccountException.class, () -> {
-            bankingAccountService.handleCreateTransactionRequest(fromBankingAccountId, null);
-        });
+        assertThrows(
+                BankingAccountException.class, () -> {
+                    bankingAccountService.handleCreateTransactionRequest(fromBankingAccountId, null);
+                }
+        );
     }
 }

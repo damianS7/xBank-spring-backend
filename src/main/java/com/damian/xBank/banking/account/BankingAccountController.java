@@ -2,7 +2,7 @@ package com.damian.xBank.banking.account;
 
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
-import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
+import com.damian.xBank.banking.transactions.BankingTransaction;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,14 +29,14 @@ public class BankingAccountController {
             @Validated @RequestBody
             BankingAccountTransactionCreateRequest request
     ) {
-        BankingAccountTransaction bankingAccountTransaction = bankingAccountService.handleCreateTransactionRequest(
+        BankingTransaction bankingTransaction = bankingAccountService.handleCreateTransactionRequest(
                 id,
                 request
         );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(bankingAccountTransaction.getOwnerAccount().toDTO());
+                .body(bankingTransaction.getOwnerAccount().toDTO());
     }
 
     // endpoint to open a new BankingAccount

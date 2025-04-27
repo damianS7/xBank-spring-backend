@@ -1,7 +1,7 @@
 package com.damian.xBank.banking.account;
 
-import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
 import com.damian.xBank.banking.card.BankingCard;
+import com.damian.xBank.banking.transactions.BankingTransaction;
 import com.damian.xBank.common.utils.DTOBuilder;
 import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
@@ -23,7 +23,7 @@ public class BankingAccount {
     private Customer customer;
 
     @OneToMany(mappedBy = "ownerAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Set<BankingAccountTransaction> accountTransactions;
+    private Set<BankingTransaction> accountTransactions;
 
     @OneToMany(mappedBy = "bankingAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BankingCard> bankingCards;
@@ -138,15 +138,15 @@ public class BankingAccount {
         this.createdAt = createdAt;
     }
 
-    public Set<BankingAccountTransaction> getAccountTransactions() {
+    public Set<BankingTransaction> getAccountTransactions() {
         return accountTransactions;
     }
 
-    public void setAccountTransactions(Set<BankingAccountTransaction> accountTransactions) {
+    public void setAccountTransactions(Set<BankingTransaction> accountTransactions) {
         this.accountTransactions = accountTransactions;
     }
 
-    public void addAccountTransaction(BankingAccountTransaction transaction) {
+    public void addAccountTransaction(BankingTransaction transaction) {
         transaction.setOwnerAccount(this);
         this.accountTransactions.add(transaction);
     }

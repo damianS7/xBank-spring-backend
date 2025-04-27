@@ -6,11 +6,11 @@ import com.damian.xBank.banking.account.BankingAccountService;
 import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationException;
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
-import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
 import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccountLimitReached;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
+import com.damian.xBank.banking.transactions.BankingTransaction;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -40,7 +40,7 @@ public class BankingCardService {
         this.bankingAccountService = bankingAccountService;
     }
 
-    public BankingAccountTransaction spend(
+    public BankingTransaction spend(
             Long bankingCardId,
             BankingAccountTransactionCreateRequest request
     ) {

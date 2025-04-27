@@ -2,10 +2,10 @@ package com.damian.xBank.common.utils;
 
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountDTO;
-import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
-import com.damian.xBank.banking.account.transactions.BankingAccountTransactionDTO;
 import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.card.BankingCardDTO;
+import com.damian.xBank.banking.transactions.BankingTransaction;
+import com.damian.xBank.banking.transactions.BankingTransactionDTO;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerDTO;
 import com.damian.xBank.customer.profile.Profile;
@@ -62,11 +62,11 @@ public class DTOBuilder {
                 .map(BankingCard::toDTO)
                 .collect(Collectors.toSet());
 
-        Set<BankingAccountTransactionDTO> bankingTransactionsDTO = Optional
+        Set<BankingTransactionDTO> bankingTransactionsDTO = Optional
                 .ofNullable(bankingAccount.getAccountTransactions())
                 .orElseGet(Collections::emptySet)
                 .stream()
-                .map(BankingAccountTransaction::toDTO)
+                .map(BankingTransaction::toDTO)
                 .collect(Collectors.toSet());
 
         return new BankingAccountDTO(
@@ -82,8 +82,8 @@ public class DTOBuilder {
         );
     }
 
-    public static BankingAccountTransactionDTO build(BankingAccountTransaction accountTransaction) {
-        return new BankingAccountTransactionDTO(
+    public static BankingTransactionDTO build(BankingTransaction accountTransaction) {
+        return new BankingTransactionDTO(
                 accountTransaction.getId(),
                 accountTransaction.getAmount(),
                 accountTransaction.getTransactionType(),

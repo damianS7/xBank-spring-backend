@@ -1,4 +1,4 @@
-package com.damian.xBank.banking.account.transactions;
+package com.damian.xBank.banking.transactions;
 
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.common.utils.DTOBuilder;
@@ -9,7 +9,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "banking_account_transactions")
-public class BankingAccountTransaction {
+public class BankingTransaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,30 +25,30 @@ public class BankingAccountTransaction {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    private BankingAccountTransactionType transactionType;
+    private BankingTransactionType transactionType;
 
     @Enumerated(EnumType.STRING)
-    private BankingAccountTransactionStatus transactionStatus;
+    private BankingTransactionStatus transactionStatus;
 
     private Instant createdAt;
 
-    public BankingAccountTransaction(BankingAccount ownerAccount) {
+    public BankingTransaction(BankingAccount ownerAccount) {
         this();
         this.ownerAccount = ownerAccount;
     }
 
-    public BankingAccountTransaction() {
+    public BankingTransaction() {
         this.amount = BigDecimal.valueOf(0);
-        this.transactionStatus = BankingAccountTransactionStatus.PENDING;
+        this.transactionStatus = BankingTransactionStatus.PENDING;
         this.createdAt = Instant.now();
     }
 
-    public BankingAccountTransaction(BankingAccountTransactionType transactionType) {
+    public BankingTransaction(BankingTransactionType transactionType) {
         this();
         this.transactionType = transactionType;
     }
 
-    public BankingAccountTransactionDTO toDTO() {
+    public BankingTransactionDTO toDTO() {
         return DTOBuilder.build(this);
     }
 
@@ -76,20 +76,20 @@ public class BankingAccountTransaction {
         this.amount = amount;
     }
 
-    public BankingAccountTransactionType getTransactionType() {
+    public BankingTransactionType getTransactionType() {
         return transactionType;
     }
 
-    public void setTransactionType(BankingAccountTransactionType transactionType) {
+    public void setTransactionType(BankingTransactionType transactionType) {
         this.transactionType = transactionType;
     }
 
 
-    public BankingAccountTransactionStatus getTransactionStatus() {
+    public BankingTransactionStatus getTransactionStatus() {
         return transactionStatus;
     }
 
-    public void setTransactionStatus(BankingAccountTransactionStatus transactionStatus) {
+    public void setTransactionStatus(BankingTransactionStatus transactionStatus) {
         this.transactionStatus = transactionStatus;
     }
 

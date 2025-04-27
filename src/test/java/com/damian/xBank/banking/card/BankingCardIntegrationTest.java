@@ -4,8 +4,8 @@ import com.damian.xBank.auth.http.request.AuthenticationRequest;
 import com.damian.xBank.auth.http.request.AuthenticationResponse;
 import com.damian.xBank.banking.account.*;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
-import com.damian.xBank.banking.account.transactions.BankingAccountTransactionType;
 import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
+import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -204,7 +204,7 @@ public class BankingCardIntegrationTest {
         BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
                 null,
                 BigDecimal.valueOf(100),
-                BankingAccountTransactionType.CARD_CHARGE,
+                BankingTransactionType.CARD_CHARGE,
                 "Amazon.com"
         );
 

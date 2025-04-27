@@ -1,8 +1,8 @@
 package com.damian.xBank.banking.card;
 
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
-import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
 import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
+import com.damian.xBank.banking.transactions.BankingTransaction;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ public class BankingCardController {
             @Validated @RequestBody
             BankingAccountTransactionCreateRequest request
     ) {
-        BankingAccountTransaction transaction = bankingCardService.spend(id, request);
+        BankingTransaction transaction = bankingCardService.spend(id, request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

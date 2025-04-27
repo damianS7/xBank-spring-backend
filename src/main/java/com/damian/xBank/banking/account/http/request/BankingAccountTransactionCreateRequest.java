@@ -1,6 +1,6 @@
 package com.damian.xBank.banking.account.http.request;
 
-import com.damian.xBank.banking.account.transactions.BankingAccountTransactionType;
+import com.damian.xBank.banking.transactions.BankingTransactionType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -17,7 +17,7 @@ public record BankingAccountTransactionCreateRequest(
         BigDecimal amount,
 
         @NotNull(message = "You must specify the type for this operation")
-        BankingAccountTransactionType transactionType,
+        BankingTransactionType transactionType,
 
         @NotNull(message = "You must give a description for this operation")
         @NotBlank(message = "You must give a description for this operation")

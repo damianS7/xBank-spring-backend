@@ -10,6 +10,7 @@ import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
 import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccountLimitReached;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
+import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -49,6 +50,7 @@ public class BankingCardService {
                 .getAuthentication()
                 .getPrincipal();
 
+        // bankingCard to be used
         BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 () -> new BankingCardNotFoundException(bankingCardId)
         );
@@ -69,12 +71,13 @@ public class BankingCardService {
             throw new BankingCardAuthorizationException("The card is locked.");
         }
 
+        // we return the transaction
         return bankingAccountService.handleCreateTransactionRequest(
                 bankingCard.getLinkedBankingAccount().getId(), request
         );
     }
 
-    public BankingCard requestCard(Long bankingAccountId, BankingCardOpenRequest request) {
+    public BankingCard createCard(Long bankingAccountId, BankingCardCreateRequest request) {
         // Customer logged
         final Customer customerLogged = (Customer) SecurityContextHolder
                 .getContext()
@@ -139,10 +142,10 @@ public class BankingCardService {
         return bankingCardRepository.save(bankingCard);
     }
 
-    private long countActiveCards(BankingAccount bankingAccount) {
-        return bankingAccount.getBankingCards().stream()
-                             .filter(bankingCard -> bankingCard.getCardStatus().equals(BankingCardStatus.ENABLED))
-                             .count();
+    private int countActiveCards(BankingAccount bankingAccount) {
+        return (int) bankingAccount.getBankingCards().stream()
+                                   .filter(bankingCard -> bankingCard.getCardStatus().equals(BankingCardStatus.ENABLED))
+                                   .count();
     }
 
     public String generateCardNumber() {

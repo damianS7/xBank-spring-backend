@@ -2,6 +2,7 @@ package com.damian.xBank.banking.card;
 
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
+import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class BankingCardController {
         this.bankingCardService = bankingCardService;
     }
 
-    // endpoint to request a BankingCard
+    // endpoint to create a transaction with a BankingCard
     @PostMapping("/banking/cards/{id}/spend")
     public ResponseEntity<?> spend(
             @PathVariable @NotNull @Positive
@@ -37,15 +38,15 @@ public class BankingCardController {
                 .body(transaction.toDTO());
     }
 
-    // endpoint to request a BankingCard
+    // endpoint to create a new BankingCard
     @PostMapping("/banking/accounts/{id}/cards")
-    public ResponseEntity<?> requestBankingCard(
+    public ResponseEntity<?> createBankingCard(
             @PathVariable @NotNull @Positive
             Long id,
             @Validated @RequestBody
-            BankingCardOpenRequest request
+            BankingCardCreateRequest request
     ) {
-        BankingCard bankingCard = bankingCardService.requestCard(id, request);
+        BankingCard bankingCard = bankingCardService.createCard(id, request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

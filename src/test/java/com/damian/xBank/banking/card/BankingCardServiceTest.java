@@ -5,6 +5,7 @@ import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationExc
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.account.transactions.BankingAccountTransactionType;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
+import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -88,7 +89,7 @@ public class BankingCardServiceTest {
         // given
         setUpContext(customerA);
 
-        BankingCardOpenRequest request = new BankingCardOpenRequest(BankingCardType.CREDIT);
+        BankingCardCreateRequest request = new BankingCardCreateRequest(BankingCardType.CREDIT);
 
         final String accountNumber = "US99 0000 1111 1122 3333 4444";
 
@@ -110,7 +111,7 @@ public class BankingCardServiceTest {
         when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
         when(bankingCardRepository.save(any(BankingCard.class))).thenReturn(givenBankingCard);
 
-        BankingCard savedCard = bankingCardService.requestCard(givenBankAccount.getId(), request);
+        BankingCard savedCard = bankingCardService.createCard(givenBankAccount.getId(), request);
 
         // then
         assertThat(savedCard.getCardNumber()).isEqualTo(givenBankingCard.getCardNumber());
@@ -124,7 +125,7 @@ public class BankingCardServiceTest {
         // given
         setUpContext(customerAdmin);
 
-        BankingCardOpenRequest request = new BankingCardOpenRequest(BankingCardType.CREDIT);
+        BankingCardCreateRequest request = new BankingCardCreateRequest(BankingCardType.CREDIT);
 
         final String accountNumber = "US99 0000 1111 1122 3333 4444";
 
@@ -146,7 +147,7 @@ public class BankingCardServiceTest {
         when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
         when(bankingCardRepository.save(any(BankingCard.class))).thenReturn(givenBankingCard);
 
-        BankingCard savedCard = bankingCardService.requestCard(givenBankAccount.getId(), request);
+        BankingCard savedCard = bankingCardService.createCard(givenBankAccount.getId(), request);
 
         // then
         assertThat(savedCard.getCardNumber()).isEqualTo(givenBankingCard.getCardNumber());
@@ -160,7 +161,7 @@ public class BankingCardServiceTest {
         // given
         setUpContext(customerA);
 
-        BankingCardOpenRequest request = new BankingCardOpenRequest(BankingCardType.CREDIT);
+        BankingCardCreateRequest request = new BankingCardCreateRequest(BankingCardType.CREDIT);
 
         final String accountNumber = "US99 0000 1111 1122 3333 4444";
 
@@ -181,7 +182,7 @@ public class BankingCardServiceTest {
 
         BankingAccountAuthorizationException exception = assertThrows(
                 BankingAccountAuthorizationException.class,
-                () -> bankingCardService.requestCard(givenBankAccount.getId(), request)
+                () -> bankingCardService.createCard(givenBankAccount.getId(), request)
         );
 
         // then

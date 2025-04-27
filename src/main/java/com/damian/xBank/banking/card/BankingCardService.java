@@ -2,9 +2,14 @@ package com.damian.xBank.banking.card;
 
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountRepository;
+import com.damian.xBank.banking.account.BankingAccountService;
 import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationException;
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
+import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
+import com.damian.xBank.banking.account.transactions.BankingAccountTransaction;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
+import com.damian.xBank.banking.card.exception.BankingCardLimitCardsPerAccountException;
+import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -14,25 +19,63 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class BankingCardService {
+    private final int MAX_CARDS_PER_ACCOUNT = 1;
     private final BankingCardRepository bankingCardRepository;
     private final BankingAccountRepository bankingAccountRepository;
     private final CustomerRepository customerRepository;
     private final Faker faker;
+    private final BankingAccountService bankingAccountService;
 
     public BankingCardService(
             BankingCardRepository bankingCardRepository,
             BankingAccountRepository bankingAccountRepository,
             CustomerRepository customerRepository,
-            Faker faker
+            Faker faker, BankingAccountService bankingAccountService
     ) {
         this.bankingCardRepository = bankingCardRepository;
         this.bankingAccountRepository = bankingAccountRepository;
         this.customerRepository = customerRepository;
         this.faker = faker;
+        this.bankingAccountService = bankingAccountService;
+    }
+
+    public BankingAccountTransaction spend(
+            Long bankingCardId,
+            BankingAccountTransactionCreateRequest request
+    ) {
+        // Customer logged
+        final Customer customerLogged = (Customer) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
+                () -> new BankingCardNotFoundException(bankingCardId)
+        );
+
+        // if the owner of the card is not the current logged customer.
+        if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
+            throw new BankingCardAuthorizationException();
+        }
+
+        final boolean isCardDisabled = bankingCard.getCardStatus().equals(BankingCardStatus.DISABLED);
+        final boolean isCardLocked = bankingCard.getCardStatus().equals(BankingCardStatus.LOCKED);
+
+        if (isCardDisabled) {
+            throw new BankingCardAuthorizationException("The card is disabled.");
+        }
+
+        if (isCardLocked) {
+            throw new BankingCardAuthorizationException("The card is locked.");
+        }
+
+        return bankingAccountService.handleCreateTransactionRequest(
+                bankingCard.getLinkedBankingAccount().getId(), request
+        );
     }
 
     public BankingCard requestCard(Long bankingAccountId, BankingCardOpenRequest request) {
-        // we extract the email from the Customer stored in the SecurityContext
+        // Customer logged
         final Customer customerLogged = (Customer) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
@@ -51,6 +94,11 @@ public class BankingCardService {
             if (!bankingAccount.getCustomer().getId().equals(customerLogged.getId())) {
                 throw new BankingAccountAuthorizationException(bankingAccountId);
             }
+        }
+
+        // count how many active (ENABLED) cards has this account and check if exceeds the limit.
+        if (countActiveCards(bankingAccount) >= MAX_CARDS_PER_ACCOUNT) {
+            throw new BankingCardLimitCardsPerAccountException();
         }
 
         // create the card and associate to the account
@@ -89,6 +137,12 @@ public class BankingCardService {
 
         // save the data and return BankingAccount
         return bankingCardRepository.save(bankingCard);
+    }
+
+    private long countActiveCards(BankingAccount bankingAccount) {
+        return bankingAccount.getBankingCards().stream()
+                             .filter(bankingCard -> bankingCard.getCardStatus().equals(BankingCardStatus.ENABLED))
+                             .count();
     }
 
     public String generateCardNumber() {

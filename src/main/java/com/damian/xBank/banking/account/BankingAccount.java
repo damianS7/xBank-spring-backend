@@ -25,8 +25,8 @@ public class BankingAccount {
     @OneToMany(mappedBy = "ownerAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BankingAccountTransaction> accountTransactions;
 
-    @OneToOne(mappedBy = "bankingAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private BankingCard bankingCard;
+    @OneToMany(mappedBy = "bankingAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<BankingCard> bankingCards;
 
     @Column(length = 32, nullable = false)
     private String accountNumber;
@@ -47,6 +47,7 @@ public class BankingAccount {
 
     public BankingAccount() {
         this.accountTransactions = new HashSet<>();
+        this.bankingCards = new HashSet<>();
         this.balance = BigDecimal.valueOf(0);
         this.accountStatus = BankingAccountStatus.OPEN;
         this.createdAt = Instant.now();
@@ -150,12 +151,11 @@ public class BankingAccount {
         this.accountTransactions.add(transaction);
     }
 
-    public BankingCard getBankingCard() {
-        return bankingCard;
+    public Set<BankingCard> getBankingCards() {
+        return this.bankingCards;
     }
 
     public void addBankingCard(BankingCard bankingCard) {
-        bankingCard.setLinkedBankingAccount(this);
-        this.bankingCard = bankingCard;
+        this.bankingCards.add(bankingCard);
     }
 }

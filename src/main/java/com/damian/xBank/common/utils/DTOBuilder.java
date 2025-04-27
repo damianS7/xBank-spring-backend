@@ -55,8 +55,12 @@ public class DTOBuilder {
     }
 
     public static BankingAccountDTO build(BankingAccount bankingAccount) {
-        BankingCardDTO bankingCardDTO =
-                bankingAccount.getBankingCard() != null ? bankingAccount.getBankingCard().toDTO() : null;
+        Set<BankingCardDTO> bankingCardsDTO = Optional
+                .ofNullable(bankingAccount.getBankingCards())
+                .orElseGet(Collections::emptySet)
+                .stream()
+                .map(BankingCard::toDTO)
+                .collect(Collectors.toSet());
 
         Set<BankingAccountTransactionDTO> bankingTransactionsDTO = Optional
                 .ofNullable(bankingAccount.getAccountTransactions())
@@ -73,7 +77,7 @@ public class DTOBuilder {
                 bankingAccount.getAccountCurrency(),
                 bankingAccount.getAccountStatus(),
                 bankingAccount.getCreatedAt(),
-                bankingCardDTO,
+                bankingCardsDTO,
                 bankingTransactionsDTO
         );
     }

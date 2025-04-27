@@ -12,7 +12,7 @@ public class BankingCard {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "banking_account_id", referencedColumnName = "id", nullable = false)
     private BankingAccount bankingAccount;
 

@@ -88,6 +88,21 @@ CREATE TYPE public."customer_role" AS ENUM (
 
 CREATE CAST (varchar as customer_role) WITH INOUT AS IMPLICIT;
 
+CREATE TYPE public."banking_card_type" AS ENUM (
+	'CREDIT',
+	'DEBIT'
+);
+
+CREATE CAST (varchar as banking_card_type) WITH INOUT AS IMPLICIT;
+
+CREATE TYPE public."banking_card_status_type" AS ENUM (
+	'ENABLED',
+	'DISABLED',
+	'LOCKED'
+);
+
+CREATE CAST (varchar as banking_card_status_type) WITH INOUT AS IMPLICIT;
+
 -- DROP SEQUENCE public.auth_id_seq;
 
 CREATE SEQUENCE public.auth_id_seq
@@ -236,4 +251,16 @@ CREATE TABLE public.banking_account_transactions (
 	created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 	CONSTRAINT banking_account_transactions_pkey PRIMARY KEY (id),
 	CONSTRAINT banking_account_transactions_banking_account_id_fkey FOREIGN KEY (banking_account_id) REFERENCES public.banking_accounts(id) ON DELETE CASCADE
+);
+
+CREATE TABLE public.banking_account_cards (
+	id int8 GENERATED ALWAYS AS IDENTITY NOT NULL,
+	banking_account_id int4 NOT NULL,
+	card_type public."banking_card_type" NOT NULL,
+	card_status public."banking_card_status_type" DEFAULT 'DISABLED'::banking_card_status_type NOT NULL,
+	card_number varchar(32) NOT NULL,
+	created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+	CONSTRAINT banking_card_number UNIQUE (card_number),
+	CONSTRAINT banking_card_pkey PRIMARY KEY (id),
+	CONSTRAINT banking_card_banking_account_id_fkey FOREIGN KEY (banking_account_id) REFERENCES public.banking_accounts(id) ON DELETE CASCADE
 );

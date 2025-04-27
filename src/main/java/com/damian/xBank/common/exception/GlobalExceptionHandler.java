@@ -8,6 +8,8 @@ import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationExc
 import com.damian.xBank.banking.account.exception.BankingAccountException;
 import com.damian.xBank.banking.account.exception.BankingAccountInsufficientFundsException;
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
+import com.damian.xBank.banking.card.exception.BankingCardLimitCardsPerAccountException;
+import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.common.http.ApiResponse;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerException;
@@ -40,62 +42,76 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Validation error", errors, HttpStatus.BAD_REQUEST));
     }
 
-    @ExceptionHandler({
-            AuthenticationException.class,
-            AuthenticationBadCredentialsException.class,
-            AuthenticationAccountDisabledException.class
-    })
+    @ExceptionHandler(
+            {
+                    AuthenticationException.class,
+                    AuthenticationBadCredentialsException.class,
+                    AuthenticationAccountDisabledException.class
+            }
+    )
     public ResponseEntity<ApiResponse<String>> handleUnauthorizedException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error(ex.getMessage(), HttpStatus.UNAUTHORIZED));
+                             .body(ApiResponse.error(ex.getMessage(), HttpStatus.UNAUTHORIZED));
     }
 
-    @ExceptionHandler({
-            EntityNotFoundException.class,
-            CustomerNotFoundException.class,
-            ProfileNotFoundException.class,
-            BankingAccountNotFoundException.class
-    })
+    @ExceptionHandler(
+            {
+                    EntityNotFoundException.class,
+                    CustomerNotFoundException.class,
+                    ProfileNotFoundException.class,
+                    BankingAccountNotFoundException.class,
+                    BankingCardNotFoundException.class
+            }
+    )
     public ResponseEntity<ApiResponse<String>> handleNotFoundException(ApplicationException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(ex.getMessage(), HttpStatus.NOT_FOUND));
+                             .body(ApiResponse.error(ex.getMessage(), HttpStatus.NOT_FOUND));
     }
 
-    @ExceptionHandler({
-            CustomerEmailTakenException.class,
-            BankingAccountInsufficientFundsException.class
-    })
+    @ExceptionHandler(
+            {
+                    CustomerEmailTakenException.class,
+                    BankingAccountInsufficientFundsException.class,
+                    BankingCardLimitCardsPerAccountException.class
+            }
+    )
     public ResponseEntity<ApiResponse<String>> handleConflitException(ApplicationException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ApiResponse.error(ex.getMessage(), HttpStatus.CONFLICT));
+                             .body(ApiResponse.error(ex.getMessage(), HttpStatus.CONFLICT));
     }
 
-    @ExceptionHandler({
-            ApplicationException.class,
-            ProfileException.class,
-            BankingAccountException.class,
-            CustomerException.class
-    })
+    @ExceptionHandler(
+            {
+                    ApplicationException.class,
+                    ProfileException.class,
+                    BankingAccountException.class,
+                    CustomerException.class
+            }
+    )
     public ResponseEntity<ApiResponse<String>> handleApplicationException(ApplicationException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
+                             .body(ApiResponse.error(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
-    @ExceptionHandler({
-            RuntimeException.class,
-            Exception.class
-    })
+    @ExceptionHandler(
+            {
+                    RuntimeException.class,
+                    Exception.class
+            }
+    )
     public ResponseEntity<ApiResponse<String>> handleException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
+                             .body(ApiResponse.error(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
-    @ExceptionHandler({
-            AuthorizationException.class,
-            BankingAccountAuthorizationException.class
-    })
+    @ExceptionHandler(
+            {
+                    AuthorizationException.class,
+                    BankingAccountAuthorizationException.class
+            }
+    )
     public ResponseEntity<ApiResponse<String>> handleAuthorizationException(AuthorizationException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error(ex.getMessage(), HttpStatus.FORBIDDEN));
+                             .body(ApiResponse.error(ex.getMessage(), HttpStatus.FORBIDDEN));
     }
 }

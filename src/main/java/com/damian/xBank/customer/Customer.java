@@ -2,7 +2,7 @@ package com.damian.xBank.customer;
 
 import com.damian.xBank.auth.Auth;
 import com.damian.xBank.banking.account.BankingAccount;
-import com.damian.xBank.common.utils.DTOBuilder;
+import com.damian.xBank.common.utils.DTOMapper;
 import com.damian.xBank.customer.profile.Profile;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -82,7 +82,7 @@ public class Customer implements CustomerDetails {
     }
 
     public CustomerDTO toDTO() {
-        return DTOBuilder.build(this);
+        return DTOMapper.build(this);
     }
 
     @Override

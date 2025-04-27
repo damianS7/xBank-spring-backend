@@ -1,6 +1,6 @@
 package com.damian.xBank.customer.profile;
 
-import com.damian.xBank.common.utils.DTOBuilder;
+import com.damian.xBank.common.utils.DTOMapper;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import jakarta.persistence.*;
@@ -65,7 +65,7 @@ public class Profile {
     }
 
     public ProfileDTO toDTO() {
-        return DTOBuilder.build(this);
+        return DTOMapper.build(this);
     }
 
     public Long getId() {

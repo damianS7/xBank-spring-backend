@@ -1,7 +1,7 @@
 package com.damian.xBank.customer;
 
 import com.damian.xBank.common.exception.PasswordMismatchException;
-import com.damian.xBank.common.utils.DTOBuilder;
+import com.damian.xBank.common.utils.DTOMapper;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
@@ -84,10 +84,10 @@ public class CustomerService {
     public List<CustomerDTO> getCustomers() {
         // we return all the customers transformed to DTO
         return customerRepository.findAll()
-                .stream()
-                .map(
-                        DTOBuilder::build
-                ).toList();
+                                 .stream()
+                                 .map(
+                                         DTOMapper::build
+                                 ).toList();
     }
 
     /**

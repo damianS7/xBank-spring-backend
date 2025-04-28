@@ -16,7 +16,7 @@ public class BankingTransaction {
 
     @ManyToOne
     @JoinColumn(name = "banking_account_id", referencedColumnName = "id", nullable = false)
-    private BankingAccount ownerAccount;
+    private BankingAccount bankingAccount;
 
     @Column(precision = 15, scale = 3)
     private BigDecimal amount;
@@ -36,9 +36,9 @@ public class BankingTransaction {
     @Column
     private Instant updatedAt;
 
-    public BankingTransaction(BankingAccount ownerAccount) {
+    public BankingTransaction(BankingAccount bankingAccount) {
         this();
-        this.ownerAccount = ownerAccount;
+        this.bankingAccount = bankingAccount;
     }
 
     public BankingTransaction() {
@@ -64,12 +64,12 @@ public class BankingTransaction {
         this.id = id;
     }
 
-    public BankingAccount getOwnerAccount() {
-        return ownerAccount;
+    public BankingAccount getBankingAccount() {
+        return bankingAccount;
     }
 
-    public void setOwnerAccount(BankingAccount account) {
-        this.ownerAccount = account;
+    public void setBankingAccount(BankingAccount account) {
+        this.bankingAccount = account;
     }
 
     public BigDecimal getAmount() {

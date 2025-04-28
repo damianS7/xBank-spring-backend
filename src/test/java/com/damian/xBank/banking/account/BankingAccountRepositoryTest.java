@@ -37,7 +37,7 @@ public class BankingAccountRepositoryTest {
         customerRepository.save(customer);
 
         BankingAccount account = new BankingAccount();
-        account.setCustomer(customer);
+        account.setOwner(customer);
         account.setAccountNumber(accountNumber);
         account.setAccountCurrency(BankingAccountCurrency.EUR);
         account.setAccountStatus(BankingAccountStatus.OPEN);
@@ -52,7 +52,7 @@ public class BankingAccountRepositoryTest {
         assertThat(result.isPresent());
         assertThat(result.get().getId()).isEqualTo(account.getId());
         assertThat(result.get().getAccountNumber()).isEqualTo(account.getAccountNumber());
-        assertThat(result.get().getCustomer().getId()).isEqualTo(account.getCustomer().getId());
+        assertThat(result.get().getOwner().getId()).isEqualTo(account.getOwner().getId());
     }
 
     @Test
@@ -78,7 +78,7 @@ public class BankingAccountRepositoryTest {
         customerRepository.save(customer);
 
         BankingAccount account = new BankingAccount();
-        account.setCustomer(customer);
+        account.setOwner(customer);
         account.setAccountNumber(accountNumber);
         account.setAccountCurrency(BankingAccountCurrency.EUR);
         account.setAccountStatus(BankingAccountStatus.OPEN);

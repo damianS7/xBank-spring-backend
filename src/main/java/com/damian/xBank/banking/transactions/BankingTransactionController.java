@@ -33,7 +33,7 @@ public class BankingTransactionController {
 
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
-                .body(bankingTransaction.getOwnerAccount().toDTO());
+                .body(bankingTransaction.getBankingAccount().toDTO());
     }
 }
 

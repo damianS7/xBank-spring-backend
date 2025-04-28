@@ -159,7 +159,7 @@ public class BankingCardIntegrationTest {
         bankingAccount.setBalance(BigDecimal.valueOf(1000));
 
         BankingCard bankingCard = new BankingCard();
-        bankingCard.setLinkedBankingAccount(bankingAccount);
+        bankingCard.setBankingAccount(bankingAccount);
         bankingCard.setCardNumber("1234567890123");
 
         bankingAccount.addBankingCard(bankingCard);
@@ -196,7 +196,7 @@ public class BankingCardIntegrationTest {
         bankingCard.setCardType(BankingCardType.CREDIT);
         bankingCard.setCardNumber("1234567890123456");
         bankingCard.setCardStatus(BankingCardStatus.ENABLED);
-        bankingCard.setLinkedBankingAccount(bankingAccount);
+        bankingCard.setBankingAccount(bankingAccount);
 
         bankingAccount.addBankingCard(bankingCard);
         bankingAccountRepository.save(bankingAccount);

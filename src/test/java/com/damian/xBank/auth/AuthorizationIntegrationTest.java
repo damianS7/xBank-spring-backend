@@ -2,10 +2,12 @@ package com.damian.xBank.auth;
 
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
+import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,9 +25,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -42,6 +46,9 @@ public class AuthorizationIntegrationTest {
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    private JWTUtil jwtUtil;
 
     private String rawPassword = "123456";
     private Customer customer;
@@ -123,5 +130,43 @@ public class AuthorizationIntegrationTest {
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                .andDo(print())
                .andExpect(MockMvcResultMatchers.status().is(403));
+    }
+
+    @Test
+    @DisplayName("Should not have access when token has expired")
+    void shouldNotHaveAccessWhenTokenHasExpired() throws Exception {
+        // given
+        final String expiredToken = jwtUtil.generateToken(
+                customer.getEmail(),
+                new Date(System.currentTimeMillis() - 1000 * 60 * 60)
+        );
+
+        // given
+        ProfileUpdateRequest request = new ProfileUpdateRequest(
+                "david",
+                "white",
+                "123 123 123",
+                LocalDate.of(1989, 1, 1),
+                CustomerGender.MALE,
+                "-",
+                "Fake AV 51",
+                "50120",
+                "USA",
+                "123123123Z",
+                this.rawPassword
+        );
+
+        String jsonRequest = objectMapper.writeValueAsString(request);
+
+        // when
+        mockMvc.perform(MockMvcRequestBuilders
+                       .put("/api/v1/profiles/" + customer.getProfile().getId())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken)
+                       .content(jsonRequest))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(401))
+               .andExpect(jsonPath("$.message").value("Token expired"))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 }

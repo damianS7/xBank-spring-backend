@@ -1,5 +1,6 @@
 package com.damian.xBank.auth;
 
+import com.damian.xBank.auth.exception.AuthenticationAccountDisabledException;
 import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
@@ -9,6 +10,7 @@ import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerService;
+import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -79,6 +81,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("")
     void shouldRegisterCustomer() {
         // given
         Customer givenCustomer = new Customer();
@@ -151,7 +154,6 @@ public class AuthenticationServiceTest {
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
         when(jwtUtil.generateToken(request.email())).thenReturn(token);
         when(authentication.getPrincipal()).thenReturn(customer);
-        //        when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
 
         AuthenticationResponse response = authenticationService.login(request);
 
@@ -182,6 +184,35 @@ public class AuthenticationServiceTest {
 
         // Then
         assertTrue(exception.getMessage().contains("Bad credentials."));
+    }
+
+    @Test
+    void shouldNotLoginWhenAccountIsDisabled() {
+        // given
+        Authentication authentication = mock(Authentication.class);
+        String token = "jwt-token";
+
+        Customer customer = new Customer(
+                1L,
+                "alice@gmail.com",
+                "123456"
+        );
+        customer.getAuth().setAuthAccountStatus(AuthAccountStatus.DISABLED);
+
+        AuthenticationRequest request = new AuthenticationRequest(customer.getEmail(), customer.getPassword());
+
+        // when
+        when(authenticationManager.authenticate(any())).thenReturn(authentication);
+        when(jwtUtil.generateToken(request.email())).thenReturn(token);
+        when(authentication.getPrincipal()).thenReturn(customer);
+
+        AuthenticationAccountDisabledException exception = assertThrows(
+                AuthenticationAccountDisabledException.class,
+                () -> authenticationService.login(request)
+        );
+
+        // Then
+        assertTrue(exception.getMessage().contains("Account is disabled."));
     }
 
     @Test
@@ -247,5 +278,39 @@ public class AuthenticationServiceTest {
         );
         // Then
         assertTrue(exception.getMessage().contains("Password does not match."));
+    }
+
+    @Test
+    @DisplayName("Should not update password when auth entity not found")
+    void shouldNotUpdatePasswordWhenAuthNotFound() {
+        // given
+        Customer customer = new Customer(
+                10L,
+                "customer@test.com",
+                "encodedNewPassword"
+        );
+
+        // set the customer on the context
+        setUpContext(customer);
+
+        CustomerPasswordUpdateRequest updateRequest = new CustomerPasswordUpdateRequest(
+                "1234",
+                "1234"
+        );
+
+        // when
+        when(authenticationRepository.findByCustomer_Id(customer.getId()))
+                .thenReturn(Optional.empty());
+
+
+        CustomerNotFoundException exception = assertThrows(
+                CustomerNotFoundException.class,
+                () -> authenticationService.updatePassword(
+                        updateRequest
+                )
+        );
+
+        // Then
+        assertTrue(exception.getMessage().contains("Customer not found"));
     }
 }

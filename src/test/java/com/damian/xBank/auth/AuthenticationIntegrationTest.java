@@ -9,7 +9,6 @@ import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
-import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +26,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -153,6 +151,34 @@ public class AuthenticationIntegrationTest {
                        .content(jsonRequest))
                .andDo(print())
                .andExpect(MockMvcResultMatchers.status().is(401))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @DisplayName("Should not login when account is disabled")
+    void shouldNotLoginWhenAccountIsDisabled() throws Exception {
+        // given
+        Customer givenCustomer = new Customer();
+        givenCustomer.setEmail("disabled-customer@test.com");
+        givenCustomer.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
+        givenCustomer.getAuth().setAuthAccountStatus(AuthAccountStatus.DISABLED);
+
+        customerRepository.save(givenCustomer);
+
+        AuthenticationRequest request = new AuthenticationRequest(
+                givenCustomer.getEmail(), "123456"
+        );
+
+        String jsonRequest = objectMapper.writeValueAsString(request);
+
+        // when
+        mockMvc.perform(MockMvcRequestBuilders
+                       .post("/api/v1/auth/login")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(jsonRequest))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(401))
+               .andExpect(jsonPath("$.message").value("Account is disabled."))
                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
@@ -374,44 +400,6 @@ public class AuthenticationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should not have access when token has expired")
-    void shouldNotHaveAccessWhenTokenHasExpired() throws Exception {
-        // given
-        final String expiredToken = jwtUtil.generateToken(
-                customer.getEmail(),
-                new Date(System.currentTimeMillis() - 1000 * 60 * 60)
-        );
-
-        // given
-        ProfileUpdateRequest request = new ProfileUpdateRequest(
-                "david",
-                "white",
-                "123 123 123",
-                LocalDate.of(1989, 1, 1),
-                CustomerGender.MALE,
-                "-",
-                "Fake AV 51",
-                "50120",
-                "USA",
-                "123123123Z",
-                this.rawPassword
-        );
-
-        String jsonRequest = objectMapper.writeValueAsString(request);
-
-        // when
-        mockMvc.perform(MockMvcRequestBuilders
-                       .put("/api/v1/profiles/" + customer.getProfile().getId())
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken)
-                       .content(jsonRequest))
-               .andDo(print())
-               .andExpect(MockMvcResultMatchers.status().is(401))
-               .andExpect(jsonPath("$.message").value("Token expired"))
-               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
     @DisplayName("Should update password")
     void shouldUpdatePassword() throws Exception {
         // given
@@ -432,30 +420,68 @@ public class AuthenticationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should not login when account is disabled")
-    void shouldNotLoginWhenAccountIsDisabled() throws Exception {
+    @DisplayName("Should update password")
+    void shouldNotUpdatePasswordWhenPasswordMismatch() throws Exception {
         // given
-        Customer givenCustomer = new Customer();
-        givenCustomer.setEmail("disabled-customer@test.com");
-        givenCustomer.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
-        givenCustomer.getAuth().setAuthAccountStatus(AuthAccountStatus.DISABLED);
-
-        customerRepository.save(givenCustomer);
-
-        AuthenticationRequest request = new AuthenticationRequest(
-                givenCustomer.getEmail(), "123456"
+        String token = loginWithCustomer(customer);
+        CustomerPasswordUpdateRequest updatePasswordRequest = new CustomerPasswordUpdateRequest(
+                "1234564",
+                "12345678$Xa"
         );
 
-        String jsonRequest = objectMapper.writeValueAsString(request);
+        // when
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/password")
+                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                              .contentType(MediaType.APPLICATION_JSON)
+                                              .content(objectMapper.writeValueAsString(updatePasswordRequest)))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(403));
+    }
+
+    @Test
+    @DisplayName("Should update password")
+    void shouldNotUpdatePasswordWhenPasswordPolicyNotSatisfied() throws Exception {
+        // given
+        String token = loginWithCustomer(customer);
+        CustomerPasswordUpdateRequest updatePasswordRequest = new CustomerPasswordUpdateRequest(
+                "1234564",
+                "1234"
+        );
 
         // when
-        mockMvc.perform(MockMvcRequestBuilders
-                       .post("/api/v1/auth/login")
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .content(jsonRequest))
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/password")
+                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                              .contentType(MediaType.APPLICATION_JSON)
+                                              .content(objectMapper.writeValueAsString(updatePasswordRequest)))
                .andDo(print())
-               .andExpect(MockMvcResultMatchers.status().is(401))
-               .andExpect(jsonPath("$.message").value("Account is disabled."))
+               .andExpect(MockMvcResultMatchers.status().is(400))
+               .andExpect(jsonPath("$.message").value("Validation error"))
+               .andExpect(jsonPath("$.errors.newPassword").value(containsString("Password must be at least")))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @DisplayName("Should update password")
+    void shouldNotUpdatePasswordWhenPasswordIsNull() throws Exception {
+        // given
+        String token = loginWithCustomer(customer);
+        CustomerPasswordUpdateRequest updatePasswordRequest = new CustomerPasswordUpdateRequest(
+                "1234564",
+                null
+        );
+
+        // when
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/password")
+                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                              .contentType(MediaType.APPLICATION_JSON)
+                                              .content(objectMapper.writeValueAsString(updatePasswordRequest)))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(400))
+               .andExpect(jsonPath("$.message").value("Validation error"))
+               .andExpect(jsonPath("$.errors.newPassword").value(containsString("must not be blank")))
                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 }

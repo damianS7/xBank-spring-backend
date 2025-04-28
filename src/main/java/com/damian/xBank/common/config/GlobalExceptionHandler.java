@@ -16,6 +16,7 @@ import com.damian.xBank.banking.transactions.exception.BankingTransactionAuthori
 import com.damian.xBank.banking.transactions.exception.BankingTransactionException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionNotFoundException;
 import com.damian.xBank.common.exception.ApplicationException;
+import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.ApiResponse;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerException;
@@ -118,10 +119,11 @@ public class GlobalExceptionHandler {
                     AuthorizationException.class,
                     BankingAccountAuthorizationException.class,
                     BankingTransactionAuthorizationException.class,
-                    BankingCardAuthorizationException.class
+                    BankingCardAuthorizationException.class,
+                    PasswordMismatchException.class
             }
     )
-    public ResponseEntity<ApiResponse<String>> handleAuthorizationException(AuthorizationException ex) {
+    public ResponseEntity<ApiResponse<String>> handleAuthorizationException(ApplicationException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                              .body(ApiResponse.error(ex.getMessage(), HttpStatus.FORBIDDEN));
     }

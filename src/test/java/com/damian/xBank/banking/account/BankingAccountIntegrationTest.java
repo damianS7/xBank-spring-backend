@@ -215,7 +215,7 @@ public class BankingAccountIntegrationTest {
         Set<BankingAccount> bankingAccounts = new HashSet<>();
 
         BankingAccount bankingAccount1 = new BankingAccount();
-        bankingAccount1.setCustomer(customerAdmin);
+        bankingAccount1.setOwner(customerAdmin);
         bankingAccount1.setAccountNumber("12345678");
         bankingAccount1.setBalance(BigDecimal.valueOf(100));
         bankingAccount1.setAccountStatus(BankingAccountStatus.OPEN);
@@ -225,7 +225,7 @@ public class BankingAccountIntegrationTest {
         bankingAccounts.add(bankingAccount1);
 
         BankingAccount bankingAccount2 = new BankingAccount();
-        bankingAccount2.setCustomer(customerAdmin);
+        bankingAccount2.setOwner(customerAdmin);
         bankingAccount2.setAccountNumber("001231443");
         bankingAccount2.setBalance(BigDecimal.valueOf(350));
         bankingAccount2.setAccountStatus(BankingAccountStatus.OPEN);

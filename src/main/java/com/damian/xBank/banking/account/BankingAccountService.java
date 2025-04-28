@@ -122,7 +122,7 @@ public class BankingAccountService {
                     amount,
                     BankingTransactionType.TRANSFER_FROM,
                     "Transfer from "
-                    + fromTransaction.getOwnerAccount().getCustomer().getFullName().toUpperCase()
+                    + fromTransaction.getBankingAccount().getOwner().getFullName().toUpperCase()
             );
             // Persist the transaction for the destination account
             storeTransaction(toTransaction);
@@ -180,7 +180,7 @@ public class BankingAccountService {
                     .getPrincipal();
 
             // check if the account belongs to the customer
-            if (!bankingAccount.getCustomer().getId().equals(customerLogged.getId())) {
+            if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
                 // banking account does not belong to this customer
                 throw new BankingAccountAuthorizationException();
             }
@@ -226,10 +226,10 @@ public class BankingAccountService {
      */
     private BankingTransaction storeTransaction(BankingTransaction transaction) {
         // Add the transaction to the owner's account
-        transaction.getOwnerAccount().addAccountTransaction(transaction);
+        transaction.getBankingAccount().addAccountTransaction(transaction);
 
         // Persist the owner's account with the new transaction
-        bankingAccountRepository.save(transaction.getOwnerAccount());
+        bankingAccountRepository.save(transaction.getBankingAccount());
 
         // Return the stored transaction
         return transaction;
@@ -267,7 +267,7 @@ public class BankingAccountService {
         );
 
         BankingAccount bankingAccount = new BankingAccount();
-        bankingAccount.setCustomer(customer);
+        bankingAccount.setOwner(customer);
         bankingAccount.setAccountType(request.accountType());
         bankingAccount.setAccountCurrency(request.accountCurrency());
         bankingAccount.setAccountNumber(this.generateAccountNumber());
@@ -290,7 +290,7 @@ public class BankingAccountService {
         // if the logged customer is not admin
         if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
             // check if the account to be closed belongs to this customer.
-            if (!bankingAccount.getCustomer().getId().equals(customerLogged.getId())) {
+            if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
                 // banking account does not belong to this customer
                 throw new BankingAccountAuthorizationException();
             }

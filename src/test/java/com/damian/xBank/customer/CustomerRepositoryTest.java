@@ -178,14 +178,14 @@ public class CustomerRepositoryTest {
         bankingAccount.setAccountNumber(givenIban);
         bankingAccount.setAccountType(BankingAccountType.SAVINGS);
         bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccount.setCustomer(customer);
+        bankingAccount.setOwner(customer);
         customer.addBankingAccount(bankingAccount);
 
 
         // when
         final Customer savedCustomer = customerRepository.save(customer);
         final BankingAccount savedAccount = bankingAccountRepository.findByCustomer_Id(customer.getId())
-                .iterator().next();
+                                                                    .iterator().next();
 
         // then
         assertThat(savedCustomer.getId()).isNotNull();
@@ -194,7 +194,7 @@ public class CustomerRepositoryTest {
         assertThat(savedAccount.getAccountNumber()).isEqualTo(givenIban);
         assertThat(savedAccount.getAccountType()).isEqualTo(BankingAccountType.SAVINGS);
         assertThat(savedAccount.getAccountCurrency()).isEqualTo(BankingAccountCurrency.EUR);
-        assertThat(savedAccount.getCustomer().getId()).isEqualTo(savedCustomer.getId());
+        assertThat(savedAccount.getOwner().getId()).isEqualTo(savedCustomer.getId());
         assertThat(bankingAccountRepository.existsById(savedAccount.getId())).isTrue();
     }
 

@@ -63,7 +63,7 @@ public class BankingCard {
     }
 
     public Customer getCardOwner() {
-        return bankingAccount.getCustomer();
+        return bankingAccount.getOwner();
     }
 
     public String getCardNumber() {
@@ -90,11 +90,11 @@ public class BankingCard {
         this.cardStatus = cardStatus;
     }
 
-    public BankingAccount getLinkedBankingAccount() {
+    public BankingAccount getBankingAccount() {
         return bankingAccount;
     }
 
-    public void setLinkedBankingAccount(BankingAccount bankingAccount) {
+    public void setBankingAccount(BankingAccount bankingAccount) {
         this.bankingAccount = bankingAccount;
     }
 

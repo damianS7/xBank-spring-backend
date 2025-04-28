@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,16 +69,16 @@ public class ProfileService {
         // if profiledId is null, then is a customer modifying its own profile.
         if (profileId == null) {
             profileId = Optional.ofNullable(customerLogged.getProfile())
-                    .map(Profile::getId)
-                    .orElseThrow(() -> new ProfileException("Cannot access to customer profile.")
-                    );
+                                .map(Profile::getId)
+                                .orElseThrow(() -> new ProfileException("Cannot access to customer profile.")
+                                );
         }
 
         // We get the profile we want to modify
         Profile profile = profileRepository.findById(profileId)
-                .orElseThrow(
-                        ProfileNotFoundException::new
-                );
+                                           .orElseThrow(
+                                                   ProfileNotFoundException::new
+                                           );
 
         // if the logged user is not admin
         if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
@@ -108,6 +109,9 @@ public class ProfileService {
                 default -> throw new ProfileException("Field '" + key + "' is not updatable.");
             }
         });
+
+        // we change the updateAt timestamp field
+        profile.setUpdatedAt(Instant.now());
 
         return profileRepository.save(profile);
     }

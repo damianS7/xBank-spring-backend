@@ -2,6 +2,7 @@ package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.customer.CustomerGender;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 public record ProfileDTO(
@@ -15,5 +16,7 @@ public record ProfileDTO(
         String address,
         String postalCode,
         String country,
-        String nationalId) {
+        String nationalId,
+        Instant updatedAt
+) {
 }

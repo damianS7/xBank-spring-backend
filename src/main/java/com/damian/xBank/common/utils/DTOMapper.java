@@ -33,7 +33,9 @@ public class DTOMapper {
                 customer.getEmail(),
                 customer.getRole(),
                 profileDTO,
-                bankingAccountsDTO
+                bankingAccountsDTO,
+                customer.getCreatedAt(),
+                customer.getUpdatedAt()
         );
     }
 
@@ -49,7 +51,8 @@ public class DTOMapper {
                 profile.getAddress(),
                 profile.getPostalCode(),
                 profile.getCountry(),
-                profile.getNationalId()
+                profile.getNationalId(),
+                profile.getUpdatedAt()
         );
     }
 
@@ -75,9 +78,10 @@ public class DTOMapper {
                 bankingAccount.getAccountType(),
                 bankingAccount.getAccountCurrency(),
                 bankingAccount.getAccountStatus(),
-                bankingAccount.getCreatedAt(),
                 bankingCardsDTO,
-                bankingTransactionsDTO
+                bankingTransactionsDTO,
+                bankingAccount.getCreatedAt(),
+                bankingAccount.getUpdatedAt()
         );
     }
 
@@ -88,7 +92,8 @@ public class DTOMapper {
                 accountTransaction.getTransactionType(),
                 accountTransaction.getTransactionStatus(),
                 accountTransaction.getDescription(),
-                accountTransaction.getCreatedAt()
+                accountTransaction.getCreatedAt(),
+                accountTransaction.getUpdatedAt()
         );
     }
 
@@ -97,7 +102,9 @@ public class DTOMapper {
                 bankingCard.getId(),
                 bankingCard.getCardNumber(),
                 bankingCard.getCardType(),
-                bankingCard.getCardStatus()
+                bankingCard.getCardStatus(),
+                bankingCard.getCreatedAt(),
+                bankingCard.getUpdatedAt()
         );
     }
 

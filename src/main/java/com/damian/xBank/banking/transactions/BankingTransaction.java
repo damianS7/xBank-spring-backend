@@ -30,7 +30,11 @@ public class BankingTransaction {
     @Enumerated(EnumType.STRING)
     private BankingTransactionStatus transactionStatus;
 
+    @Column
     private Instant createdAt;
+
+    @Column
+    private Instant updatedAt;
 
     public BankingTransaction(BankingAccount ownerAccount) {
         this();
@@ -107,5 +111,13 @@ public class BankingTransaction {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

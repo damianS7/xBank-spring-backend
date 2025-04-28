@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Set;
 
 @Service
@@ -297,6 +298,9 @@ public class BankingAccountService {
 
         // we mark the account as closed
         bankingAccount.setAccountStatus(BankingAccountStatus.CLOSED);
+
+        // we change the updateAt timestamp field
+        bankingAccount.setUpdatedAt(Instant.now());
 
         // save the data and return BankingAccount
         return bankingAccountRepository.save(bankingAccount);

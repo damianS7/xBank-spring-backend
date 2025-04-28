@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,6 +35,12 @@ public class Customer implements CustomerDetails {
 
     @Enumerated(EnumType.STRING)
     private CustomerRole role;
+
+    @Column
+    private Instant createdAt;
+
+    @Column
+    private Instant updatedAt;
 
     public Customer() {
         this.auth = new Auth(this);
@@ -156,4 +163,19 @@ public class Customer implements CustomerDetails {
         this.bankingAccounts = bankingAccounts;
     }
 
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
 }

@@ -18,6 +18,8 @@ import net.datafaker.Faker;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 public class BankingCardService {
     private final int MAX_CARDS_PER_ACCOUNT = 1;
@@ -137,6 +139,9 @@ public class BankingCardService {
 
         // we mark the account as closed
         bankingCard.setCardStatus(BankingCardStatus.DISABLED);
+
+        // we change the updateAt timestamp field
+        bankingCard.setUpdatedAt(Instant.now());
 
         // save the data and return BankingAccount
         return bankingCardRepository.save(bankingCard);

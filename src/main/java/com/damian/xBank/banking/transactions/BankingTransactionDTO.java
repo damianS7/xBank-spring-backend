@@ -9,6 +9,7 @@ public record BankingTransactionDTO(
         BankingTransactionType transactionType,
         BankingTransactionStatus transactionStatus,
         String description,
-        Instant date
+        Instant createdAt,
+        Instant updatedAt
 ) {
 }

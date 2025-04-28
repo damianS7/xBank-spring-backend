@@ -43,7 +43,11 @@ public class BankingAccount {
     @Enumerated(EnumType.STRING)
     private BankingAccountStatus accountStatus;
 
+    @Column
     private Instant createdAt;
+
+    @Column
+    private Instant updatedAt;
 
     public BankingAccount() {
         this.accountTransactions = new HashSet<>();
@@ -157,5 +161,13 @@ public class BankingAccount {
 
     public void addBankingCard(BankingCard bankingCard) {
         this.bankingCards.add(bankingCard);
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

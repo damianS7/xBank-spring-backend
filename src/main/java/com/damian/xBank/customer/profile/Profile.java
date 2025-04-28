@@ -5,6 +5,7 @@ import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import jakarta.persistence.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
@@ -48,6 +49,9 @@ public class Profile {
 
     @Column
     private String nationalId;
+
+    @Column
+    private Instant updatedAt;
 
     public Profile() {
     }
@@ -158,5 +162,13 @@ public class Profile {
 
     public void setNationalId(String nationalId) {
         this.nationalId = nationalId;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

@@ -3,6 +3,8 @@ package com.damian.xBank.auth;
 import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "customer_auth")
 public class Auth {
@@ -24,6 +26,9 @@ public class Auth {
 
     @Column(name = "password_hash")
     private String passwordHash;
+
+    @Column
+    private Instant updatedAt;
 
     public Auth() {
         this.authAccountStatus = AuthAccountStatus.ENABLED;
@@ -76,4 +81,11 @@ public class Auth {
         this.authAccountStatus = authAccountStatus;
     }
 
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

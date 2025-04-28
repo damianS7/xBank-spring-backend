@@ -168,7 +168,8 @@ public class ProfileServiceTest {
         when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
 
         // Then
-        ProfileException exception = assertThrows(ProfileException.class,
+        ProfileException exception = assertThrows(
+                ProfileException.class,
                 () -> profileService.patchProfile(customer.getProfile().getId(), patchProfile)
         );
     }
@@ -195,7 +196,8 @@ public class ProfileServiceTest {
         when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
         when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(false);
 
-        PasswordMismatchException exception = assertThrows(PasswordMismatchException.class,
+        PasswordMismatchException exception = assertThrows(
+                PasswordMismatchException.class,
                 () -> profileService.updateProfile(customer.getProfile().getId(), updateRequest)
         );
 
@@ -228,7 +230,8 @@ public class ProfileServiceTest {
         // when
         when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(true);
         when(profileRepository.findById(anyLong())).thenReturn(Optional.of(profileFromOtherUser));
-        AuthorizationException exception = assertThrows(AuthorizationException.class,
+        AuthorizationException exception = assertThrows(
+                AuthorizationException.class,
                 () -> profileService.updateProfile(customer.getProfile().getId(), updateRequest)
         );
 

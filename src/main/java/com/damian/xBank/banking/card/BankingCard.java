@@ -5,6 +5,8 @@ import com.damian.xBank.common.utils.DTOMapper;
 import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "banking_cards")
 public class BankingCard {
@@ -24,6 +26,12 @@ public class BankingCard {
 
     @Enumerated(EnumType.STRING)
     private BankingCardStatus cardStatus;
+
+    @Column
+    private Instant createdAt;
+
+    @Column
+    private Instant updatedAt;
 
     public BankingCard() {
         this.cardStatus = BankingCardStatus.ENABLED;
@@ -88,5 +96,21 @@ public class BankingCard {
 
     public void setLinkedBankingAccount(BankingAccount bankingAccount) {
         this.bankingAccount = bankingAccount;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

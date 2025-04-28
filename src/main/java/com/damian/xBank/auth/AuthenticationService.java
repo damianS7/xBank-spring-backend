@@ -20,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 public class AuthenticationService {
     private final JWTUtil jwtUtil;
@@ -134,6 +136,9 @@ public class AuthenticationService {
                     bCryptPasswordEncoder.encode(request.newPassword())
             );
         }
+
+        // we change the updateAt timestamp field
+        customerAuth.setUpdatedAt(Instant.now());
 
         // save the changes
         authenticationRepository.save(customerAuth);

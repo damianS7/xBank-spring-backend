@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -143,6 +144,9 @@ public class CustomerService {
         if (request.newEmail() != null) {
             customer.setEmail(request.newEmail());
         }
+
+        // we change the updateAt timestamp field
+        customer.setUpdatedAt(Instant.now());
 
         // save the changes
         return customerRepository.save(customer);

@@ -160,6 +160,7 @@ CREATE TABLE testing.customer_auth (
 	password_hash varchar(60) NOT NULL,
 	auth_account_status testing."auth_status_type" DEFAULT 'ENABLED'::auth_status_type NOT NULL,
 	"email_verification_status" testing."email_verification_status_type" DEFAULT 'NOT_VERIFIED'::email_verification_status_type NOT NULL,
+	updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 	CONSTRAINT auth_customer_id_key UNIQUE (customer_id),
 	CONSTRAINT auth_pkey PRIMARY KEY (id),
 	CONSTRAINT auth_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES testing.customers(id) ON DELETE CASCADE

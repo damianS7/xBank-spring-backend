@@ -1,6 +1,6 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.customer.exception.CustomerNotFoundException;
+import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,7 +21,7 @@ public class CustomerDetailsService implements UserDetailsService {
 
     public CustomerDetails loadCustomerByEmail(String email) throws UsernameNotFoundException {
         return customerRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomerNotFoundException(email)
-                );
+                                 .orElseThrow(AuthenticationBadCredentialsException::new
+                                 );
     }
 }

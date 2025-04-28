@@ -1,7 +1,7 @@
 package com.damian.xBank.auth;
 
-import com.damian.xBank.auth.http.request.AuthenticationRequest;
-import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.auth.http.AuthenticationRequest;
+import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRepository;
@@ -84,9 +84,9 @@ public class AuthorizationIntegrationTest {
 
         // when
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
-                .andReturn();
+                                          .contentType(MediaType.APPLICATION_JSON)
+                                          .content(jsonRequest))
+                                  .andReturn();
 
         AuthenticationResponse response = objectMapper.readValue(
                 result.getResponse().getContentAsString(),
@@ -104,11 +104,11 @@ public class AuthorizationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/v1/admin/customers/" + customer.getId())
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(200))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                       .get("/api/v1/admin/customers/" + customer.getId())
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(200))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -119,9 +119,9 @@ public class AuthorizationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .get("/api/v1/admin/customers/" + customer.getId())
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(403));
+                       .get("/api/v1/admin/customers/" + customer.getId())
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(403));
     }
 }

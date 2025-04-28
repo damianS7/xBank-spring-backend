@@ -1,8 +1,8 @@
 package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.auth.AuthenticationService;
-import com.damian.xBank.auth.http.request.AuthenticationRequest;
-import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.auth.http.AuthenticationRequest;
+import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRepository;
@@ -102,9 +102,9 @@ public class ProfileIntegrationTest {
 
         // when
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
-                .andReturn();
+                                          .contentType(MediaType.APPLICATION_JSON)
+                                          .content(jsonRequest))
+                                  .andReturn();
 
         AuthenticationResponse response = objectMapper.readValue(
                 result.getResponse().getContentAsString(),
@@ -136,18 +136,18 @@ public class ProfileIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/api/v1/profiles")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                        .content(jsonRequest))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(200))
-                .andExpect(jsonPath("$.name").value(fields.get("name")))
-                .andExpect(jsonPath("$.surname").value(fields.get("surname")))
-                .andExpect(jsonPath("$.phone").value(fields.get("phone")))
-                .andExpect(jsonPath("$.birthdate").value(fields.get("birthdate")))
-                .andExpect(jsonPath("$.gender").value(fields.get("gender")))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                       .patch("/api/v1/profiles")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                       .content(jsonRequest))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(200))
+               .andExpect(jsonPath("$.name").value(fields.get("name")))
+               .andExpect(jsonPath("$.surname").value(fields.get("surname")))
+               .andExpect(jsonPath("$.phone").value(fields.get("phone")))
+               .andExpect(jsonPath("$.birthdate").value(fields.get("birthdate")))
+               .andExpect(jsonPath("$.gender").value(fields.get("gender")))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -172,18 +172,18 @@ public class ProfileIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/api/v1/admin/profiles/" + customerA.getProfile().getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                        .content(jsonRequest))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(200))
-                .andExpect(jsonPath("$.name").value(fields.get("name")))
-                .andExpect(jsonPath("$.surname").value(fields.get("surname")))
-                .andExpect(jsonPath("$.phone").value(fields.get("phone")))
-                .andExpect(jsonPath("$.birthdate").value(fields.get("birthdate")))
-                .andExpect(jsonPath("$.gender").value(fields.get("gender")))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                       .patch("/api/v1/admin/profiles/" + customerA.getProfile().getId())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                       .content(jsonRequest))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(200))
+               .andExpect(jsonPath("$.name").value(fields.get("name")))
+               .andExpect(jsonPath("$.surname").value(fields.get("surname")))
+               .andExpect(jsonPath("$.phone").value(fields.get("phone")))
+               .andExpect(jsonPath("$.birthdate").value(fields.get("birthdate")))
+               .andExpect(jsonPath("$.gender").value(fields.get("gender")))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -208,13 +208,13 @@ public class ProfileIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/v1/admin/profiles/" + customerA.getProfile().getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                        .content(jsonRequest))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(400))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                       .put("/api/v1/admin/profiles/" + customerA.getProfile().getId())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                       .content(jsonRequest))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(400))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -240,12 +240,12 @@ public class ProfileIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/v1/admin/profiles/" + customerA.getProfile().getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                        .content(jsonRequest))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(400))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                       .put("/api/v1/admin/profiles/" + customerA.getProfile().getId())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                       .content(jsonRequest))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(400))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 }

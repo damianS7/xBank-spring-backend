@@ -1,7 +1,7 @@
 package com.damian.xBank.banking.card;
 
-import com.damian.xBank.auth.http.request.AuthenticationRequest;
-import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.auth.http.AuthenticationRequest;
+import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.banking.account.*;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.card.http.BankingCardCreateRequest;

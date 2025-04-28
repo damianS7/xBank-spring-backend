@@ -1,7 +1,7 @@
 package com.damian.xBank.auth;
 
-import com.damian.xBank.auth.http.request.AuthenticationRequest;
-import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.auth.http.AuthenticationRequest;
+import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
@@ -90,9 +90,9 @@ public class AuthenticationIntegrationTest {
 
         // when
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
-                .andReturn();
+                                          .contentType(MediaType.APPLICATION_JSON)
+                                          .content(jsonRequest))
+                                  .andReturn();
 
         AuthenticationResponse response = objectMapper.readValue(
                 result.getResponse().getContentAsString(),
@@ -115,13 +115,13 @@ public class AuthenticationIntegrationTest {
 
         // when
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(200))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn();
+                                          .post("/api/v1/auth/login")
+                                          .contentType(MediaType.APPLICATION_JSON)
+                                          .content(jsonRequest))
+                                  .andDo(print())
+                                  .andExpect(MockMvcResultMatchers.status().is(200))
+                                  .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                                  .andReturn();
 
         // json to AuthenticationResponse
         AuthenticationResponse response = objectMapper.readValue(
@@ -148,12 +148,12 @@ public class AuthenticationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(401))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                       .post("/api/v1/auth/login")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(jsonRequest))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(401))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -169,14 +169,14 @@ public class AuthenticationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(400))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.errors.email").value(containsString("must be a well-formed email address")))
-                .andExpect(jsonPath("$.message").value("Validation error"));
+                       .post("/api/v1/auth/login")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(jsonRequest))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(400))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+               .andExpect(jsonPath("$.errors.email").value(containsString("must be a well-formed email address")))
+               .andExpect(jsonPath("$.message").value("Validation error"));
     }
 
     @Test
@@ -192,13 +192,13 @@ public class AuthenticationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(400))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.message").value(containsString("Validation error")));
+                       .post("/api/v1/auth/login")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(jsonRequest))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(400))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+               .andExpect(jsonPath("$.message").value(containsString("Validation error")));
     }
 
     @Test
@@ -225,22 +225,22 @@ public class AuthenticationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(201))
-                .andExpect(jsonPath("$.email").value(request.email()))
-                .andExpect(jsonPath("$.profile.name").value(request.name()))
-                .andExpect(jsonPath("$.profile.surname").value(request.surname()))
-                .andExpect(jsonPath("$.profile.phone").value(request.phone()))
-                .andExpect(jsonPath("$.profile.birthdate").value(request.birthdate().toString()))
-                .andExpect(jsonPath("$.profile.gender").value(request.gender().toString()))
-                .andExpect(jsonPath("$.profile.address").value(request.address()))
-                .andExpect(jsonPath("$.profile.postalCode").value(request.postalCode()))
-                .andExpect(jsonPath("$.profile.country").value(request.country()))
-                .andExpect(jsonPath("$.profile.nationalId").value(request.nationalId()))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                       .post("/api/v1/auth/register")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(json))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(201))
+               .andExpect(jsonPath("$.email").value(request.email()))
+               .andExpect(jsonPath("$.profile.name").value(request.name()))
+               .andExpect(jsonPath("$.profile.surname").value(request.surname()))
+               .andExpect(jsonPath("$.profile.phone").value(request.phone()))
+               .andExpect(jsonPath("$.profile.birthdate").value(request.birthdate().toString()))
+               .andExpect(jsonPath("$.profile.gender").value(request.gender().toString()))
+               .andExpect(jsonPath("$.profile.address").value(request.address()))
+               .andExpect(jsonPath("$.profile.postalCode").value(request.postalCode()))
+               .andExpect(jsonPath("$.profile.country").value(request.country()))
+               .andExpect(jsonPath("$.profile.nationalId").value(request.nationalId()))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -267,12 +267,12 @@ public class AuthenticationIntegrationTest {
 
         // then
         mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(400))
-                .andExpect(jsonPath("$.message").value(containsString("Validation error")))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                                              .contentType(MediaType.APPLICATION_JSON)
+                                              .content(json))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(400))
+               .andExpect(jsonPath("$.message").value(containsString("Validation error")))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -299,13 +299,13 @@ public class AuthenticationIntegrationTest {
 
         // then
         mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(400))
-                .andExpect(jsonPath("$.message").value("Validation error"))
-                .andExpect(jsonPath("$.errors.email").value(containsString("Email must be a well-formed email address")))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                                              .contentType(MediaType.APPLICATION_JSON)
+                                              .content(json))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(400))
+               .andExpect(jsonPath("$.message").value("Validation error"))
+               .andExpect(jsonPath("$.errors.email").value(containsString("Email must be a well-formed email address")))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -331,13 +331,13 @@ public class AuthenticationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(409))
-                .andExpect(jsonPath("$.message").value(containsString("is already taken.")))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                       .post("/api/v1/auth/register")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(json))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(409))
+               .andExpect(jsonPath("$.message").value(containsString("is already taken.")))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -363,14 +363,14 @@ public class AuthenticationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(400))
-                .andExpect(jsonPath("$.message").value("Validation error"))
-                .andExpect(jsonPath("$.errors.password").value(containsString("Password must be at least")))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                       .post("/api/v1/auth/register")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(json))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(400))
+               .andExpect(jsonPath("$.message").value("Validation error"))
+               .andExpect(jsonPath("$.errors.password").value(containsString("Password must be at least")))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -401,14 +401,14 @@ public class AuthenticationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .put("/api/v1/profiles/" + customer.getProfile().getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken)
-                        .content(jsonRequest))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(401))
-                .andExpect(jsonPath("$.message").value("Token expired"))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                       .put("/api/v1/profiles/" + customer.getProfile().getId())
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken)
+                       .content(jsonRequest))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(401))
+               .andExpect(jsonPath("$.message").value("Token expired"))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -424,11 +424,11 @@ public class AuthenticationIntegrationTest {
         // when
         // then
         mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/password")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatePasswordRequest)))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                              .contentType(MediaType.APPLICATION_JSON)
+                                              .content(objectMapper.writeValueAsString(updatePasswordRequest)))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
@@ -450,12 +450,12 @@ public class AuthenticationIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(401))
-                .andExpect(jsonPath("$.message").value("Account is disabled."))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                       .post("/api/v1/auth/login")
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(jsonRequest))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().is(401))
+               .andExpect(jsonPath("$.message").value("Account is disabled."))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 }

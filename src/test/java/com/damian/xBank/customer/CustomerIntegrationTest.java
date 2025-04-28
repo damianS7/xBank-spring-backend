@@ -1,7 +1,7 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.auth.http.request.AuthenticationRequest;
-import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.auth.http.AuthenticationRequest;
+import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountCurrency;
 import com.damian.xBank.banking.account.BankingAccountType;
@@ -103,9 +103,9 @@ public class CustomerIntegrationTest {
 
         // when
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonRequest))
-                .andReturn();
+                                          .contentType(MediaType.APPLICATION_JSON)
+                                          .content(jsonRequest))
+                                  .andReturn();
 
         AuthenticationResponse response = objectMapper.readValue(
                 result.getResponse().getContentAsString(),
@@ -124,12 +124,12 @@ public class CustomerIntegrationTest {
         // when
         // then
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/customers/" + customer.getId())
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(jsonPath("$.email").value(customer.getEmail()))
-                .andExpect(jsonPath("$.profile.address").value(customer.getProfile().getAddress()))
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().isOk())
+               .andExpect(jsonPath("$.email").value(customer.getEmail()))
+               .andExpect(jsonPath("$.profile.address").value(customer.getProfile().getAddress()))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -140,10 +140,10 @@ public class CustomerIntegrationTest {
         // when
         // then
         mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/customers/" + customer.getId() + "/banking/accounts")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().isOk())
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -155,9 +155,9 @@ public class CustomerIntegrationTest {
         // when
         // then
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/admin/customers/" + customer.getId())
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().isNoContent());
+                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
     @Test
@@ -174,11 +174,11 @@ public class CustomerIntegrationTest {
         // when
         // then
         mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/customers/email")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(customerEmailUpdateRequest)))
-                .andDo(print())
-                .andExpect(jsonPath("$.email").value("customer2@test.com"))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                              .contentType(MediaType.APPLICATION_JSON)
+                                              .content(objectMapper.writeValueAsString(customerEmailUpdateRequest)))
+               .andDo(print())
+               .andExpect(jsonPath("$.email").value("customer2@test.com"))
+               .andExpect(MockMvcResultMatchers.status().isOk());
     }
 }

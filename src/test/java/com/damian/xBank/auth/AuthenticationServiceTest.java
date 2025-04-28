@@ -1,8 +1,8 @@
 package com.damian.xBank.auth;
 
 import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
-import com.damian.xBank.auth.http.request.AuthenticationRequest;
-import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.auth.http.AuthenticationRequest;
+import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
@@ -125,8 +125,12 @@ public class AuthenticationServiceTest {
         assertThat(registeredCustomer.getProfile().getBirthdate()).isEqualTo(givenCustomer.getProfile().getBirthdate());
         assertThat(registeredCustomer.getProfile().getCountry()).isEqualTo(givenCustomer.getProfile().getCountry());
         assertThat(registeredCustomer.getProfile().getAddress()).isEqualTo(givenCustomer.getProfile().getAddress());
-        assertThat(registeredCustomer.getProfile().getPostalCode()).isEqualTo(givenCustomer.getProfile().getPostalCode());
-        assertThat(registeredCustomer.getProfile().getNationalId()).isEqualTo(givenCustomer.getProfile().getNationalId());
+        assertThat(registeredCustomer.getProfile().getPostalCode()).isEqualTo(givenCustomer
+                .getProfile()
+                .getPostalCode());
+        assertThat(registeredCustomer.getProfile().getNationalId()).isEqualTo(givenCustomer
+                .getProfile()
+                .getNationalId());
     }
 
     @Test
@@ -147,7 +151,7 @@ public class AuthenticationServiceTest {
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
         when(jwtUtil.generateToken(request.email())).thenReturn(token);
         when(authentication.getPrincipal()).thenReturn(customer);
-//        when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
+        //        when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
 
         AuthenticationResponse response = authenticationService.login(request);
 
@@ -171,7 +175,8 @@ public class AuthenticationServiceTest {
         // when
         when(authenticationManager.authenticate(any())).thenThrow(AuthenticationBadCredentialsException.class);
 
-        AuthenticationBadCredentialsException exception = assertThrows(AuthenticationBadCredentialsException.class,
+        AuthenticationBadCredentialsException exception = assertThrows(
+                AuthenticationBadCredentialsException.class,
                 () -> authenticationService.login(request)
         );
 
@@ -234,7 +239,8 @@ public class AuthenticationServiceTest {
         // when
         when(authenticationRepository.findByCustomer_Id(customer.getId())).thenReturn(Optional.of(customer.getAuth()));
         when(bCryptPasswordEncoder.matches(updateRequest.currentPassword(), customer.getPassword())).thenReturn(false);
-        PasswordMismatchException exception = assertThrows(PasswordMismatchException.class,
+        PasswordMismatchException exception = assertThrows(
+                PasswordMismatchException.class,
                 () -> authenticationService.updatePassword(
                         updateRequest
                 )

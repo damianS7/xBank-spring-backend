@@ -100,7 +100,7 @@ public class BankingCardServiceTest {
         givenBankAccount.setAccountNumber(accountNumber);
 
         BankingCard givenBankingCard = new BankingCard();
-        givenBankingCard.setLinkedBankingAccount(givenBankAccount);
+        givenBankingCard.setBankingAccount(givenBankAccount);
         givenBankingCard.setCardNumber("1234567890123456");
         givenBankingCard.setCardType(BankingCardType.CREDIT);
         givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
@@ -136,7 +136,7 @@ public class BankingCardServiceTest {
         givenBankAccount.setAccountNumber(accountNumber);
 
         BankingCard givenBankingCard = new BankingCard();
-        givenBankingCard.setLinkedBankingAccount(givenBankAccount);
+        givenBankingCard.setBankingAccount(givenBankAccount);
         givenBankingCard.setCardNumber("1234567890123456");
         givenBankingCard.setCardType(BankingCardType.CREDIT);
         givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
@@ -172,7 +172,7 @@ public class BankingCardServiceTest {
         givenBankAccount.setAccountNumber(accountNumber);
 
         BankingCard givenBankingCard = new BankingCard();
-        givenBankingCard.setLinkedBankingAccount(givenBankAccount);
+        givenBankingCard.setBankingAccount(givenBankAccount);
         givenBankingCard.setCardNumber("1234567890123456");
         givenBankingCard.setCardType(BankingCardType.CREDIT);
         givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
@@ -205,7 +205,7 @@ public class BankingCardServiceTest {
 
         BankingCard givenBankingCard = new BankingCard();
         givenBankingCard.setId(11L);
-        givenBankingCard.setLinkedBankingAccount(givenBankAccount);
+        givenBankingCard.setBankingAccount(givenBankAccount);
         givenBankingCard.setCardNumber("1234567890123456");
         givenBankingCard.setCardType(BankingCardType.CREDIT);
         givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
@@ -239,7 +239,7 @@ public class BankingCardServiceTest {
 
         BankingCard givenBankingCard = new BankingCard();
         givenBankingCard.setId(11L);
-        givenBankingCard.setLinkedBankingAccount(givenBankAccount);
+        givenBankingCard.setBankingAccount(givenBankAccount);
         givenBankingCard.setCardNumber("1234567890123456");
         givenBankingCard.setCardType(BankingCardType.CREDIT);
         givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
@@ -273,7 +273,7 @@ public class BankingCardServiceTest {
 
         BankingCard givenBankingCard = new BankingCard();
         givenBankingCard.setId(11L);
-        givenBankingCard.setLinkedBankingAccount(givenBankAccount);
+        givenBankingCard.setBankingAccount(givenBankAccount);
         givenBankingCard.setCardNumber("1234567890123456");
         givenBankingCard.setCardType(BankingCardType.CREDIT);
         givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
@@ -314,7 +314,7 @@ public class BankingCardServiceTest {
 
         BankingCard givenBankingCard = new BankingCard();
         givenBankingCard.setId(11L);
-        givenBankingCard.setLinkedBankingAccount(givenBankAccount);
+        givenBankingCard.setBankingAccount(givenBankAccount);
         givenBankingCard.setCardNumber("1234567890123456");
         givenBankingCard.setCardType(BankingCardType.CREDIT);
         givenBankingCard.setCardStatus(BankingCardStatus.SUSPENDED);
@@ -355,7 +355,7 @@ public class BankingCardServiceTest {
 
         BankingCard givenBankingCard = new BankingCard();
         givenBankingCard.setId(11L);
-        givenBankingCard.setLinkedBankingAccount(givenBankAccount);
+        givenBankingCard.setBankingAccount(givenBankAccount);
         givenBankingCard.setCardNumber("1234567890123456");
         givenBankingCard.setCardType(BankingCardType.CREDIT);
         givenBankingCard.setCardStatus(BankingCardStatus.DISABLED);

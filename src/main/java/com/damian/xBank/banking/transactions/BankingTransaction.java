@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Table(name = "banking_account_transactions")
+@Table(name = "banking_transactions")
 public class BankingTransaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

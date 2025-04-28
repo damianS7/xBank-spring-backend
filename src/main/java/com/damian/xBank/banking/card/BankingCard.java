@@ -6,7 +6,7 @@ import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "banking_account_cards")
+@Table(name = "banking_cards")
 public class BankingCard {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

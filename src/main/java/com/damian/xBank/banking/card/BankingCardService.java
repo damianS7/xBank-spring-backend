@@ -61,7 +61,7 @@ public class BankingCardService {
         }
 
         final boolean isCardDisabled = bankingCard.getCardStatus().equals(BankingCardStatus.DISABLED);
-        final boolean isCardLocked = bankingCard.getCardStatus().equals(BankingCardStatus.LOCKED);
+        final boolean isCardLocked = bankingCard.getCardStatus().equals(BankingCardStatus.SUSPENDED);
 
         if (isCardDisabled) {
             throw new BankingCardAuthorizationException("The card is disabled.");

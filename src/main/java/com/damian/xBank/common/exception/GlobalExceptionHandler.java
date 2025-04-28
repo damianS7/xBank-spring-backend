@@ -8,8 +8,13 @@ import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationExc
 import com.damian.xBank.banking.account.exception.BankingAccountException;
 import com.damian.xBank.banking.account.exception.BankingAccountInsufficientFundsException;
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
+import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
+import com.damian.xBank.banking.card.exception.BankingCardException;
 import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccountLimitReached;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
+import com.damian.xBank.banking.transactions.exception.BankingTransactionAuthorizationException;
+import com.damian.xBank.banking.transactions.exception.BankingTransactionException;
+import com.damian.xBank.banking.transactions.exception.BankingTransactionNotFoundException;
 import com.damian.xBank.common.http.ApiResponse;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerException;
@@ -60,7 +65,8 @@ public class GlobalExceptionHandler {
                     CustomerNotFoundException.class,
                     ProfileNotFoundException.class,
                     BankingAccountNotFoundException.class,
-                    BankingCardNotFoundException.class
+                    BankingCardNotFoundException.class,
+                    BankingTransactionNotFoundException.class
             }
     )
     public ResponseEntity<ApiResponse<String>> handleNotFoundException(ApplicationException ex) {
@@ -85,7 +91,9 @@ public class GlobalExceptionHandler {
                     ApplicationException.class,
                     ProfileException.class,
                     BankingAccountException.class,
-                    CustomerException.class
+                    CustomerException.class,
+                    BankingCardException.class,
+                    BankingTransactionException.class
             }
     )
     public ResponseEntity<ApiResponse<String>> handleApplicationException(ApplicationException ex) {
@@ -107,7 +115,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(
             {
                     AuthorizationException.class,
-                    BankingAccountAuthorizationException.class
+                    BankingAccountAuthorizationException.class,
+                    BankingTransactionAuthorizationException.class,
+                    BankingCardAuthorizationException.class
             }
     )
     public ResponseEntity<ApiResponse<String>> handleAuthorizationException(AuthorizationException ex) {

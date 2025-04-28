@@ -36,7 +36,7 @@ public class BankingAccountController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(bankingTransaction.getOwnerAccount().toDTO());
+                .body(bankingTransaction.getBankingAccount().toDTO());
     }
 
     // endpoint to open a new BankingAccount

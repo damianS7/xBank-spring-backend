@@ -22,7 +22,7 @@ public class BankingAccount {
     @JoinColumn(name = "customer_id", referencedColumnName = "id", nullable = false)
     private Customer customer;
 
-    @OneToMany(mappedBy = "ownerAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "bankingAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BankingTransaction> accountTransactions;
 
     @OneToMany(mappedBy = "bankingAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -87,11 +87,11 @@ public class BankingAccount {
         this.id = id;
     }
 
-    public Customer getCustomer() {
+    public Customer getOwner() {
         return customer;
     }
 
-    public void setCustomer(Customer customer) {
+    public void setOwner(Customer customer) {
         this.customer = customer;
     }
 
@@ -152,7 +152,9 @@ public class BankingAccount {
     }
 
     public void addAccountTransaction(BankingTransaction transaction) {
-        transaction.setOwnerAccount(this);
+        if (transaction.getBankingAccount() != this) {
+            transaction.setBankingAccount(this);
+        }
         this.accountTransactions.add(transaction);
     }
 
@@ -161,6 +163,9 @@ public class BankingAccount {
     }
 
     public void addBankingCard(BankingCard bankingCard) {
+        if (bankingCard.getBankingAccount() != this) {
+            bankingCard.setBankingAccount(this);
+        }
         this.bankingCards.add(bankingCard);
     }
 

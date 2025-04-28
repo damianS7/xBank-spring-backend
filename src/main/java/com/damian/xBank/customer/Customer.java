@@ -65,6 +65,9 @@ public class Customer implements CustomerDetails {
     }
 
     public void setAuth(Auth auth) {
+        if (auth.getCustomer() != this) {
+            auth.setCustomer(this);
+        }
         this.auth = auth;
     }
 
@@ -148,6 +151,10 @@ public class Customer implements CustomerDetails {
     }
 
     public void setProfile(Profile profile) {
+        if (profile.getCustomer() != this) {
+            profile.setCustomer(this);
+        }
+
         this.profile = profile;
     }
 
@@ -155,8 +162,12 @@ public class Customer implements CustomerDetails {
         return bankingAccounts;
     }
 
-    public void addBankingAccount(BankingAccount account) {
-        this.bankingAccounts.add(account);
+    public void addBankingAccount(BankingAccount bankingAccount) {
+        if (bankingAccount.getOwner() != this) {
+            bankingAccount.setOwner(this);
+        }
+
+        this.bankingAccounts.add(bankingAccount);
     }
 
     public void setBankingAccounts(Set<BankingAccount> bankingAccounts) {

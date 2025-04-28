@@ -75,7 +75,7 @@ public class BankingCardService {
 
         // we return the transaction
         return bankingAccountService.handleCreateTransactionRequest(
-                bankingCard.getLinkedBankingAccount().getId(), request
+                bankingCard.getBankingAccount().getId(), request
         );
     }
 
@@ -96,7 +96,7 @@ public class BankingCardService {
         // if the logged customer is not admin
         if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
             // check if the account belongs to this customer.
-            if (!bankingAccount.getCustomer().getId().equals(customerLogged.getId())) {
+            if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
                 throw new BankingAccountAuthorizationException(bankingAccountId);
             }
         }
@@ -108,7 +108,7 @@ public class BankingCardService {
 
         // create the card and associate to the account
         BankingCard bankingCard = new BankingCard();
-        bankingCard.setLinkedBankingAccount(bankingAccount);
+        bankingCard.setBankingAccount(bankingAccount);
         bankingCard.setCardType(request.cardType());
         bankingCard.setCardNumber(this.generateCardNumber());
 

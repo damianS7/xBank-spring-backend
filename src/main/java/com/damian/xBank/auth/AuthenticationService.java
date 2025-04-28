@@ -2,12 +2,11 @@ package com.damian.xBank.auth;
 
 import com.damian.xBank.auth.exception.AuthenticationAccountDisabledException;
 import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
-import com.damian.xBank.auth.http.request.AuthenticationRequest;
-import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.auth.http.AuthenticationRequest;
+import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
-import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerService;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
@@ -27,7 +26,6 @@ public class AuthenticationService {
     private final JWTUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final CustomerService customerService;
-    private final CustomerRepository customerRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final AuthenticationRepository authenticationRepository;
 
@@ -35,14 +33,12 @@ public class AuthenticationService {
             JWTUtil jwtUtil,
             AuthenticationManager authenticationManager,
             CustomerService customerService,
-            CustomerRepository customerRepository,
             BCryptPasswordEncoder bCryptPasswordEncoder,
             AuthenticationRepository authenticationRepository
     ) {
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
         this.customerService = customerService;
-        this.customerRepository = customerRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.authenticationRepository = authenticationRepository;
     }
@@ -69,8 +65,8 @@ public class AuthenticationService {
      *
      * @param request Contains the fields needed to login into the service
      * @return Contains the data (Customer, Profile) and the token
-     * @throws AuthenticationBadCredentialsException
-     * @throws CustomerNotFoundException
+     * @throws AuthenticationBadCredentialsException  if credentials are invalid
+     * @throws AuthenticationAccountDisabledException if the account is not enabled
      */
     public AuthenticationResponse login(AuthenticationRequest request) {
         final String email = request.email();

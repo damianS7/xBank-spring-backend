@@ -1,9 +1,10 @@
-package com.damian.xBank.auth.http.request;
+package com.damian.xBank.auth.http;
 
 import com.damian.xBank.customer.CustomerDTO;
 
 public record AuthenticationResponse(
         CustomerDTO customer,
-        String token) {
+        String token
+) {
 }
 

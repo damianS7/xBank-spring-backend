@@ -1,4 +1,4 @@
-package com.damian.xBank.auth.http.request;
+package com.damian.xBank.auth.http;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -12,5 +12,6 @@ public record AuthenticationRequest(
         String email,
 
         @NotBlank(message = "Password must not be blank")
-        String password) {
+        String password
+) {
 }

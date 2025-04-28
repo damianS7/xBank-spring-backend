@@ -1,7 +1,7 @@
 package com.damian.xBank.auth;
 
-import com.damian.xBank.auth.http.request.AuthenticationRequest;
-import com.damian.xBank.auth.http.request.AuthenticationResponse;
+import com.damian.xBank.auth.http.AuthenticationRequest;
+import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
@@ -25,7 +25,8 @@ public class AuthenticationController {
     @PostMapping("/auth/register")
     public ResponseEntity<?> register(
             @Validated @RequestBody
-            CustomerRegistrationRequest request) {
+            CustomerRegistrationRequest request
+    ) {
         Customer registeredCustomer = authenticationService.register(request);
 
         return ResponseEntity
@@ -37,7 +38,8 @@ public class AuthenticationController {
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(
             @Validated @RequestBody
-            AuthenticationRequest request) {
+            AuthenticationRequest request
+    ) {
         AuthenticationResponse authResponse = authenticationService.login(request);
 
         return ResponseEntity
@@ -50,7 +52,8 @@ public class AuthenticationController {
     @PatchMapping("/auth/customers/password")
     public ResponseEntity<?> updateCustomerPassword(
             @Validated @RequestBody
-            CustomerPasswordUpdateRequest request) {
+            CustomerPasswordUpdateRequest request
+    ) {
         authenticationService.updatePassword(request);
 
         return ResponseEntity

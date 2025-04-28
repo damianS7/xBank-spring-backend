@@ -29,7 +29,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     public AuthenticationFilter(
             JWTUtil jwtUtil,
-            CustomerDetailsService customerDetailsService, AuthenticationEntryPoint authenticationEntryPoint) {
+            CustomerDetailsService customerDetailsService,
+            AuthenticationEntryPoint authenticationEntryPoint
+    ) {
         this.jwtUtil = jwtUtil;
         this.customerDetailsService = customerDetailsService;
         this.authenticationEntryPoint = authenticationEntryPoint;
@@ -47,12 +49,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
      * @throws IOException      If there is an error.
      */
     @Override
-    protected void doFilterInternal(@NonNull
-                                    HttpServletRequest request,
-                                    @NonNull
-                                    HttpServletResponse response,
-                                    @NonNull
-                                    FilterChain filterChain)
+    protected void doFilterInternal(
+            @NonNull
+            HttpServletRequest request,
+            @NonNull
+            HttpServletResponse response,
+            @NonNull
+            FilterChain filterChain
+    )
             throws ServletException, IOException {
 
         // Get the Authorization header.

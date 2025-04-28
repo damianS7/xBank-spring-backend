@@ -154,11 +154,12 @@ public class BankingAccountService {
             String description
     ) {
         // check if the banking account exists
-        final BankingAccount bankingAccount = bankingAccountRepository.findById(fromBankAccountId)
-                                                                      .orElseThrow(
-                                                                              () -> new BankingAccountNotFoundException(
-                                                                                      fromBankAccountId)
-                                                                      );
+        final BankingAccount bankingAccount = bankingAccountRepository
+                .findById(fromBankAccountId)
+                .orElseThrow(
+                        () -> new BankingAccountNotFoundException(
+                                fromBankAccountId)
+                );
 
         // check if the account is not locked or closed
         if (!bankingAccount.getAccountStatus().equals(BankingAccountStatus.OPEN)) {
@@ -225,11 +226,13 @@ public class BankingAccountService {
      * @return the stored banking account transaction
      */
     private BankingTransaction storeTransaction(BankingTransaction transaction) {
+        final BankingAccount bankingAccount = transaction.getAssociatedBankingAccount();
+
         // Add the transaction to the owner's account
-        transaction.getAssociatedBankingAccount().addAccountTransaction(transaction);
+        bankingAccount.addAccountTransaction(transaction);
 
         // Persist the owner's account with the new transaction
-        bankingAccountRepository.save(transaction.getAssociatedBankingAccount());
+        bankingAccountRepository.save(bankingAccount);
 
         // Return the stored transaction
         return transaction;

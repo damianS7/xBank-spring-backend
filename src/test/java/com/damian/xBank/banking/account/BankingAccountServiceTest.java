@@ -11,6 +11,7 @@ import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
+import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import net.datafaker.Faker;
 import net.datafaker.providers.base.Finance;
 import org.junit.jupiter.api.AfterEach;
@@ -115,6 +116,35 @@ public class BankingAccountServiceTest {
     }
 
     @Test
+    @DisplayName("Should not open a BankingAccount when customer not found")
+    void shouldNotOpenBankingAccountWhenCustomerNotFound() {
+        // given
+        setUpContext(customerA);
+
+        final String accountNumber = "US99 0000 1111 1122 3333 4444";
+        BankingAccountOpenRequest request = new BankingAccountOpenRequest(
+                BankingAccountType.SAVINGS,
+                BankingAccountCurrency.EUR
+        );
+
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountCurrency(request.accountCurrency());
+        bankingAccount.setAccountType(request.accountType());
+        bankingAccount.setAccountNumber(accountNumber);
+
+        // when
+        when(customerRepository.findByEmail(customerA.getEmail())).thenReturn(Optional.empty());
+
+        CustomerNotFoundException exception = assertThrows(
+                CustomerNotFoundException.class,
+                () -> bankingAccountService.openBankingAccount(request)
+        );
+
+        // then
+        assertTrue(exception.getMessage().contains("Customer not found"));
+    }
+
+    @Test
     @DisplayName("Should close a BankingAccount")
     void shouldCloseBankingAccount() {
         // given
@@ -137,6 +167,35 @@ public class BankingAccountServiceTest {
         // then
         assertThat(savedAccount.getAccountStatus()).isEqualTo(BankingAccountStatus.CLOSED);
         verify(bankingAccountRepository, times(1)).save(any(BankingAccount.class));
+    }
+
+    @Test
+    @DisplayName("Should not close BankingAccount When none is found")
+    void shouldNotCloseBankingAccountWhenNotFound() {
+        // given
+        setUpContext(customerA);
+
+        final String accountNumber = "US99 0000 1111 1122 3333 4444";
+        BankingAccountOpenRequest request = new BankingAccountOpenRequest(
+                BankingAccountType.SAVINGS,
+                BankingAccountCurrency.EUR
+        );
+
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountCurrency(request.accountCurrency());
+        bankingAccount.setAccountType(request.accountType());
+        bankingAccount.setAccountNumber(accountNumber);
+
+        // when
+        when(bankingAccountRepository.findById(bankingAccount.getId())).thenReturn(Optional.empty());
+
+        BankingAccountNotFoundException exception = assertThrows(
+                BankingAccountNotFoundException.class,
+                () -> bankingAccountService.closeBankingAccount(bankingAccount.getId())
+        );
+
+        // then
+        assertTrue(exception.getMessage().contains("Banking account not found"));
     }
 
     @Test

@@ -21,7 +21,7 @@ public class BankingAccountController {
         this.bankingAccountService = bankingAccountService;
     }
 
-    // endpoint to generate a transactions for of certain account
+    // endpoint to generate a transaction
     @PostMapping("/banking/accounts/{id}/transactions")
     public ResponseEntity<?> createTransaction(
             @PathVariable @NotNull(message = "This field cannot be null") @Positive

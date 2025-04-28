@@ -6,7 +6,7 @@ public class BankingAccountNotFoundException extends BankingAccountException {
     }
 
     public BankingAccountNotFoundException() {
-        this("Banking account not found with id: not specified.");
+        this("Banking account not found.");
     }
 
     public BankingAccountNotFoundException(Long id) {

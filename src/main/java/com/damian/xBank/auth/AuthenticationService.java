@@ -71,17 +71,16 @@ public class AuthenticationService {
     public AuthenticationResponse login(AuthenticationRequest request) {
         final String email = request.email();
         final String password = request.password();
-
-        // Authenticate the user
-        Authentication auth;
+        final Authentication auth;
 
         try {
+            // Authenticate the user
             auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             email, password)
             );
         } catch (BadCredentialsException e) {
-            throw new AuthenticationBadCredentialsException(); // 403 Forbidden
+            throw new AuthenticationBadCredentialsException();
         }
 
         // Generate a token for the authenticated user

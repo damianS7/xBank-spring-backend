@@ -99,7 +99,7 @@ public class BankingTransactionServiceTest {
         bankingTransaction.setDescription("Amazon.com");
         bankingTransaction.setTransactionStatus(BankingTransactionStatus.PENDING);
 
-        bankingTransaction.setBankingAccount(bankingAccount);
+        bankingTransaction.setAssociatedBankingAccount(bankingAccount);
         bankingAccount.addAccountTransaction(bankingTransaction);
 
         bankingAccountRepository.save(bankingAccount);
@@ -138,7 +138,7 @@ public class BankingTransactionServiceTest {
         bankingTransaction.setDescription("Amazon.com");
         bankingTransaction.setTransactionStatus(BankingTransactionStatus.PENDING);
 
-        bankingTransaction.setBankingAccount(bankingAccount);
+        bankingTransaction.setAssociatedBankingAccount(bankingAccount);
         bankingAccount.addAccountTransaction(bankingTransaction);
 
         bankingAccountRepository.save(bankingAccount);

@@ -152,8 +152,8 @@ public class BankingAccount {
     }
 
     public void addAccountTransaction(BankingTransaction transaction) {
-        if (transaction.getBankingAccount() != this) {
-            transaction.setBankingAccount(this);
+        if (transaction.getAssociatedBankingAccount() != this) {
+            transaction.setAssociatedBankingAccount(this);
         }
         this.accountTransactions.add(transaction);
     }
@@ -163,8 +163,8 @@ public class BankingAccount {
     }
 
     public void addBankingCard(BankingCard bankingCard) {
-        if (bankingCard.getBankingAccount() != this) {
-            bankingCard.setBankingAccount(this);
+        if (bankingCard.getAssociatedBankingAccount() != this) {
+            bankingCard.setAssociatedBankingAccount(this);
         }
         this.bankingCards.add(bankingCard);
     }

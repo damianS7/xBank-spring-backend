@@ -75,7 +75,7 @@ public class BankingCardService {
 
         // we return the transaction
         return bankingAccountService.handleCreateTransactionRequest(
-                bankingCard.getBankingAccount().getId(), request
+                bankingCard.getAssociatedBankingAccount().getId(), request
         );
     }
 
@@ -108,7 +108,7 @@ public class BankingCardService {
 
         // create the card and associate to the account
         BankingCard bankingCard = new BankingCard();
-        bankingCard.setBankingAccount(bankingAccount);
+        bankingCard.setAssociatedBankingAccount(bankingAccount);
         bankingCard.setCardType(request.cardType());
         bankingCard.setCardNumber(this.generateCardNumber());
 

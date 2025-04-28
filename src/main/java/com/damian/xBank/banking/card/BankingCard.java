@@ -90,11 +90,11 @@ public class BankingCard {
         this.cardStatus = cardStatus;
     }
 
-    public BankingAccount getBankingAccount() {
+    public BankingAccount getAssociatedBankingAccount() {
         return bankingAccount;
     }
 
-    public void setBankingAccount(BankingAccount bankingAccount) {
+    public void setAssociatedBankingAccount(BankingAccount bankingAccount) {
         this.bankingAccount = bankingAccount;
     }
 

@@ -122,7 +122,7 @@ public class BankingAccountService {
                     amount,
                     BankingTransactionType.TRANSFER_FROM,
                     "Transfer from "
-                    + fromTransaction.getBankingAccount().getOwner().getFullName().toUpperCase()
+                    + fromTransaction.getAssociatedBankingAccount().getOwner().getFullName().toUpperCase()
             );
             // Persist the transaction for the destination account
             storeTransaction(toTransaction);
@@ -226,10 +226,10 @@ public class BankingAccountService {
      */
     private BankingTransaction storeTransaction(BankingTransaction transaction) {
         // Add the transaction to the owner's account
-        transaction.getBankingAccount().addAccountTransaction(transaction);
+        transaction.getAssociatedBankingAccount().addAccountTransaction(transaction);
 
         // Persist the owner's account with the new transaction
-        bankingAccountRepository.save(transaction.getBankingAccount());
+        bankingAccountRepository.save(transaction.getAssociatedBankingAccount());
 
         // Return the stored transaction
         return transaction;

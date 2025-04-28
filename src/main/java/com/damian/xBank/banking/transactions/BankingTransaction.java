@@ -64,11 +64,11 @@ public class BankingTransaction {
         this.id = id;
     }
 
-    public BankingAccount getBankingAccount() {
+    public BankingAccount getAssociatedBankingAccount() {
         return bankingAccount;
     }
 
-    public void setBankingAccount(BankingAccount account) {
+    public void setAssociatedBankingAccount(BankingAccount account) {
         this.bankingAccount = account;
     }
 

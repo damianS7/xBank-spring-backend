@@ -146,8 +146,8 @@ public class BankingCardIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should not generate a card if already has one")
-    void shouldNotGenerateCardIfAlreadyHasOne() throws Exception {
+    @DisplayName("Should not generate a card when limit exceeds")
+    void shouldNotGenerateCardIfLimitExceeds() throws Exception {
         // given
         loginWithCustomer(customerA);
 

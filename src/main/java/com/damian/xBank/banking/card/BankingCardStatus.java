@@ -1,5 +1,7 @@
 package com.damian.xBank.banking.card;
 
 public enum BankingCardStatus {
-    ENABLED, DISABLED, LOCKED
+    ENABLED,
+    DISABLED,
+    SUSPENDED
 }

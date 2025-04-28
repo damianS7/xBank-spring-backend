@@ -1,4 +1,4 @@
-package com.damian.xBank.common.http;
+package com.damian.xBank.common.utils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package com.damian.xBank.config;
+package com.damian.xBank.common.config;
 
 import com.damian.xBank.customer.CustomerDetailsService;
 import net.datafaker.Faker;

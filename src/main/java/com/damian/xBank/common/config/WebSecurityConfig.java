@@ -1,4 +1,4 @@
-package com.damian.xBank.config;
+package com.damian.xBank.common.config;
 
 import com.damian.xBank.auth.AuthenticationFilter;
 import com.damian.xBank.auth.CustomAuthenticationEntryPoint;
@@ -24,7 +24,10 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAuthenticationEntryPoint entryPoint) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            CustomAuthenticationEntryPoint entryPoint
+    ) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // Disabled for jwt
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

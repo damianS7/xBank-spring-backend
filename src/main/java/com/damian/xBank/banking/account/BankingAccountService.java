@@ -67,12 +67,12 @@ public class BankingAccountService {
         if (isTransfer(request.transactionType())) {
 
             // Validate that the transfer request contains a receiver ID
-            if (request.bankingAccountId_to() == null) {
+            if (request.toBankingAccountId() == null) {
                 throw new BankingAccountException("A transfer must contain the receiver id");
             }
 
             // Ensure that the transfer is not to the same banking account
-            if (fromBankingAccountId.equals(request.bankingAccountId_to())) {
+            if (fromBankingAccountId.equals(request.toBankingAccountId())) {
                 throw new BankingAccountException("You cannot transfer to the same banking account");
             }
         }
@@ -80,7 +80,7 @@ public class BankingAccountService {
         // Generate and return the transaction
         return generateTransaction(
                 fromBankingAccountId,
-                request.bankingAccountId_to(),
+                request.toBankingAccountId(),
                 request.amount(),
                 request.transactionType(),
                 request.description()
@@ -188,6 +188,9 @@ public class BankingAccountService {
 
             // check if customer can afford the transaction
             if (!this.hasSufficientBalance(bankingAccount.getBalance(), amount)) {
+                //                if(transactionType.equals(BankingTransactionType.CARD_CHARGE)) {
+                //                    if (bankingCard.type.equals(BankingCardType.CREDIT))
+                //                }
                 throw new BankingAccountInsufficientFundsException();
             }
 

@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 public record BankingAccountTransactionCreateRequest(
         // the account that receives the money in case its a TRANSFER
         @Positive
-        Long bankingAccountId_to,
+        Long toBankingAccountId,
 
         @NotNull(message = "You must set an amount for this operation")
         @Positive

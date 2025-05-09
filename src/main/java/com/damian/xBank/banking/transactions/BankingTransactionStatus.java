@@ -4,5 +4,5 @@ public enum BankingTransactionStatus {
     PENDING,
     FAILED,
     REJECTED,
-    CONFIRMED
+    COMPLETED
 }

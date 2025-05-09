@@ -85,7 +85,7 @@ public class BankingTransactionServiceTest {
         setUpContext(customerAdmin);
 
         BankingTransactionPatchRequest request = new BankingTransactionPatchRequest(
-                BankingTransactionStatus.CONFIRMED
+                BankingTransactionStatus.COMPLETED
         );
 
         final String accountNumber = "US99 0000 1111 1122 3333 4444";
@@ -124,7 +124,7 @@ public class BankingTransactionServiceTest {
         setUpContext(customerA);
 
         BankingTransactionPatchRequest request = new BankingTransactionPatchRequest(
-                BankingTransactionStatus.CONFIRMED
+                BankingTransactionStatus.COMPLETED
         );
 
         final String accountNumber = "US99 0000 1111 1122 3333 4444";

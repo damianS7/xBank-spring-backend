@@ -10,6 +10,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -41,7 +45,21 @@ public class WebSecurityConfig {
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(entryPoint))
                 .authenticationProvider(authenticationProvider)
+                .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    @Bean
+    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin("http://localhost:8081");  // Origen permitido
+        config.setAllowedMethods(Arrays.asList("GET", "OPTIONS", "POST"));
+        config.addAllowedHeader("*");  // Permite todos los encabezados
+        config.setAllowCredentials(true);  // Permite enviar cookies
+
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

@@ -70,12 +70,12 @@ public class CustomerServiceTest {
         // when
         when(customerRepository.findAll()).thenReturn(customers);
 
-        List<CustomerDTO> result = customerService.getCustomers();
+        List<Customer> result = customerService.getCustomers();
 
         // then
         verify(customerRepository, times(1)).findAll();
-        assertThat(result.get(0).email()).isEqualTo("customer1@test.com");
-        assertThat(result.get(1).email()).isEqualTo("customer2@test.com");
+        assertThat(result.get(0).getEmail()).isEqualTo("customer1@test.com");
+        assertThat(result.get(1).getEmail()).isEqualTo("customer2@test.com");
     }
 
     @Test
@@ -87,7 +87,7 @@ public class CustomerServiceTest {
 
         // when
         when(customerRepository.findAll()).thenReturn(customers);
-        List<CustomerDTO> result = customerService.getCustomers();
+        List<Customer> result = customerService.getCustomers();
 
         // then
         verify(customerRepository, times(1)).findAll();
@@ -121,7 +121,8 @@ public class CustomerServiceTest {
         Long id = -1L;
 
         // when
-        CustomerNotFoundException exception = assertThrows(CustomerNotFoundException.class,
+        CustomerNotFoundException exception = assertThrows(
+                CustomerNotFoundException.class,
                 () -> customerService.getCustomer(id)
         );
 
@@ -186,7 +187,8 @@ public class CustomerServiceTest {
 
         // when
         when(customerRepository.findByEmail(request.email())).thenReturn(Optional.of(new Customer()));
-        CustomerEmailTakenException exception = assertThrows(CustomerEmailTakenException.class,
+        CustomerEmailTakenException exception = assertThrows(
+                CustomerEmailTakenException.class,
                 () -> customerService.createCustomer(request)
         );
 
@@ -221,7 +223,8 @@ public class CustomerServiceTest {
         when(customerRepository.existsById(id)).thenReturn(false);
 
         // then
-        CustomerNotFoundException exception = assertThrows(CustomerNotFoundException.class,
+        CustomerNotFoundException exception = assertThrows(
+                CustomerNotFoundException.class,
                 () -> customerService.deleteCustomer(id)
         );
         assertTrue(exception.getMessage().contains("Customer not found"));

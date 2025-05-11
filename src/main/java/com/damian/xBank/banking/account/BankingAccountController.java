@@ -3,6 +3,8 @@ package com.damian.xBank.banking.account;
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
+import com.damian.xBank.banking.transactions.BankingTransactionDTO;
+import com.damian.xBank.banking.transactions.BankingTransactionDTOMapper;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 @RequestMapping("/api/v1")
 @RestController
@@ -19,6 +23,17 @@ public class BankingAccountController {
     @Autowired
     public BankingAccountController(BankingAccountService bankingAccountService) {
         this.bankingAccountService = bankingAccountService;
+    }
+
+    // endpoint to receive accounts from logged customer
+    @GetMapping("/banking/accounts/me")
+    public ResponseEntity<?> getLoggedCustomerBankingAccounts() {
+        Set<BankingAccount> bankingAccounts = bankingAccountService.getCustomerLoggedBankingAccounts();
+        Set<BankingAccountDTO> bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountSetDTO(bankingAccounts);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(bankingAccountDTO);
     }
 
     // endpoint to generate a transaction
@@ -34,9 +49,12 @@ public class BankingAccountController {
                 request
         );
 
+        BankingTransactionDTO bankingTransactionDTO = BankingTransactionDTOMapper
+                .toBankingTransactionDTO(bankingTransaction);
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(bankingTransaction.getAssociatedBankingAccount().toDTO());
+                .body(bankingTransactionDTO);
     }
 
     // endpoint to open a new BankingAccount
@@ -46,10 +64,11 @@ public class BankingAccountController {
             BankingAccountOpenRequest request
     ) {
         BankingAccount bankingAccount = bankingAccountService.openBankingAccount(request);
+        BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(bankingAccount.toDTO());
+                .body(bankingAccountDTO);
     }
 
     // endpoint to close a BankingAccount
@@ -59,10 +78,11 @@ public class BankingAccountController {
             Long id
     ) {
         BankingAccount bankingAccount = bankingAccountService.closeBankingAccount(id);
+        BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(bankingAccount.toDTO());
+                .body(bankingAccountDTO);
     }
 }
 

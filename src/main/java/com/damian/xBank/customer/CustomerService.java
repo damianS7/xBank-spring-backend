@@ -1,7 +1,6 @@
 package com.damian.xBank.customer;
 
 import com.damian.xBank.common.exception.PasswordMismatchException;
-import com.damian.xBank.common.utils.DTOMapper;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
@@ -82,13 +81,9 @@ public class CustomerService {
      * @return a list of CustomerDTO
      * @throws CustomerException if the logged user is not ADMIN
      */
-    public List<CustomerDTO> getCustomers() {
-        // we return all the customers transformed to DTO
-        return customerRepository.findAll()
-                                 .stream()
-                                 .map(
-                                         DTOMapper::build
-                                 ).toList();
+    public List<Customer> getCustomers() {
+        // we return all the customers
+        return customerRepository.findAll();
     }
 
     /**
@@ -103,6 +98,23 @@ public class CustomerService {
         return customerRepository.findById(customerId).orElseThrow(
                 () -> new CustomerNotFoundException(customerId)
         );
+    }
+
+    /**
+     * Returns the logged customer
+     *
+     * @return the customer
+     * @throws CustomerException if the customer does not exist or if the logged user is not ADMIN
+     */
+    public Customer getLoggedCustomer() {
+        final Customer loggedCustomer = (Customer) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        final Long customerId = loggedCustomer.getId();
+
+        return this.getCustomer(customerId);
     }
 
     /**

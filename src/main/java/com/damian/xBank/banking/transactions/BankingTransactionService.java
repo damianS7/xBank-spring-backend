@@ -1,12 +1,9 @@
 package com.damian.xBank.banking.transactions;
 
-import com.damian.xBank.banking.account.BankingAccountRepository;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionAuthorizationException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionNotFoundException;
 import com.damian.xBank.customer.Customer;
-import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
-import net.datafaker.Faker;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -14,21 +11,12 @@ import java.time.Instant;
 
 @Service
 public class BankingTransactionService {
-    private final BankingAccountRepository bankingAccountRepository;
     private final BankingTransactionRepository bankingTransactionRepository;
-    private final CustomerRepository customerRepository;
-    private final Faker faker;
 
     public BankingTransactionService(
-            BankingAccountRepository bankingAccountRepository,
-            BankingTransactionRepository bankingTransactionRepository,
-            CustomerRepository customerRepository,
-            Faker faker
+            BankingTransactionRepository bankingTransactionRepository
     ) {
-        this.bankingAccountRepository = bankingAccountRepository;
         this.bankingTransactionRepository = bankingTransactionRepository;
-        this.customerRepository = customerRepository;
-        this.faker = faker;
     }
 
     public BankingTransaction patchStatusTransaction(

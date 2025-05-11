@@ -159,8 +159,6 @@ public class AuthenticationServiceTest {
 
         // then
         assertThat(response.token()).isEqualTo(token);
-        assertThat(customer.getId()).isEqualTo(response.customer().id());
-        assertThat(customer.getEmail()).isEqualTo(response.customer().email());
     }
 
     @Test

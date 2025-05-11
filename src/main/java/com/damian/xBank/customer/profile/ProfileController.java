@@ -23,12 +23,14 @@ public class ProfileController {
     @PatchMapping("/profiles")
     public ResponseEntity<?> patchCustomerProfile(
             @Validated @RequestBody
-            ProfilePatchRequest request) {
+            ProfilePatchRequest request
+    ) {
         Profile profile = profileService.patchCustomerProfile(request);
+        ProfileDTO profileDTO = ProfileDTOMapper.toProfileDTO(profile);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(profile.toDTO());
+                .body(profileDTO);
     }
 
     // endpoint to modify a profile
@@ -37,12 +39,14 @@ public class ProfileController {
             @PathVariable @NotNull @Positive
             Long id,
             @Validated @RequestBody
-            ProfileUpdateRequest request) {
+            ProfileUpdateRequest request
+    ) {
         Profile profile = profileService.updateProfile(id, request);
+        ProfileDTO profileDTO = ProfileDTOMapper.toProfileDTO(profile);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(profile.toDTO());
+                .body(profileDTO);
     }
 
     // endpoint to modify some parts of the profile
@@ -51,12 +55,14 @@ public class ProfileController {
             @PathVariable @NotNull @Positive
             Long id,
             @Validated @RequestBody
-            ProfilePatchRequest request) {
+            ProfilePatchRequest request
+    ) {
         Profile profile = profileService.patchProfile(id, request);
+        ProfileDTO profileDTO = ProfileDTOMapper.toProfileDTO(profile);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(profile.toDTO());
+                .body(profileDTO);
     }
 
 }

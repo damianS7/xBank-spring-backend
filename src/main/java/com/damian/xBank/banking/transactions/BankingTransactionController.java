@@ -31,9 +31,12 @@ public class BankingTransactionController {
                 request
         );
 
+        BankingTransactionDTO bankingTransactionDTO = BankingTransactionDTOMapper
+                .toBankingTransactionDTO(bankingTransaction);
+
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
-                .body(bankingTransaction.getAssociatedBankingAccount().toDTO());
+                .body(bankingTransactionDTO);
     }
 }
 

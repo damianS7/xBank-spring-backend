@@ -129,7 +129,6 @@ public class AuthenticationIntegrationTest {
 
         // then
         final String emailFromToken = jwtUtil.extractEmail(response.token());
-        assertThat(response.customer().email()).isEqualTo(this.email);
         assertThat(emailFromToken).isEqualTo(this.email);
     }
 

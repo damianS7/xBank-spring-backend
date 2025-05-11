@@ -2,7 +2,6 @@ package com.damian.xBank.banking.account;
 
 import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.transactions.BankingTransaction;
-import com.damian.xBank.common.utils.DTOMapper;
 import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
 
@@ -73,10 +72,6 @@ public class BankingAccount {
         this.accountNumber = accountNumber;
         this.accountType = accountType;
         this.accountCurrency = accountCurrency;
-    }
-
-    public BankingAccountDTO toDTO() {
-        return DTOMapper.build(this);
     }
 
     public Long getId() {

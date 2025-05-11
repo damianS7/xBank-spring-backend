@@ -3,6 +3,8 @@ package com.damian.xBank.auth;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
+import com.damian.xBank.customer.dto.CustomerDTOMapper;
+import com.damian.xBank.customer.dto.CustomerWithProfileDTO;
 import com.damian.xBank.customer.http.request.CustomerPasswordUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
 import org.springframework.http.HttpHeaders;
@@ -28,10 +30,11 @@ public class AuthenticationController {
             CustomerRegistrationRequest request
     ) {
         Customer registeredCustomer = authenticationService.register(request);
+        CustomerWithProfileDTO dto = CustomerDTOMapper.toCustomerWithProfileDTO(registeredCustomer);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(registeredCustomer.toDTO());
+                .body(dto);
     }
 
     // endpoint for login

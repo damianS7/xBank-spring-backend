@@ -1,7 +1,6 @@
 package com.damian.xBank.banking.transactions;
 
 import com.damian.xBank.banking.account.BankingAccount;
-import com.damian.xBank.common.utils.DTOMapper;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -50,10 +49,6 @@ public class BankingTransaction {
     public BankingTransaction(BankingTransactionType transactionType) {
         this();
         this.transactionType = transactionType;
-    }
-
-    public BankingTransactionDTO toDTO() {
-        return DTOMapper.build(this);
     }
 
     public Long getId() {

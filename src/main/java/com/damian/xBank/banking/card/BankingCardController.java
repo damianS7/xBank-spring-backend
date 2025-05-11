@@ -3,6 +3,8 @@ package com.damian.xBank.banking.card;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
+import com.damian.xBank.banking.transactions.BankingTransactionDTO;
+import com.damian.xBank.banking.transactions.BankingTransactionDTOMapper;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +34,11 @@ public class BankingCardController {
             BankingAccountTransactionCreateRequest request
     ) {
         BankingTransaction transaction = bankingCardService.spend(id, request);
+        BankingTransactionDTO transactionDTO = BankingTransactionDTOMapper.toBankingTransactionDTO(transaction);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(transaction.toDTO());
+                .body(transactionDTO);
     }
 
     // endpoint to create a new BankingCard
@@ -47,10 +50,11 @@ public class BankingCardController {
             BankingCardCreateRequest request
     ) {
         BankingCard bankingCard = bankingCardService.createCard(id, request);
+        BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(bankingCard.toDTO());
+                .body(bankingCardDTO);
     }
 
     // endpoint to cancel a BankingCard
@@ -60,10 +64,11 @@ public class BankingCardController {
             Long id
     ) {
         BankingCard bankingCard = bankingCardService.cancelCard(id);
+        BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(bankingCard.toDTO());
+                .body(bankingCardDTO);
     }
 }
 

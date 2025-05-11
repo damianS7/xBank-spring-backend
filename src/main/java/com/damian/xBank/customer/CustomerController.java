@@ -1,7 +1,13 @@
 package com.damian.xBank.customer;
 
+import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountDTO;
+import com.damian.xBank.banking.account.BankingAccountDTOMapper;
 import com.damian.xBank.banking.account.BankingAccountService;
+import com.damian.xBank.customer.dto.CustomerDTO;
+import com.damian.xBank.customer.dto.CustomerDTOMapper;
+import com.damian.xBank.customer.dto.CustomerWithAllDataDTO;
+import com.damian.xBank.customer.dto.CustomerWithProfileDTO;
 import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -25,47 +31,67 @@ public class CustomerController {
         this.bankingAccountService = bankingAccountService;
     }
 
+    // endpoint to receive logged customer
+    @GetMapping("/customers/me")
+    public ResponseEntity<?> getLoggedCustomerData() {
+        Customer customer = customerService.getLoggedCustomer();
+        CustomerWithProfileDTO dto = CustomerDTOMapper.toCustomerWithProfileDTO(customer);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(dto);
+    }
+
     // endpoint to modify customer email
     @PatchMapping("/customers/email")
     public ResponseEntity<?> updateCustomerEmail(
             @Validated @RequestBody
-            CustomerEmailUpdateRequest request) {
+            CustomerEmailUpdateRequest request
+    ) {
         Customer customer = customerService.updateEmail(request);
+        CustomerDTO customerDTO = CustomerDTOMapper.toCustomerDTO(customer);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(customer.toDTO());
+                .body(customerDTO);
     }
 
     // endpoint to receive certain customer
     @GetMapping("/admin/customers/{id}")
     public ResponseEntity<?> getCustomer(
             @PathVariable @NotNull @Positive
-            Long id) {
+            Long id
+    ) {
         Customer customer = customerService.getCustomer(id);
+        CustomerWithAllDataDTO customerDTO = CustomerDTOMapper.toCustomerWithAllDataDTO(customer);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(customer.toDTO());
+                .body(customerDTO);
     }
 
     // endpoint to receive all BankingAccounts from user
     @GetMapping("/admin/customers/{id}/banking/accounts")
     public ResponseEntity<?> getBankingAccounts(
             @PathVariable @NotNull @Positive
-            Long id) {
-        Set<BankingAccountDTO> bankingAccounts = bankingAccountService
-                .getCustomerBankingAccountsDTO(id);
+            Long id
+    ) {
+        Set<BankingAccount> bankingAccounts = bankingAccountService
+                .getCustomerBankingAccounts(id);
+
+        Set<BankingAccountDTO> bankingAccountsDTO = BankingAccountDTOMapper
+                .toBankingAccountSetDTO(bankingAccounts);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(bankingAccounts);
+                .body(bankingAccountsDTO);
     }
 
     // endpoint to delete a customer
     @DeleteMapping("/admin/customers/{id}")
     public ResponseEntity<?> deleteCustomer(
             @PathVariable @NotNull @Positive
-            Long id) {
+            Long id
+    ) {
         customerService.deleteCustomer(id);
 
         // returns 204

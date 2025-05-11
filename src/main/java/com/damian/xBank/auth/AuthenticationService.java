@@ -96,7 +96,7 @@ public class AuthenticationService {
 
         // Return the customer data and the token
         return new AuthenticationResponse(
-                customer.toDTO(), token
+                token
         );
     }
 

@@ -59,7 +59,7 @@ CREATE CAST (varchar as banking_transaction_type) WITH INOUT AS IMPLICIT;
 
 CREATE TYPE public."banking_account_type" AS ENUM (
 	'SAVINGS',
-	'CHECK'
+	'CHECKING'
 );
 
 CREATE CAST (varchar as banking_account_type) WITH INOUT AS IMPLICIT;

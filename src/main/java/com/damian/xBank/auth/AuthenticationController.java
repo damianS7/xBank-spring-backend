@@ -51,6 +51,15 @@ public class AuthenticationController {
                 .body(authResponse);
     }
 
+    // endpoint for token validation
+    @GetMapping("/auth/token/validate")
+    public ResponseEntity<?> tokenValidation(
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .build();
+    }
+
     // endpoint to modify customer password
     @PatchMapping("/auth/customers/password")
     public ResponseEntity<?> updateCustomerPassword(

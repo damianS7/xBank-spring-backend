@@ -39,8 +39,8 @@ public class ProfileService {
      */
     public Profile updateProfile(Long profileId, ProfileUpdateRequest request) {
         Map<String, Object> fieldsToUpdate = new HashMap<>();
-        fieldsToUpdate.put("name", request.name());
-        fieldsToUpdate.put("surname", request.surname());
+        fieldsToUpdate.put("firstName", request.name());
+        fieldsToUpdate.put("lastName", request.surname());
         fieldsToUpdate.put("phone", request.phone());
         fieldsToUpdate.put("address", request.address());
         fieldsToUpdate.put("country", request.country());
@@ -96,8 +96,8 @@ public class ProfileService {
         // we iterate over the fields (if any)
         request.fieldsToUpdate().forEach((key, value) -> {
             switch (key) {
-                case "name" -> profile.setFirstName((String) value);
-                case "surname" -> profile.setLastName((String) value);
+                case "firstName" -> profile.setFirstName((String) value);
+                case "lastName" -> profile.setLastName((String) value);
                 case "phone" -> profile.setPhone((String) value);
                 case "address" -> profile.setAddress((String) value);
                 case "country" -> profile.setCountry((String) value);

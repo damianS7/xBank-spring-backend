@@ -7,8 +7,8 @@ import java.time.LocalDate;
 
 public record ProfileDTO(
         Long id,
-        String name,
-        String surname,
+        String firstName,
+        String lastName,
         String phone,
         LocalDate birthdate,
         CustomerGender gender,

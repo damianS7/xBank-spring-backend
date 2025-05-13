@@ -121,8 +121,8 @@ public class ProfileServiceTest {
         // given
         setUpContext(customer);
         Map<String, Object> fields = new HashMap<>();
-        fields.put("name", "alice");
-        fields.put("surname", "white");
+        fields.put("firstName", "alice");
+        fields.put("lastName", "white");
         fields.put("phone", "999 999 999");
         fields.put("birthdate", "1983-03-13");
         fields.put("gender", "FEMALE");
@@ -142,8 +142,8 @@ public class ProfileServiceTest {
         // Then
         verify(profileRepository, times(1)).save(customer.getProfile());
         assertThat(result).isNotNull();
-        assertThat(result.getFirstName()).isEqualTo(patchProfile.fieldsToUpdate().get("name"));
-        assertThat(result.getLastName()).isEqualTo(patchProfile.fieldsToUpdate().get("surname"));
+        assertThat(result.getFirstName()).isEqualTo(patchProfile.fieldsToUpdate().get("firstName"));
+        assertThat(result.getLastName()).isEqualTo(patchProfile.fieldsToUpdate().get("lastName"));
         assertThat(result.getPhone()).isEqualTo(patchProfile.fieldsToUpdate().get("phone"));
         assertThat(result.getBirthdate().toString()).isEqualTo(patchProfile.fieldsToUpdate().get("birthdate"));
         assertThat(result.getGender().toString()).isEqualTo(patchProfile.fieldsToUpdate().get("gender"));
@@ -154,8 +154,8 @@ public class ProfileServiceTest {
         // given
         setUpContext(customer);
         Map<String, Object> fields = new HashMap<>();
-        fields.put("name", "alice");
-        fields.put("surname", "white");
+        fields.put("firstName", "alice");
+        fields.put("lastName", "white");
         fields.put("FAKE FIELD", "999 999 999");
 
         ProfilePatchRequest patchProfile = new ProfilePatchRequest(

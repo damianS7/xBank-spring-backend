@@ -121,8 +121,8 @@ public class ProfileIntegrationTest {
         final String token = loginWithCustomer(customerA);
 
         Map<String, Object> fields = new HashMap<>();
-        fields.put("name", "alice");
-        fields.put("surname", "white");
+        fields.put("firstName", "alice");
+        fields.put("lastName", "white");
         fields.put("phone", "999 999 999");
         fields.put("birthdate", "1983-03-13");
         fields.put("gender", "FEMALE");
@@ -142,8 +142,8 @@ public class ProfileIntegrationTest {
                        .content(jsonRequest))
                .andDo(print())
                .andExpect(MockMvcResultMatchers.status().is(200))
-               .andExpect(jsonPath("$.name").value(fields.get("name")))
-               .andExpect(jsonPath("$.surname").value(fields.get("surname")))
+               .andExpect(jsonPath("$.firstName").value(fields.get("firstName")))
+               .andExpect(jsonPath("$.lastName").value(fields.get("lastName")))
                .andExpect(jsonPath("$.phone").value(fields.get("phone")))
                .andExpect(jsonPath("$.birthdate").value(fields.get("birthdate")))
                .andExpect(jsonPath("$.gender").value(fields.get("gender")))
@@ -157,8 +157,8 @@ public class ProfileIntegrationTest {
         final String token = loginWithCustomer(customerAdmin);
 
         Map<String, Object> fields = new HashMap<>();
-        fields.put("name", "alice");
-        fields.put("surname", "white");
+        fields.put("firstName", "alice");
+        fields.put("lastName", "white");
         fields.put("phone", "999 999 999");
         fields.put("birthdate", "1983-03-13");
         fields.put("gender", "FEMALE");
@@ -178,8 +178,8 @@ public class ProfileIntegrationTest {
                        .content(jsonRequest))
                .andDo(print())
                .andExpect(MockMvcResultMatchers.status().is(200))
-               .andExpect(jsonPath("$.name").value(fields.get("name")))
-               .andExpect(jsonPath("$.surname").value(fields.get("surname")))
+               .andExpect(jsonPath("$.firstName").value(fields.get("firstName")))
+               .andExpect(jsonPath("$.lastName").value(fields.get("lastName")))
                .andExpect(jsonPath("$.phone").value(fields.get("phone")))
                .andExpect(jsonPath("$.birthdate").value(fields.get("birthdate")))
                .andExpect(jsonPath("$.gender").value(fields.get("gender")))

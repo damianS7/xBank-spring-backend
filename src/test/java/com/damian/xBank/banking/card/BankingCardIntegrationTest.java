@@ -69,8 +69,8 @@ public class BankingCardIntegrationTest {
         customerA = new Customer();
         customerA.setEmail("customerA@test.com");
         customerA.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
-        customerA.getProfile().setName("alice");
-        customerA.getProfile().setSurname("wonderland");
+        customerA.getProfile().setFirstName("alice");
+        customerA.getProfile().setLastName("wonderland");
         customerA.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
 
         customerRepository.save(customerA);
@@ -78,8 +78,8 @@ public class BankingCardIntegrationTest {
         customerB = new Customer();
         customerB.setEmail("customerB@test.com");
         customerB.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
-        customerB.getProfile().setName("alice");
-        customerB.getProfile().setSurname("wonderland");
+        customerB.getProfile().setFirstName("alice");
+        customerB.getProfile().setLastName("wonderland");
         customerB.getProfile().setBirthdate(LocalDate.of(1995, 11, 11));
 
         customerRepository.save(customerB);
@@ -88,8 +88,8 @@ public class BankingCardIntegrationTest {
         customerAdmin.setEmail("customerC@test.com");
         customerAdmin.setRole(CustomerRole.ADMIN);
         customerAdmin.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
-        customerAdmin.getProfile().setName("alice");
-        customerAdmin.getProfile().setSurname("wonderland");
+        customerAdmin.getProfile().setFirstName("alice");
+        customerAdmin.getProfile().setLastName("wonderland");
         customerAdmin.getProfile().setBirthdate(LocalDate.of(1995, 11, 11));
 
         customerRepository.save(customerAdmin);

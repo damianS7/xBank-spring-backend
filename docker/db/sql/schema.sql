@@ -176,8 +176,8 @@ CREATE TABLE public.customer_auth (
 CREATE TABLE public.customer_profiles (
 	id int4 GENERATED ALWAYS AS IDENTITY NOT NULL,
 	customer_id int4 NOT NULL,
-	"name" varchar(20) NOT NULL,
-	surname varchar(40) NOT NULL,
+	firstname varchar(20) NOT NULL,
+	lastname varchar(40) NOT NULL,
 	phone varchar(14) NOT NULL,
 	birthdate date NOT NULL,
 	gender public."customer_gender_type" NOT NULL,

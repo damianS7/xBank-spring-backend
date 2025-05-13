@@ -70,8 +70,8 @@ public class ProfileIntegrationTest {
         customerA.setRole(CustomerRole.CUSTOMER);
         customerA.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
         customerA.getProfile().setNationalId("123456789Z");
-        customerA.getProfile().setName("John");
-        customerA.getProfile().setSurname("Wick");
+        customerA.getProfile().setFirstName("John");
+        customerA.getProfile().setLastName("Wick");
         customerA.getProfile().setGender(CustomerGender.MALE);
         customerA.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
         customerA.getProfile().setCountry("USA");

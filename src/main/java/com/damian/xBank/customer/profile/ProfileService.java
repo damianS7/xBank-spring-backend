@@ -96,8 +96,8 @@ public class ProfileService {
         // we iterate over the fields (if any)
         request.fieldsToUpdate().forEach((key, value) -> {
             switch (key) {
-                case "name" -> profile.setName((String) value);
-                case "surname" -> profile.setSurname((String) value);
+                case "name" -> profile.setFirstName((String) value);
+                case "surname" -> profile.setLastName((String) value);
                 case "phone" -> profile.setPhone((String) value);
                 case "address" -> profile.setAddress((String) value);
                 case "country" -> profile.setCountry((String) value);

@@ -117,8 +117,8 @@ public class CustomerRepositoryTest {
         final String customerPhotoPath = "/upload/images/9sdf324283sdf47293479fsdff23232347.jpg";
 
         final Customer givenCustomer = new Customer(null, "customer@test.com", "123456");
-        givenCustomer.getProfile().setName(customerName);
-        givenCustomer.getProfile().setSurname(customerSurname);
+        givenCustomer.getProfile().setFirstName(customerName);
+        givenCustomer.getProfile().setLastName(customerSurname);
         givenCustomer.getProfile().setPhone(customerPhone);
         givenCustomer.getProfile().setGender(customerGender);
         givenCustomer.getProfile().setBirthdate(customerBirthdate);
@@ -134,8 +134,8 @@ public class CustomerRepositoryTest {
         // then
         assertThat(customerRepository.existsById(savedCustomer.getId())).isTrue();
         assertThat(savedCustomer.getId()).isNotNull();
-        assertThat(savedCustomer.getProfile().getName()).isEqualTo(customerName);
-        assertThat(savedCustomer.getProfile().getSurname()).isEqualTo(customerSurname);
+        assertThat(savedCustomer.getProfile().getFirstName()).isEqualTo(customerName);
+        assertThat(savedCustomer.getProfile().getLastName()).isEqualTo(customerSurname);
         assertThat(savedCustomer.getProfile().getPhone()).isEqualTo(customerPhone);
         assertThat(savedCustomer.getProfile().getGender()).isEqualTo(customerGender);
         assertThat(savedCustomer.getProfile().getBirthdate()).isEqualTo(customerBirthdate);

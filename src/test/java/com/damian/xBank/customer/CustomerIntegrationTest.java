@@ -62,8 +62,8 @@ public class CustomerIntegrationTest {
         customer.setPassword(bCryptPasswordEncoder.encode("123456"));
 
         customer.getProfile().setNationalId("123456789Z");
-        customer.getProfile().setName("John");
-        customer.getProfile().setSurname("Wick");
+        customer.getProfile().setFirstName("John");
+        customer.getProfile().setLastName("Wick");
         customer.getProfile().setGender(CustomerGender.MALE);
         customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
         customer.getProfile().setCountry("USA");

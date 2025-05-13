@@ -61,8 +61,8 @@ public class AuthorizationIntegrationTest {
         customer.setEmail("customer@test.com");
         customer.setPassword(bCryptPasswordEncoder.encode(rawPassword));
         customer.getProfile().setNationalId("123456789Z");
-        customer.getProfile().setName("John");
-        customer.getProfile().setSurname("Wick");
+        customer.getProfile().setFirstName("John");
+        customer.getProfile().setLastName("Wick");
         customer.getProfile().setPhone("123 123 123");
         customer.getProfile().setGender(CustomerGender.MALE);
         customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));

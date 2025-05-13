@@ -35,8 +35,8 @@ public class ProfileRepositoryTest {
         customer.setEmail("david@gmail.com");
         customer.setPassword("123456");
         customer.getProfile().setNationalId("123456789Z");
-        customer.getProfile().setName("david");
-        customer.getProfile().setSurname("white");
+        customer.getProfile().setFirstName("david");
+        customer.getProfile().setLastName("white");
         customer.getProfile().setPhone("123 123 123");
         customer.getProfile().setGender(CustomerGender.MALE);
         customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
@@ -59,7 +59,7 @@ public class ProfileRepositoryTest {
         // then
         assertThat(profile.getId()).isNotNull();
         assertThat(profile.getCustomerId()).isEqualTo(customer.getId());
-        assertThat(profile.getName()).isEqualTo(customer.getProfile().getName());
+        assertThat(profile.getFirstName()).isEqualTo(customer.getProfile().getFirstName());
     }
 
     @Test
@@ -81,7 +81,8 @@ public class ProfileRepositoryTest {
 
         // when
         // then
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
                 () -> profileRepository.findById(profileId)
         );
     }
@@ -93,11 +94,11 @@ public class ProfileRepositoryTest {
         final String newName = "Ronald";
 
         // when
-        customer.getProfile().setName(newName);
+        customer.getProfile().setFirstName(newName);
         profileRepository.save(customer.getProfile());
         Profile profile = profileRepository.findById(profileId).orElseThrow();
 
         // then
-        assertThat(profile.getName()).isEqualTo(newName);
+        assertThat(profile.getFirstName()).isEqualTo(newName);
     }
 }

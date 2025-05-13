@@ -56,8 +56,8 @@ public class ProfileServiceTest {
         customer.setPassword("encryptedPassword");
         customer.getProfile().setId(5L);
         customer.getProfile().setNationalId("123456789Z");
-        customer.getProfile().setName("John");
-        customer.getProfile().setSurname("Wick");
+        customer.getProfile().setFirstName("John");
+        customer.getProfile().setLastName("Wick");
         customer.getProfile().setGender(CustomerGender.MALE);
         customer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
         customer.getProfile().setCountry("USA");
@@ -107,8 +107,8 @@ public class ProfileServiceTest {
         // Then
         verify(profileRepository, times(1)).save(customer.getProfile());
         assertThat(result).isNotNull();
-        assertThat(result.getName()).isEqualTo(updateRequest.name());
-        assertThat(result.getSurname()).isEqualTo(updateRequest.surname());
+        assertThat(result.getFirstName()).isEqualTo(updateRequest.name());
+        assertThat(result.getLastName()).isEqualTo(updateRequest.surname());
         assertThat(result.getPhone()).isEqualTo(updateRequest.phone());
         assertThat(result.getCountry()).isEqualTo(updateRequest.country());
         assertThat(result.getNationalId()).isEqualTo(updateRequest.nationalId());
@@ -142,8 +142,8 @@ public class ProfileServiceTest {
         // Then
         verify(profileRepository, times(1)).save(customer.getProfile());
         assertThat(result).isNotNull();
-        assertThat(result.getName()).isEqualTo(patchProfile.fieldsToUpdate().get("name"));
-        assertThat(result.getSurname()).isEqualTo(patchProfile.fieldsToUpdate().get("surname"));
+        assertThat(result.getFirstName()).isEqualTo(patchProfile.fieldsToUpdate().get("name"));
+        assertThat(result.getLastName()).isEqualTo(patchProfile.fieldsToUpdate().get("surname"));
         assertThat(result.getPhone()).isEqualTo(patchProfile.fieldsToUpdate().get("phone"));
         assertThat(result.getBirthdate().toString()).isEqualTo(patchProfile.fieldsToUpdate().get("birthdate"));
         assertThat(result.getGender().toString()).isEqualTo(patchProfile.fieldsToUpdate().get("gender"));

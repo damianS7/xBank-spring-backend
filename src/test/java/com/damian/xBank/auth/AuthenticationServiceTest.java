@@ -88,8 +88,8 @@ public class AuthenticationServiceTest {
         givenCustomer.setEmail("customer@test.com");
         givenCustomer.setPassword("123456");
         givenCustomer.getProfile().setNationalId("123456789Z");
-        givenCustomer.getProfile().setName("John");
-        givenCustomer.getProfile().setSurname("Wick");
+        givenCustomer.getProfile().setFirstName("John");
+        givenCustomer.getProfile().setLastName("Wick");
         givenCustomer.getProfile().setPhone("123 123 123");
         givenCustomer.getProfile().setGender(CustomerGender.MALE);
         givenCustomer.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
@@ -101,8 +101,8 @@ public class AuthenticationServiceTest {
         CustomerRegistrationRequest registrationRequest = new CustomerRegistrationRequest(
                 givenCustomer.getEmail(),
                 givenCustomer.getPassword(),
-                givenCustomer.getProfile().getName(),
-                givenCustomer.getProfile().getSurname(),
+                givenCustomer.getProfile().getFirstName(),
+                givenCustomer.getProfile().getLastName(),
                 givenCustomer.getProfile().getPhone(),
                 givenCustomer.getProfile().getBirthdate(),
                 givenCustomer.getProfile().getGender(),
@@ -121,8 +121,8 @@ public class AuthenticationServiceTest {
         verify(customerService, times(1)).createCustomer(registrationRequest);
         assertThat(registeredCustomer).isNotNull();
         assertThat(registeredCustomer.getEmail()).isEqualTo(givenCustomer.getEmail());
-        assertThat(registeredCustomer.getProfile().getName()).isEqualTo(givenCustomer.getProfile().getName());
-        assertThat(registeredCustomer.getProfile().getSurname()).isEqualTo(givenCustomer.getProfile().getSurname());
+        assertThat(registeredCustomer.getProfile().getFirstName()).isEqualTo(givenCustomer.getProfile().getFirstName());
+        assertThat(registeredCustomer.getProfile().getLastName()).isEqualTo(givenCustomer.getProfile().getLastName());
         assertThat(registeredCustomer.getProfile().getPhone()).isEqualTo(givenCustomer.getProfile().getPhone());
         assertThat(registeredCustomer.getProfile().getGender()).isEqualTo(givenCustomer.getProfile().getGender());
         assertThat(registeredCustomer.getProfile().getBirthdate()).isEqualTo(givenCustomer.getProfile().getBirthdate());

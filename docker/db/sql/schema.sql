@@ -134,6 +134,7 @@ CREATE TABLE public.customers (
 CREATE TABLE public.banking_accounts (
 	id int4 GENERATED ALWAYS AS IDENTITY NOT NULL,
 	customer_id int4 NOT NULL,
+	alias varchar(64) NULL,
 	account_number varchar(32) NOT NULL,
 	balance numeric(15, 2) DEFAULT 0.00 NOT NULL,
 	account_type public."banking_account_type" DEFAULT 'SAVINGS'::banking_account_type NOT NULL,

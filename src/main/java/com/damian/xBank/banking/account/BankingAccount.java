@@ -27,6 +27,9 @@ public class BankingAccount {
     @OneToMany(mappedBy = "bankingAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BankingCard> bankingCards;
 
+    @Column(length = 64)
+    private String alias;
+
     @Column(length = 32, nullable = false)
     private String accountNumber;
 
@@ -170,5 +173,13 @@ public class BankingAccount {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 }

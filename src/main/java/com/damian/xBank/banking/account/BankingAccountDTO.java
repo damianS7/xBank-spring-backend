@@ -9,6 +9,7 @@ import java.util.Set;
 
 public record BankingAccountDTO(
         Long id,
+        String alias,
         String accountNumber,
         BigDecimal balance,
         BankingAccountType accountType,

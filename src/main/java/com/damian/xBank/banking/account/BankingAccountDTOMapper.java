@@ -28,6 +28,7 @@ public class BankingAccountDTOMapper {
 
         return new BankingAccountDTO(
                 bankingAccount.getId(),
+                bankingAccount.getAlias(),
                 bankingAccount.getAccountNumber(),
                 bankingAccount.getBalance(),
                 bankingAccount.getAccountType(),

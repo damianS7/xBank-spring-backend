@@ -13,8 +13,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
@@ -54,8 +52,8 @@ public class WebSecurityConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("http://localhost:8081");  // Origen permitido
-        config.setAllowedMethods(Arrays.asList("GET", "OPTIONS", "POST"));
+        config.addAllowedOrigin("http://localhost:8081");
+        config.addAllowedMethod("*");
         config.addAllowedHeader("*");  // Permite todos los encabezados
         config.setAllowCredentials(true);  // Permite enviar cookies
 

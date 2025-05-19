@@ -5,6 +5,9 @@ public class BankingCardDTOMapper {
         return new BankingCardDTO(
                 bankingCard.getId(),
                 bankingCard.getCardNumber(),
+                bankingCard.getCardCvv(),
+                bankingCard.getCardPin(),
+                bankingCard.getExpiredDate(),
                 bankingCard.getCardType(),
                 bankingCard.getCardStatus(),
                 bankingCard.getCreatedAt(),

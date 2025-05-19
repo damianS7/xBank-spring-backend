@@ -23,6 +23,15 @@ public class BankingCard {
     @Enumerated(EnumType.STRING)
     private BankingCardType cardType;
 
+    @Column(length = 3)
+    private String cardCvv;
+
+    @Column(length = 4)
+    private String cardPin;
+
+    @Column
+    private Instant expiredDate;
+
     @Enumerated(EnumType.STRING)
     private BankingCardStatus cardStatus;
 
@@ -107,5 +116,29 @@ public class BankingCard {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Instant getExpiredDate() {
+        return expiredDate;
+    }
+
+    public void setExpiredDate(Instant expiredDate) {
+        this.expiredDate = expiredDate;
+    }
+
+    public String getCardCvv() {
+        return cardCvv;
+    }
+
+    public void setCardCvv(String CVV) {
+        this.cardCvv = CVV;
+    }
+
+    public String getCardPin() {
+        return cardPin;
+    }
+
+    public void setCardPin(String cardPin) {
+        this.cardPin = cardPin;
     }
 }

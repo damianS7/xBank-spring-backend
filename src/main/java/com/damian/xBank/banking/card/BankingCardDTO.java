@@ -5,6 +5,9 @@ import java.time.Instant;
 public record BankingCardDTO(
         Long id,
         String cardNumber,
+        String cardCVV,
+        String cardPIN,
+        Instant expiredDate,
         BankingCardType cardType,
         BankingCardStatus cardStatus,
         Instant createdAt,

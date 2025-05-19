@@ -19,10 +19,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Service
 public class BankingCardService {
-    private final int MAX_CARDS_PER_ACCOUNT = 1;
+    private final int MAX_CARDS_PER_ACCOUNT = 5;
     private final BankingCardRepository bankingCardRepository;
     private final BankingAccountRepository bankingAccountRepository;
     private final CustomerRepository customerRepository;
@@ -108,6 +109,9 @@ public class BankingCardService {
 
         // create the card and associate to the account
         BankingCard bankingCard = new BankingCard();
+        bankingCard.setCardCvv(this.generateCardCVV());
+        bankingCard.setCardPin(this.generateCardPIN());
+        bankingCard.setExpiredDate(Instant.from(LocalDate.now().plusMonths(24)));
         bankingCard.setAssociatedBankingAccount(bankingAccount);
         bankingCard.setCardType(request.cardType());
         bankingCard.setCardNumber(this.generateCardNumber());
@@ -155,5 +159,13 @@ public class BankingCardService {
 
     public String generateCardNumber() {
         return faker.finance().creditCard();
+    }
+
+    public String generateCardCVV() {
+        return faker.number().digits(3);
+    }
+
+    public String generateCardPIN() {
+        return faker.number().digits(4);
     }
 }

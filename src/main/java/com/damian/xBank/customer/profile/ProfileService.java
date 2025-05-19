@@ -9,15 +9,26 @@ import com.damian.xBank.customer.profile.exception.ProfileException;
 import com.damian.xBank.customer.profile.exception.ProfileNotFoundException;
 import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ProfileService {
@@ -28,6 +39,68 @@ public class ProfileService {
     public ProfileService(ProfileRepository profileRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.profileRepository = profileRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
+
+    public Resource getPhoto(String filename) {
+        Path filePath = Paths.get("uploads/avatars").resolve(filename).normalize();
+        System.out.println(filePath);
+        Resource resource = null;
+        try {
+            resource = new UrlResource(filePath.toUri());
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (!resource.exists()) {
+            //            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Archivo no encontrado");
+        }
+
+        return resource;
+
+    }
+
+    /**
+     * It sets the customer profile photo
+     */
+    public Profile uploadPhoto(String currentPassword, MultipartFile file) {
+        //        if (file.isEmpty()) {
+        //            throw new IllegalArgumentException("El archivo está vacío");
+        //        }
+        //
+        //        if (!file.getContentType().startsWith("image/")) {
+        //            throw new IllegalArgumentException("Solo se permiten archivos de imagen");
+        //        }
+        //
+        //        if (file.getSize() > 5 * 1024 * 1024) { // 5 MB
+        //            throw new IllegalArgumentException("El archivo no debe superar los 5 MB");
+        //        }
+        Customer customerLogged = (Customer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        final Long profileId = customerLogged.getProfile().getId();
+
+        // ...
+        String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        String filename = UUID.randomUUID() + "." + extension;
+
+        Map<String, Object> fieldsToUpdate = new HashMap<>();
+
+        // Guardar el archivo localmente (puedes adaptarlo a guardar en S3, DB, etc.)
+        try {
+            Path uploadPath = Paths.get("uploads/avatars");
+            Files.createDirectories(uploadPath);
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            fieldsToUpdate.put("photoPath", filename);
+        } catch (IOException e) {
+            throw new ProfileException("Error al subir archivo");
+        }
+
+
+        ProfilePatchRequest patchRequest = new ProfilePatchRequest(
+                currentPassword,
+                fieldsToUpdate
+        );
+
+        return patchProfile(profileId, patchRequest);
     }
 
     /**
@@ -75,10 +148,11 @@ public class ProfileService {
         }
 
         // We get the profile we want to modify
-        Profile profile = profileRepository.findById(profileId)
-                                           .orElseThrow(
-                                                   ProfileNotFoundException::new
-                                           );
+        Profile profile = profileRepository
+                .findById(profileId)
+                .orElseThrow(
+                        ProfileNotFoundException::new
+                );
 
         // if the logged user is not admin
         if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {

@@ -26,8 +26,8 @@ public class BankingCardController {
     }
 
     // endpoint to create a transaction with a BankingCard
-    @PostMapping("/banking/cards/{id}/spend")
-    public ResponseEntity<?> spend(
+    @PostMapping("/customers/me/banking/card/{id}/spend")
+    public ResponseEntity<?> loggedCustomerCardSpend(
             @PathVariable @NotNull @Positive
             Long id,
             @Validated @RequestBody
@@ -41,9 +41,9 @@ public class BankingCardController {
                 .body(transactionDTO);
     }
 
-    // endpoint to create a new BankingCard
-    @PostMapping("/banking/accounts/{id}/cards")
-    public ResponseEntity<?> createBankingCard(
+    // endpoint for logged customer to create a new BankingCard
+    @PostMapping("/customers/me/banking/account/{id}/cards")
+    public ResponseEntity<?> loggedCustomerCreateBankingCard(
             @PathVariable @NotNull @Positive
             Long id,
             @Validated @RequestBody
@@ -57,9 +57,9 @@ public class BankingCardController {
                 .body(bankingCardDTO);
     }
 
-    // endpoint to cancel a BankingCard
-    @GetMapping("/banking/cards/{id}/cancel")
-    public ResponseEntity<?> cancelBankingCard(
+    // endpoint for logged customer to cancel a BankingCard
+    @GetMapping("/customers/me/banking/card/{id}/cancel")
+    public ResponseEntity<?> loggedCustomerCancelBankingCard(
             @PathVariable @NotNull @Positive
             Long id
     ) {

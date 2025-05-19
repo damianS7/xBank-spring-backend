@@ -42,9 +42,9 @@ public class CustomerController {
                 .body(dto);
     }
 
-    // endpoint to modify customer email
-    @PatchMapping("/customers/email")
-    public ResponseEntity<?> updateCustomerEmail(
+    // endpoint to modify logged customer email
+    @PatchMapping("/customers/me/email")
+    public ResponseEntity<?> updateLoggedCustomerEmail(
             @Validated @RequestBody
             CustomerEmailUpdateRequest request
     ) {

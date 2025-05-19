@@ -1,13 +1,14 @@
 package com.damian.xBank.banking.card;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 public record BankingCardDTO(
         Long id,
         String cardNumber,
         String cardCVV,
         String cardPIN,
-        Instant expiredDate,
+        LocalDate expiredDate,
         BankingCardType cardType,
         BankingCardStatus cardStatus,
         Instant createdAt,

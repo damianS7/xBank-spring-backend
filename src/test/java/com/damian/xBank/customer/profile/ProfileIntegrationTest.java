@@ -136,7 +136,7 @@ public class ProfileIntegrationTest {
 
         // when
         mockMvc.perform(MockMvcRequestBuilders
-                       .patch("/api/v1/profiles")
+                       .patch("/api/v1/customers/me/profile")
                        .contentType(MediaType.APPLICATION_JSON)
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                        .content(jsonRequest))

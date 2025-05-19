@@ -11,6 +11,7 @@ import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import net.datafaker.Faker;
 import net.datafaker.providers.base.Finance;
+import net.datafaker.providers.base.Number;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -87,6 +88,8 @@ public class BankingCardServiceTest {
     @DisplayName("Should generate a BankingCard")
     void shouldGenerateBankingCard() {
         // given
+        Number numberMock = mock(Number.class);
+
         setUpContext(customerA);
 
         BankingCardCreateRequest request = new BankingCardCreateRequest(BankingCardType.CREDIT);
@@ -107,6 +110,9 @@ public class BankingCardServiceTest {
 
         // when
         when(faker.finance()).thenReturn(finance);
+        when(faker.number()).thenReturn(numberMock);
+        when(faker.number().digits(3)).thenReturn("931");
+        when(faker.number().digits(4)).thenReturn("1234");
         when(finance.creditCard()).thenReturn(givenBankingCard.getCardNumber());
         when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
         when(bankingCardRepository.save(any(BankingCard.class))).thenReturn(givenBankingCard);
@@ -123,6 +129,7 @@ public class BankingCardServiceTest {
     @DisplayName("Should generate a BankingCard when account is not yours but you are admin")
     void shouldGenerateBankingCardWhenAccountIsNotYoursButYouAreAdmin() {
         // given
+        Number numberMock = mock(Number.class);
         setUpContext(customerAdmin);
 
         BankingCardCreateRequest request = new BankingCardCreateRequest(BankingCardType.CREDIT);
@@ -143,6 +150,9 @@ public class BankingCardServiceTest {
 
         // when
         when(faker.finance()).thenReturn(finance);
+        when(faker.number()).thenReturn(numberMock);
+        when(faker.number().digits(3)).thenReturn("931");
+        when(faker.number().digits(4)).thenReturn("1234");
         when(finance.creditCard()).thenReturn(givenBankingCard.getCardNumber());
         when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
         when(bankingCardRepository.save(any(BankingCard.class))).thenReturn(givenBankingCard);

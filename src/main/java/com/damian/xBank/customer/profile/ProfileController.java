@@ -27,7 +27,7 @@ public class ProfileController {
     }
 
     // endpoint to modify the logged customer profile
-    @PatchMapping("/profiles/me")
+    @PatchMapping("/customers/me/profile")
     public ResponseEntity<?> patchLoggedCustomerProfile(
             @Validated @RequestBody
             ProfilePatchRequest request
@@ -40,7 +40,7 @@ public class ProfileController {
                 .body(profileDTO);
     }
 
-    @GetMapping("/profiles/me/photo/{filename:.+}")
+    @GetMapping("/customers/me/profile/photo/{filename:.+}")
     public ResponseEntity<?> getLoggedCustomerPhoto(
             @PathVariable String filename
     ) {
@@ -64,7 +64,7 @@ public class ProfileController {
     }
 
     // endpoint to upload profile photo
-    @PostMapping("/profiles/me/photo")
+    @PostMapping("/customers/me/profile/photo")
     public ResponseEntity<?> postLoggedCustomerPhoto(
             @RequestParam("currentPassword") String currentPassword,
             @RequestParam("file") MultipartFile file
@@ -78,6 +78,7 @@ public class ProfileController {
     }
 
     // endpoint to modify the entire profile
+    // FIXME cambiar a /admin/customers/{id}/profile ?
     @PutMapping("/admin/profiles/{id}")
     public ResponseEntity<?> putCustomerProfile(
             @PathVariable @NotNull @Positive

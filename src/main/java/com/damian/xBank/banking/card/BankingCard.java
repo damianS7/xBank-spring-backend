@@ -5,6 +5,7 @@ import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "banking_cards")
@@ -30,7 +31,7 @@ public class BankingCard {
     private String cardPin;
 
     @Column
-    private Instant expiredDate;
+    private LocalDate expiredDate;
 
     @Enumerated(EnumType.STRING)
     private BankingCardStatus cardStatus;
@@ -118,11 +119,11 @@ public class BankingCard {
         this.updatedAt = updatedAt;
     }
 
-    public Instant getExpiredDate() {
+    public LocalDate getExpiredDate() {
         return expiredDate;
     }
 
-    public void setExpiredDate(Instant expiredDate) {
+    public void setExpiredDate(LocalDate expiredDate) {
         this.expiredDate = expiredDate;
     }
 

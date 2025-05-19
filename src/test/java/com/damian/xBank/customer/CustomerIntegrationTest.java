@@ -173,7 +173,7 @@ public class CustomerIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/customers/email")
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/customers/me/email")
                                               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                               .contentType(MediaType.APPLICATION_JSON)
                                               .content(objectMapper.writeValueAsString(customerEmailUpdateRequest)))

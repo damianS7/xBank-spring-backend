@@ -139,7 +139,7 @@ public class BankingAccountIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(post("/api/v1/banking/accounts/open")
+        mockMvc.perform(post("/api/v1/customers/me/banking/accounts/open")
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(request)))
@@ -164,10 +164,12 @@ public class BankingAccountIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
-                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-               .andDo(print())
-               .andExpect(status().is(200));
+        mockMvc
+                .perform(MockMvcRequestBuilders
+                        .get("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().is(200));
     }
 
     @Test
@@ -183,7 +185,7 @@ public class BankingAccountIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(get("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
+        mockMvc.perform(get("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                .andDo(print())
                .andExpect(status().is(403));
@@ -202,7 +204,7 @@ public class BankingAccountIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(get("/api/v1/banking/accounts/" + bankingAccount.getId() + "/close")
+        mockMvc.perform(get("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                .andDo(print())
                .andExpect(status().is(200));
@@ -282,7 +284,7 @@ public class BankingAccountIntegrationTest {
         //        when(bankingAccountService.createTransaction(request)).thenReturn(transaction);
 
         // then
-        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccount.getId() + "/transactions")
+        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/transaction")
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(request)))
@@ -322,7 +324,7 @@ public class BankingAccountIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccountA.getId() + "/transactions")
+        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccountA.getId() + "/transaction")
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(request)))
@@ -358,7 +360,7 @@ public class BankingAccountIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccount.getId() + "/transactions")
+        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/transaction")
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(request)))
@@ -389,7 +391,7 @@ public class BankingAccountIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccountA.getId() + "/transactions")
+        mockMvc.perform(post("/api/v1/banking/customers/me/account/" + bankingAccountA.getId() + "/transaction")
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(request)))
@@ -425,7 +427,7 @@ public class BankingAccountIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccount.getId() + "/transactions")
+        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/transaction")
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(request)))

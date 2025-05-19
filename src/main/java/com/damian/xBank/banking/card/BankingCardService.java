@@ -111,7 +111,7 @@ public class BankingCardService {
         BankingCard bankingCard = new BankingCard();
         bankingCard.setCardCvv(this.generateCardCVV());
         bankingCard.setCardPin(this.generateCardPIN());
-        bankingCard.setExpiredDate(Instant.from(LocalDate.now().plusMonths(24)));
+        bankingCard.setExpiredDate(LocalDate.now().plusMonths(24));
         bankingCard.setAssociatedBankingAccount(bankingAccount);
         bankingCard.setCardType(request.cardType());
         bankingCard.setCardNumber(this.generateCardNumber());

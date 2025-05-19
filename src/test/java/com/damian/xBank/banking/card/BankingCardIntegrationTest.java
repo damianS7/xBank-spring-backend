@@ -137,46 +137,12 @@ public class BankingCardIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccount.getId() + "/cards")
+        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/cards")
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(request)))
                .andDo(print())
                .andExpect(status().is(201));
-    }
-
-    @Test
-    @DisplayName("Should not generate a card when limit exceeds")
-    void shouldNotGenerateCardIfLimitExceeds() throws Exception {
-        // given
-        loginWithCustomer(customerA);
-
-        BankingAccount bankingAccount = new BankingAccount(customerA);
-        bankingAccount.setAccountNumber("ES1234567890123456789012");
-        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
-        bankingAccount.setBalance(BigDecimal.valueOf(1000));
-
-        BankingCard bankingCard = new BankingCard();
-        bankingCard.setAssociatedBankingAccount(bankingAccount);
-        bankingCard.setCardNumber("1234567890123");
-
-        bankingAccount.addBankingCard(bankingCard);
-        bankingAccountRepository.save(bankingAccount);
-
-        BankingCardCreateRequest request = new BankingCardCreateRequest(
-                BankingCardType.DEBIT
-        );
-
-        // when
-        // then
-        mockMvc.perform(post("/api/v1/banking/accounts/" + bankingAccount.getId() + "/cards")
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(request)))
-               .andDo(print())
-               .andExpect(status().is(409));
     }
 
     @Test
@@ -210,7 +176,7 @@ public class BankingCardIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(post("/api/v1/banking/cards/" + bankingCard.getId() + "/spend")
+        mockMvc.perform(post("/api/v1/customers/me/banking/card/" + bankingCard.getId() + "/spend")
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(request)))

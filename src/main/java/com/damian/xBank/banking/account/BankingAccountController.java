@@ -26,7 +26,7 @@ public class BankingAccountController {
     }
 
     // endpoint to receive accounts from logged customer
-    @GetMapping("/banking/accounts/me")
+    @GetMapping("/customers/me/banking/accounts")
     public ResponseEntity<?> getLoggedCustomerBankingAccounts() {
         Set<BankingAccount> bankingAccounts = bankingAccountService.getCustomerLoggedBankingAccounts();
         Set<BankingAccountDTO> bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountSetDTO(bankingAccounts);
@@ -37,8 +37,8 @@ public class BankingAccountController {
     }
 
     // endpoint to generate a transaction
-    @PostMapping("/banking/accounts/{id}/transactions")
-    public ResponseEntity<?> createTransaction(
+    @PostMapping("/customers/me/banking/account/{id}/transaction")
+    public ResponseEntity<?> loggedCustomerCreateTransaction(
             @PathVariable @NotNull(message = "This field cannot be null") @Positive
             Long id,
             @Validated @RequestBody
@@ -57,8 +57,8 @@ public class BankingAccountController {
                 .body(bankingTransactionDTO);
     }
 
-    // endpoint to open a new BankingAccount
-    @PostMapping("/banking/accounts/open")
+    // endpoint for logged customer to open a new BankingAccount
+    @PostMapping("/customers/me/banking/accounts/open")
     public ResponseEntity<?> openBankingAccount(
             @Validated @RequestBody
             BankingAccountOpenRequest request
@@ -71,9 +71,9 @@ public class BankingAccountController {
                 .body(bankingAccountDTO);
     }
 
-    // endpoint to close a BankingAccount
-    @GetMapping("/banking/accounts/{id}/close")
-    public ResponseEntity<?> closeBankingAccount(
+    // endpoint for logged customer to close a BankingAccount
+    @GetMapping("/customers/me/banking/account/{id}/close")
+    public ResponseEntity<?> loggedCustomerCloseBankingAccount(
             @PathVariable @NotNull @Positive
             Long id
     ) {

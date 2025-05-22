@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Service
 public class BankingCardService {
@@ -41,6 +42,20 @@ public class BankingCardService {
         this.customerRepository = customerRepository;
         this.faker = faker;
         this.bankingAccountService = bankingAccountService;
+    }
+
+    public Set<BankingCard> getBankingCards() {
+        // Customer logged
+        final Customer customerLogged = (Customer) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        return this.getBankingCards(customerLogged.getId());
+    }
+
+    public Set<BankingCard> getBankingCards(Long customerId) {
+        return bankingCardRepository.findCardsByCustomerId(customerId);
     }
 
     public BankingTransaction spend(

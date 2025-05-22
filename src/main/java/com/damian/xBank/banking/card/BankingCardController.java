@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
+
 @RequestMapping("/api/v1")
 @RestController
 public class BankingCardController {
@@ -23,6 +25,17 @@ public class BankingCardController {
             BankingCardService bankingCardService
     ) {
         this.bankingCardService = bankingCardService;
+    }
+
+    // endpoint to fetch all cards of logged customer
+    @GetMapping("/customers/me/banking/cards")
+    public ResponseEntity<?> loggedCustomerGetBankingCards() {
+        Set<BankingCard> bankingCards = bankingCardService.getBankingCards();
+        Set<BankingCardDTO> bankingCardsDTO = BankingCardDTOMapper.toBankingCardSetDTO(bankingCards);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(bankingCardsDTO);
     }
 
     // endpoint to create a transaction with a BankingCard

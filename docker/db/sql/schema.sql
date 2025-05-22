@@ -69,7 +69,9 @@ CREATE CAST (varchar as banking_account_type) WITH INOUT AS IMPLICIT;
 CREATE TYPE public."banking_card_status_type" AS ENUM (
 	'ENABLED',
 	'DISABLED',
-	'SUSPENDED'
+	'SUSPENDED',
+	'LOCKED',
+    'BLOCKED'
 );
 
 CREATE CAST (varchar as banking_card_status_type) WITH INOUT AS IMPLICIT;

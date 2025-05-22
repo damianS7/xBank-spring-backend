@@ -1,9 +1,6 @@
 package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
-import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -76,39 +73,5 @@ public class ProfileController {
                 .status(HttpStatus.OK)
                 .body(profileDTO);
     }
-
-    // endpoint to modify the entire profile
-    // FIXME cambiar a /admin/customers/{id}/profile ?
-    @PutMapping("/admin/profiles/{id}")
-    public ResponseEntity<?> putCustomerProfile(
-            @PathVariable @NotNull @Positive
-            Long id,
-            @Validated @RequestBody
-            ProfileUpdateRequest request
-    ) {
-        Profile profile = profileService.updateProfile(id, request);
-        ProfileDTO profileDTO = ProfileDTOMapper.toProfileDTO(profile);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(profileDTO);
-    }
-
-    // endpoint to partially modify the profile
-    @PatchMapping("/admin/profiles/{id}")
-    public ResponseEntity<?> patchCustomerProfile(
-            @PathVariable @NotNull @Positive
-            Long id,
-            @Validated @RequestBody
-            ProfilePatchRequest request
-    ) {
-        Profile profile = profileService.patchProfile(id, request);
-        ProfileDTO profileDTO = ProfileDTOMapper.toProfileDTO(profile);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(profileDTO);
-    }
-
 }
 

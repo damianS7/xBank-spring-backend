@@ -353,6 +353,8 @@ public class BankingAccountService {
     }
 
     public String generateAccountNumber() {
-        return faker.finance().iban();
+        //ES00 0000 0000 0000 0000 0000
+        String country = faker.country().countryCode2().toUpperCase();
+        return country + faker.number().digits(22);
     }
 }

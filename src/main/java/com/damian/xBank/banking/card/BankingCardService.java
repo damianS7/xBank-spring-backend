@@ -237,7 +237,7 @@ public class BankingCardService {
     }
 
     public String generateCardNumber() {
-        return faker.finance().creditCard();
+        return faker.number().digits(16);
     }
 
     public String generateCardCVV() {

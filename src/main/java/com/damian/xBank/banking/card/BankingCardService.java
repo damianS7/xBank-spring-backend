@@ -80,13 +80,13 @@ public class BankingCardService {
         }
 
         final boolean isCardDisabled = bankingCard.getCardStatus().equals(BankingCardStatus.DISABLED);
-        final boolean isCardSuspended = bankingCard.getCardStatus().equals(BankingCardStatus.SUSPENDED);
+        final boolean isCardLocked = bankingCard.getLockStatus().equals(BankingCardLockStatus.LOCKED);
 
         if (isCardDisabled) {
             throw new BankingCardAuthorizationException("The card is disabled.");
         }
 
-        if (isCardSuspended) {
+        if (isCardLocked) {
             throw new BankingCardAuthorizationException("The card is locked.");
         }
 
@@ -133,6 +133,68 @@ public class BankingCardService {
         bankingCard.setCardNumber(this.generateCardNumber());
 
         // save the card
+        return bankingCardRepository.save(bankingCard);
+    }
+
+    public BankingCard lockCard(Long bankingCardId) {
+        // Customer logged
+        final Customer customerLogged = (Customer) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        // Banking account to be closed
+        final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
+                // Banking account not found
+                () -> new BankingAccountNotFoundException(bankingCardId));
+
+        // if the logged customer is not admin
+        if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
+            // check if the account to be closed belongs to this customer.
+            if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
+                // banking account does not belong to this customer
+                throw new BankingCardAuthorizationException();
+            }
+        }
+
+        // we mark the card as locked
+        bankingCard.setLockStatus(BankingCardLockStatus.LOCKED);
+
+        // we change the updateAt timestamp field
+        bankingCard.setUpdatedAt(Instant.now());
+
+        // save the data and return BankingAccount
+        return bankingCardRepository.save(bankingCard);
+    }
+
+    public BankingCard unlockCard(Long bankingCardId) {
+        // Customer logged
+        final Customer customerLogged = (Customer) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        // Banking account to be closed
+        final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
+                // Banking account not found
+                () -> new BankingAccountNotFoundException(bankingCardId));
+
+        // if the logged customer is not admin
+        if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
+            // check if the account to be closed belongs to this customer.
+            if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
+                // banking account does not belong to this customer
+                throw new BankingCardAuthorizationException();
+            }
+        }
+
+        // we mark the card as locked
+        bankingCard.setLockStatus(BankingCardLockStatus.UNLOCKED);
+
+        // we change the updateAt timestamp field
+        bankingCard.setUpdatedAt(Instant.now());
+
+        // save the data and return BankingAccount
         return bankingCardRepository.save(bankingCard);
     }
 
@@ -197,7 +259,7 @@ public class BankingCardService {
         // save the data and return BankingAccount
         return bankingCardRepository.save(bankingCard);
     }
-    
+
     private int countActiveCards(BankingAccount bankingAccount) {
         return (int) bankingAccount.getBankingCards().stream()
                                    .filter(bankingCard -> bankingCard.getCardStatus().equals(BankingCardStatus.ENABLED))

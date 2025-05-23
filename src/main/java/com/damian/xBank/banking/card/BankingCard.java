@@ -36,6 +36,9 @@ public class BankingCard {
     @Enumerated(EnumType.STRING)
     private BankingCardStatus cardStatus;
 
+    @Enumerated(EnumType.STRING)
+    private BankingCardLockStatus lockStatus;
+
     @Column
     private Instant createdAt;
 
@@ -45,6 +48,7 @@ public class BankingCard {
     public BankingCard() {
         this.cardStatus = BankingCardStatus.ENABLED;
         this.cardType = BankingCardType.DEBIT;
+        this.lockStatus = BankingCardLockStatus.UNLOCKED;
     }
 
     public BankingCard(BankingAccount bankingAccount) {
@@ -141,5 +145,13 @@ public class BankingCard {
 
     public void setCardPin(String cardPin) {
         this.cardPin = cardPin;
+    }
+
+    public BankingCardLockStatus getLockStatus() {
+        return lockStatus;
+    }
+
+    public void setLockStatus(BankingCardLockStatus lockStatus) {
+        this.lockStatus = lockStatus;
     }
 }

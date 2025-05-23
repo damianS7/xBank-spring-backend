@@ -327,7 +327,7 @@ public class BankingCardServiceTest {
         givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
         givenBankingCard.setCardNumber("1234567890123456");
         givenBankingCard.setCardType(BankingCardType.CREDIT);
-        givenBankingCard.setCardStatus(BankingCardStatus.SUSPENDED);
+        givenBankingCard.setLockStatus(BankingCardLockStatus.LOCKED);
 
         // when
         when(bankingCardRepository.findById(anyLong())).thenReturn(Optional.of(givenBankingCard));

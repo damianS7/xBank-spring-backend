@@ -100,5 +100,37 @@ public class BankingCardController {
                 .status(HttpStatus.OK)
                 .body(bankingCardDTO);
     }
+
+    // endpoint for logged customer to set PIN on a BankingCard
+    @PutMapping("/customers/me/banking/cards/{id}/lock")
+    public ResponseEntity<?> loggedCustomerLockBankingCard(
+            @PathVariable @NotNull @Positive
+            Long id,
+            @Validated @RequestBody
+            BankingCardSetPinRequest request
+    ) {
+        BankingCard bankingCard = bankingCardService.lockCard(id);
+        BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(bankingCardDTO);
+    }
+
+    // endpoint for logged customer to set PIN on a BankingCard
+    @PutMapping("/customers/me/banking/cards/{id}/unlock")
+    public ResponseEntity<?> loggedCustomerUnlockBankingCard(
+            @PathVariable @NotNull @Positive
+            Long id,
+            @Validated @RequestBody
+            BankingCardSetPinRequest request
+    ) {
+        BankingCard bankingCard = bankingCardService.unlockCard(id);
+        BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(bankingCardDTO);
+    }
 }
 

@@ -27,7 +27,7 @@ public class BankingAccountController {
     }
 
     // endpoint to set an alias for an account
-    @PutMapping("/customers/me/banking/account/{id}/alias")
+    @PutMapping("/customers/me/banking/account/{accountId}/alias")
     public ResponseEntity<?> putBankingAccountAlias(
             @PathVariable @NotNull(message = "This field cannot be null") @Positive
             Long accountId,

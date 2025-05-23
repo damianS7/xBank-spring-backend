@@ -14,6 +14,7 @@ public class BankingCardDTOMapper {
                 bankingCard.getExpiredDate(),
                 bankingCard.getCardType(),
                 bankingCard.getCardStatus(),
+                bankingCard.getLockStatus(),
                 bankingCard.getCreatedAt(),
                 bankingCard.getUpdatedAt()
         );

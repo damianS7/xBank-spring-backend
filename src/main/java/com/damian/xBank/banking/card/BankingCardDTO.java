@@ -12,6 +12,7 @@ public record BankingCardDTO(
         LocalDate expiredDate,
         BankingCardType cardType,
         BankingCardStatus cardStatus,
+        BankingCardLockStatus cardLockStatus,
         Instant createdAt,
         Instant updatedAt
 ) {

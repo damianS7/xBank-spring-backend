@@ -2,6 +2,7 @@ package com.damian.xBank.banking.card;
 
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
+import com.damian.xBank.banking.card.http.BankingCardLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
 import com.damian.xBank.banking.transactions.BankingTransactionDTO;
@@ -101,15 +102,15 @@ public class BankingCardController {
                 .body(bankingCardDTO);
     }
 
-    // endpoint for logged customer to set PIN on a BankingCard
-    @PutMapping("/customers/me/banking/cards/{id}/lock")
-    public ResponseEntity<?> loggedCustomerLockBankingCard(
+    // endpoint for logged customer to lock or unlock a BankingCard
+    @PutMapping("/customers/me/banking/cards/{id}/locking")
+    public ResponseEntity<?> loggedCustomerLockStatusBankingCard(
             @PathVariable @NotNull @Positive
             Long id,
             @Validated @RequestBody
-            BankingCardSetPinRequest request
+            BankingCardLockStatusRequest request
     ) {
-        BankingCard bankingCard = bankingCardService.lockCard(id);
+        BankingCard bankingCard = bankingCardService.setLockStatus(id, request);
         BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
 
         return ResponseEntity
@@ -117,20 +118,5 @@ public class BankingCardController {
                 .body(bankingCardDTO);
     }
 
-    // endpoint for logged customer to set PIN on a BankingCard
-    @PutMapping("/customers/me/banking/cards/{id}/unlock")
-    public ResponseEntity<?> loggedCustomerUnlockBankingCard(
-            @PathVariable @NotNull @Positive
-            Long id,
-            @Validated @RequestBody
-            BankingCardSetPinRequest request
-    ) {
-        BankingCard bankingCard = bankingCardService.unlockCard(id);
-        BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(bankingCardDTO);
-    }
 }
 

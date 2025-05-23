@@ -10,6 +10,7 @@ import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException
 import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccountLimitReached;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
+import com.damian.xBank.banking.card.http.BankingCardLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
 import com.damian.xBank.customer.Customer;
@@ -136,7 +137,7 @@ public class BankingCardService {
         return bankingCardRepository.save(bankingCard);
     }
 
-    public BankingCard lockCard(Long bankingCardId) {
+    public BankingCard setLockStatus(Long bankingCardId, BankingCardLockStatusRequest request) {
         // Customer logged
         final Customer customerLogged = (Customer) SecurityContextHolder
                 .getContext()
@@ -158,38 +159,7 @@ public class BankingCardService {
         }
 
         // we mark the card as locked
-        bankingCard.setLockStatus(BankingCardLockStatus.LOCKED);
-
-        // we change the updateAt timestamp field
-        bankingCard.setUpdatedAt(Instant.now());
-
-        // save the data and return BankingAccount
-        return bankingCardRepository.save(bankingCard);
-    }
-
-    public BankingCard unlockCard(Long bankingCardId) {
-        // Customer logged
-        final Customer customerLogged = (Customer) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        // Banking account to be closed
-        final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
-                // Banking account not found
-                () -> new BankingAccountNotFoundException(bankingCardId));
-
-        // if the logged customer is not admin
-        if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
-            // check if the account to be closed belongs to this customer.
-            if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
-                // banking account does not belong to this customer
-                throw new BankingCardAuthorizationException();
-            }
-        }
-
-        // we mark the card as locked
-        bankingCard.setLockStatus(BankingCardLockStatus.UNLOCKED);
+        bankingCard.setLockStatus(request.lockStatus());
 
         // we change the updateAt timestamp field
         bankingCard.setUpdatedAt(Instant.now());

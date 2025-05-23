@@ -68,13 +68,17 @@ CREATE CAST (varchar as banking_account_type) WITH INOUT AS IMPLICIT;
 
 CREATE TYPE public."banking_card_status_type" AS ENUM (
 	'ENABLED',
-	'DISABLED',
-	'SUSPENDED',
-	'LOCKED',
-    'BLOCKED'
+	'DISABLED'
 );
 
 CREATE CAST (varchar as banking_card_status_type) WITH INOUT AS IMPLICIT;
+
+CREATE TYPE public."banking_card_lock_status_type" AS ENUM (
+	'LOCKED',
+	'UNLOCKED'
+);
+
+CREATE CAST (varchar as banking_card_lock_status_type) WITH INOUT AS IMPLICIT;
 
 -- DROP TYPE public."banking_card_type";
 
@@ -212,6 +216,7 @@ CREATE TABLE public.banking_cards (
 	banking_account_id int4 NOT NULL,
 	card_type public."banking_card_type" NOT NULL,
 	card_status public."banking_card_status_type" DEFAULT 'DISABLED'::banking_card_status_type NOT NULL,
+	lock_status public."banking_card_lock_status_type" DEFAULT 'UNLOCKED'::banking_card_lock_status_type NOT NULL,
 	card_number varchar(32) NOT NULL,
 	card_pin varchar(4) NOT NULL,
 	card_cvv varchar(3) NOT NULL,

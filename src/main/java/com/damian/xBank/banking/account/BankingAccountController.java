@@ -1,5 +1,6 @@
 package com.damian.xBank.banking.account;
 
+import com.damian.xBank.banking.account.http.request.BankingAccountAliasUpdateRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
@@ -23,6 +24,22 @@ public class BankingAccountController {
     @Autowired
     public BankingAccountController(BankingAccountService bankingAccountService) {
         this.bankingAccountService = bankingAccountService;
+    }
+
+    // endpoint to set an alias for an account
+    @PutMapping("/customers/me/banking/account/{id}/alias")
+    public ResponseEntity<?> putBankingAccountAlias(
+            @PathVariable @NotNull(message = "This field cannot be null") @Positive
+            Long accountId,
+            @Validated @RequestBody
+            BankingAccountAliasUpdateRequest request
+    ) {
+        BankingAccount bankingAccount = bankingAccountService.setBankingAccountAlias(accountId, request);
+        BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(bankingAccountDTO);
     }
 
     // endpoint to receive accounts from logged customer

@@ -4,6 +4,7 @@ import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationExc
 import com.damian.xBank.banking.account.exception.BankingAccountException;
 import com.damian.xBank.banking.account.exception.BankingAccountInsufficientFundsException;
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
+import com.damian.xBank.banking.account.http.request.BankingAccountAliasUpdateRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
@@ -321,6 +322,27 @@ public class BankingAccountService {
 
         // we change the updateAt timestamp field
         bankingAccount.setUpdatedAt(Instant.now());
+
+        // save the data and return BankingAccount
+        return bankingAccountRepository.save(bankingAccount);
+    }
+
+    public BankingAccount setBankingAccountAlias(
+            Long bankingAccountId,
+            BankingAccountAliasUpdateRequest request
+    ) {
+        return this.setBankingAccountAlias(bankingAccountId, request.alias());
+    }
+
+    public BankingAccount setBankingAccountAlias(Long bankingAccountId, String alias) {
+
+        // Banking account to be closed
+        final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
+                () -> new BankingAccountNotFoundException(bankingAccountId) // Banking account not found
+        );
+
+        // we mark the account as closed
+        bankingAccount.setAlias(alias);
 
         // save the data and return BankingAccount
         return bankingAccountRepository.save(bankingAccount);

@@ -86,7 +86,7 @@ public class BankingCardController {
     }
 
     // endpoint for logged customer to set PIN on a BankingCard
-    @PutMapping("/customers/me/banking/card/{id}/pin")
+    @PutMapping("/customers/me/banking/cards/{id}/pin")
     public ResponseEntity<?> loggedCustomerSetBankingCardPin(
             @PathVariable @NotNull @Positive
             Long id,

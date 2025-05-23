@@ -18,6 +18,8 @@ import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import net.datafaker.Faker;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -101,8 +103,8 @@ public class BankingCardService {
         );
     }
 
-    public Set<BankingTransaction> getBankingCardTransactions(Long bankingCardId) {
-        return bankingTransactionRepository.findByBankingCardId(bankingCardId);
+    public Page<BankingTransaction> getBankingCardTransactions(Long bankingCardId, Pageable pageable) {
+        return bankingTransactionRepository.findByBankingCardId(bankingCardId, pageable);
     }
 
     public BankingCard createCard(Long bankingAccountId, BankingCardCreateRequest request) {

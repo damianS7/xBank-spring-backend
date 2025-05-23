@@ -10,6 +10,10 @@ import com.damian.xBank.banking.transactions.BankingTransactionDTOMapper;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -122,11 +126,13 @@ public class BankingCardController {
     @GetMapping("/customers/me/banking/cards/{id}/transactions")
     public ResponseEntity<?> loggedCustomerBankingCardTransactions(
             @PathVariable @NotNull @Positive
-            Long id
+            Long id,
+            @PageableDefault(size = 2, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable
     ) {
-        Set<BankingTransaction> transactions = bankingCardService.getBankingCardTransactions(id);
-        Set<BankingTransactionDTO> transactionDTOS = BankingTransactionDTOMapper
-                .toBankingTransactionSetDTO(transactions);
+        Page<BankingTransaction> transactions = bankingCardService.getBankingCardTransactions(id, pageable);
+        Page<BankingTransactionDTO> transactionDTOS = BankingTransactionDTOMapper
+                .toBankingTransactionPageDTO(transactions);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

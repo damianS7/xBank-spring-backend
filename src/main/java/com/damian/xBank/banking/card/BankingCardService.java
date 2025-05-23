@@ -10,6 +10,7 @@ import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException
 import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccountLimitReached;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
+import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
@@ -166,6 +167,37 @@ public class BankingCardService {
         return bankingCardRepository.save(bankingCard);
     }
 
+    public BankingCard setBankingCardPin(Long bankingCardId, BankingCardSetPinRequest request) {
+        // Customer logged
+        final Customer actor = (Customer) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        // Banking account to set pin on
+        final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
+                // Banking account not found
+                () -> new BankingAccountNotFoundException(bankingCardId));
+
+        // if the logged customer is not admin
+        if (!actor.getRole().equals(CustomerRole.ADMIN)) {
+            // check if the account to be closed belongs to this customer.
+            if (!bankingCard.getCardOwner().getId().equals(actor.getId())) {
+                // banking account does not belong to this customer
+                throw new BankingCardAuthorizationException();
+            }
+        }
+
+        // we set the new pin
+        bankingCard.setCardPin(request.pin());
+
+        // we change the updateAt timestamp field
+        bankingCard.setUpdatedAt(Instant.now());
+
+        // save the data and return BankingAccount
+        return bankingCardRepository.save(bankingCard);
+    }
+    
     private int countActiveCards(BankingAccount bankingAccount) {
         return (int) bankingAccount.getBankingCards().stream()
                                    .filter(bankingCard -> bankingCard.getCardStatus().equals(BankingCardStatus.ENABLED))

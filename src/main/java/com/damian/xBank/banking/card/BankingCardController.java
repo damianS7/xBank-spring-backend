@@ -2,6 +2,7 @@ package com.damian.xBank.banking.card;
 
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
+import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
 import com.damian.xBank.banking.transactions.BankingTransactionDTO;
 import com.damian.xBank.banking.transactions.BankingTransactionDTOMapper;
@@ -77,6 +78,22 @@ public class BankingCardController {
             Long id
     ) {
         BankingCard bankingCard = bankingCardService.cancelCard(id);
+        BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(bankingCardDTO);
+    }
+
+    // endpoint for logged customer to set PIN on a BankingCard
+    @PutMapping("/customers/me/banking/card/{id}/pin")
+    public ResponseEntity<?> loggedCustomerSetBankingCardPin(
+            @PathVariable @NotNull @Positive
+            Long id,
+            @Validated @RequestBody
+            BankingCardSetPinRequest request
+    ) {
+        BankingCard bankingCard = bankingCardService.setBankingCardPin(id, request);
         BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
 
         return ResponseEntity

@@ -13,6 +13,7 @@ import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
 import com.damian.xBank.banking.card.http.BankingCardLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
+import com.damian.xBank.banking.transactions.BankingTransactionRepository;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -29,6 +30,7 @@ public class BankingCardService {
     private final int MAX_CARDS_PER_ACCOUNT = 5;
     private final BankingCardRepository bankingCardRepository;
     private final BankingAccountRepository bankingAccountRepository;
+    private final BankingTransactionRepository bankingTransactionRepository;
     private final CustomerRepository customerRepository;
     private final Faker faker;
     private final BankingAccountService bankingAccountService;
@@ -36,11 +38,13 @@ public class BankingCardService {
     public BankingCardService(
             BankingCardRepository bankingCardRepository,
             BankingAccountRepository bankingAccountRepository,
+            BankingTransactionRepository bankingTransactionRepository,
             CustomerRepository customerRepository,
             Faker faker, BankingAccountService bankingAccountService
     ) {
         this.bankingCardRepository = bankingCardRepository;
         this.bankingAccountRepository = bankingAccountRepository;
+        this.bankingTransactionRepository = bankingTransactionRepository;
         this.customerRepository = customerRepository;
         this.faker = faker;
         this.bankingAccountService = bankingAccountService;
@@ -95,6 +99,10 @@ public class BankingCardService {
         return bankingAccountService.handleCreateTransactionRequest(
                 bankingCard.getAssociatedBankingAccount().getId(), request
         );
+    }
+
+    public Set<BankingTransaction> getBankingCardTransactions(Long bankingCardId) {
+        return bankingTransactionRepository.findByBankingCardId(bankingCardId);
     }
 
     public BankingCard createCard(Long bankingAccountId, BankingCardCreateRequest request) {

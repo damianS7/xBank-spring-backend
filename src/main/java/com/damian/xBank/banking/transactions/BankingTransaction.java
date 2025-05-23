@@ -1,6 +1,7 @@
 package com.damian.xBank.banking.transactions;
 
 import com.damian.xBank.banking.account.BankingAccount;
+import com.damian.xBank.banking.card.BankingCard;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -16,6 +17,10 @@ public class BankingTransaction {
     @ManyToOne
     @JoinColumn(name = "banking_account_id", referencedColumnName = "id", nullable = false)
     private BankingAccount bankingAccount;
+
+    @ManyToOne
+    @JoinColumn(name = "banking_card_id", referencedColumnName = "id", nullable = true)
+    private BankingCard bankingCard;
 
     @Column(precision = 15, scale = 3)
     private BigDecimal amount;
@@ -114,5 +119,13 @@ public class BankingTransaction {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public BankingCard getBankingCard() {
+        return bankingCard;
+    }
+
+    public void setBankingCard(BankingCard bankingCard) {
+        this.bankingCard = bankingCard;
     }
 }

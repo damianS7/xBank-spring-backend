@@ -118,5 +118,20 @@ public class BankingCardController {
                 .body(bankingCardDTO);
     }
 
+    // endpoint for logged customer to get all transactions of a BankingCard
+    @GetMapping("/customers/me/banking/cards/{id}/transactions")
+    public ResponseEntity<?> loggedCustomerBankingCardTransactions(
+            @PathVariable @NotNull @Positive
+            Long id
+    ) {
+        Set<BankingTransaction> transactions = bankingCardService.getBankingCardTransactions(id);
+        Set<BankingTransactionDTO> transactionDTOS = BankingTransactionDTOMapper
+                .toBankingTransactionSetDTO(transactions);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(transactionDTOS);
+    }
+
 }
 

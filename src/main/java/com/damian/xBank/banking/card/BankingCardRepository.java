@@ -11,12 +11,6 @@ import java.util.Set;
 public interface BankingCardRepository extends JpaRepository<BankingCard, Long> {
     Set<BankingCard> findByBankingAccountId(Long bankingAccountId);
 
-    //    @Query(
-    //            "SELECT cards.* FROM banking_cards cards "
-    //            + "INNER JOIN banking_accounts ba ON cards.banking_account_id = ba.id "
-    //            + "INNER JOIN customers c ON ba.customer_id = c.id "
-    //            + " WHERE c.id = :customerId"
-    //    )
     @Query("SELECT cards FROM BankingCard cards WHERE cards.bankingAccount.customer.id = :customerId")
     Set<BankingCard> findCardsByCustomerId(@Param("customerId") Long customerId);
 }

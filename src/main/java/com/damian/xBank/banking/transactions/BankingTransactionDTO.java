@@ -5,6 +5,8 @@ import java.time.Instant;
 
 public record BankingTransactionDTO(
         Long id,
+        Long bankingAccountId,
+        Long bankingCardId,
         BigDecimal amount,
         BankingTransactionType transactionType,
         BankingTransactionStatus transactionStatus,

@@ -21,9 +21,11 @@ public class BankingAccount {
     @JoinColumn(name = "customer_id", referencedColumnName = "id", nullable = false)
     private Customer customer;
 
+    // FIXME switch to LAZY?
     @OneToMany(mappedBy = "bankingAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BankingTransaction> accountTransactions;
 
+    // FIXME switch to LAZY?
     @OneToMany(mappedBy = "bankingAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<BankingCard> bankingCards;
 
@@ -33,7 +35,7 @@ public class BankingAccount {
     @Column(length = 32, nullable = false)
     private String accountNumber;
 
-    @Column(precision = 15, scale = 3)
+    @Column(precision = 15, scale = 2)
     private BigDecimal balance;
 
     @Enumerated(EnumType.STRING)

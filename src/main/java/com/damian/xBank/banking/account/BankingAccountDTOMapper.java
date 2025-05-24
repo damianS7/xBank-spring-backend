@@ -35,7 +35,6 @@ public class BankingAccountDTOMapper {
                 bankingAccount.getAccountCurrency(),
                 bankingAccount.getAccountStatus(),
                 bankingCardsDTO,
-                bankingTransactionsDTO,
                 bankingAccount.getCreatedAt(),
                 bankingAccount.getUpdatedAt()
         );

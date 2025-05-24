@@ -1,5 +1,6 @@
 package com.damian.xBank.banking.card;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -9,6 +10,7 @@ public record BankingCardDTO(
         String cardNumber,
         String cardCVV,
         String cardPIN,
+        BigDecimal dailyLimit,
         LocalDate expiredDate,
         BankingCardType cardType,
         BankingCardStatus cardStatus,

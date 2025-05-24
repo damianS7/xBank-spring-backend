@@ -11,6 +11,7 @@ public class BankingCardDTOMapper {
                 bankingCard.getCardNumber(),
                 bankingCard.getCardCvv(),
                 bankingCard.getCardPin(),
+                bankingCard.getDailyLimit(),
                 bankingCard.getExpiredDate(),
                 bankingCard.getCardType(),
                 bankingCard.getCardStatus(),

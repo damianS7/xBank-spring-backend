@@ -220,6 +220,7 @@ CREATE TABLE public.banking_cards (
 	card_number varchar(32) NOT NULL,
 	card_pin varchar(4) NOT NULL,
 	card_cvv varchar(3) NOT NULL,
+	daily_limit numeric(15, 2) DEFAULT 0.00 NOT NULL,
 	expired_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	notes text NULL,
 	created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
@@ -238,6 +239,7 @@ CREATE TABLE public.banking_cards (
 CREATE TABLE public.banking_transactions (
 	id int4 GENERATED ALWAYS AS IDENTITY NOT NULL,
 	banking_account_id int4 NOT NULL,
+	banking_card_id int4 NULL,
 	transaction_type public."banking_transaction_type" NOT NULL,
 	amount numeric(15, 2) NOT NULL,
 	description text NULL,
@@ -245,5 +247,6 @@ CREATE TABLE public.banking_transactions (
 	created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 	updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 	CONSTRAINT banking_transactions_pkey PRIMARY KEY (id),
+	CONSTRAINT banking_transactions_banking_card_id_fkey FOREIGN KEY (banking_card_id) REFERENCES public.banking_cards(id) ON DELETE SET NULL,
 	CONSTRAINT banking_transactions_banking_account_id_fkey FOREIGN KEY (banking_account_id) REFERENCES public.banking_accounts(id) ON DELETE CASCADE
 );

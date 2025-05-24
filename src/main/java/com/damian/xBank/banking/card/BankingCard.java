@@ -4,6 +4,7 @@ import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.customer.Customer;
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -20,6 +21,9 @@ public class BankingCard {
 
     @Column(length = 20, nullable = false)
     private String cardNumber;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal dailyLimit;
 
     @Enumerated(EnumType.STRING)
     private BankingCardType cardType;
@@ -49,6 +53,7 @@ public class BankingCard {
         this.cardStatus = BankingCardStatus.ENABLED;
         this.cardType = BankingCardType.DEBIT;
         this.lockStatus = BankingCardLockStatus.UNLOCKED;
+        this.dailyLimit = BigDecimal.valueOf(3000);
     }
 
     public BankingCard(BankingAccount bankingAccount) {
@@ -153,5 +158,13 @@ public class BankingCard {
 
     public void setLockStatus(BankingCardLockStatus lockStatus) {
         this.lockStatus = lockStatus;
+    }
+
+    public BigDecimal getDailyLimit() {
+        return dailyLimit;
+    }
+
+    public void setDailyLimit(BigDecimal dailyLimit) {
+        this.dailyLimit = dailyLimit;
     }
 }

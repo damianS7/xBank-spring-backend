@@ -11,6 +11,7 @@ import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccount
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
 import com.damian.xBank.banking.card.http.BankingCardLockStatusRequest;
+import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
 import com.damian.xBank.banking.transactions.BankingTransactionRepository;
@@ -170,6 +171,37 @@ public class BankingCardService {
 
         // we mark the card as locked
         bankingCard.setLockStatus(request.lockStatus());
+
+        // we change the updateAt timestamp field
+        bankingCard.setUpdatedAt(Instant.now());
+
+        // save the data and return BankingAccount
+        return bankingCardRepository.save(bankingCard);
+    }
+
+    public BankingCard setDailyLimit(Long bankingCardId, BankingCardSetDailyLimitRequest request) {
+        // Customer logged
+        final Customer customerLogged = (Customer) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        // Banking account to be closed
+        final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
+                // Banking account not found
+                () -> new BankingAccountNotFoundException(bankingCardId));
+
+        // if the logged customer is not admin
+        if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
+            // check if the account to be closed belongs to this customer.
+            if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
+                // banking account does not belong to this customer
+                throw new BankingCardAuthorizationException();
+            }
+        }
+
+        // we set the limit of the card
+        bankingCard.setDailyLimit(request.dailyLimit());
 
         // we change the updateAt timestamp field
         bankingCard.setUpdatedAt(Instant.now());

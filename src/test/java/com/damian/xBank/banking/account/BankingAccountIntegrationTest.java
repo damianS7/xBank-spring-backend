@@ -477,8 +477,8 @@ public class BankingAccountIntegrationTest {
         BankingAccount refreshedReceiverAccount = bankingAccountRepository.findById(receiverAccount.getId()).get();
 
         // Verificamos que el balance NO haya cambiado (rollback)
-        assertThat(refreshedSenderAccount.getBalance()).isEqualTo(BigDecimal.valueOf(1000).setScale(3));
-        assertThat(refreshedReceiverAccount.getBalance()).isEqualTo(BigDecimal.valueOf(1000).setScale(3));
+        assertThat(refreshedSenderAccount.getBalance()).isEqualTo(BigDecimal.valueOf(1000).setScale(2));
+        assertThat(refreshedReceiverAccount.getBalance()).isEqualTo(BigDecimal.valueOf(1000).setScale(2));
 
         // Verificamos que no se haya guardado ninguna transacción
         assertThat(refreshedSenderAccount.getAccountTransactions()).isEmpty();

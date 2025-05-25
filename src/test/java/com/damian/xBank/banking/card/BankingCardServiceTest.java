@@ -109,11 +109,11 @@ public class BankingCardServiceTest {
         givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
 
         // when
-        when(faker.finance()).thenReturn(finance);
+        //        when(faker.finance()).thenReturn(finance);
         when(faker.number()).thenReturn(numberMock);
         when(faker.number().digits(3)).thenReturn("931");
         when(faker.number().digits(4)).thenReturn("1234");
-        when(finance.creditCard()).thenReturn(givenBankingCard.getCardNumber());
+        //        when(finance.creditCard()).thenReturn(givenBankingCard.getCardNumber());
         when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
         when(bankingCardRepository.save(any(BankingCard.class))).thenReturn(givenBankingCard);
 
@@ -149,11 +149,11 @@ public class BankingCardServiceTest {
         givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
 
         // when
-        when(faker.finance()).thenReturn(finance);
+        //        when(faker.finance()).thenReturn(finance);
         when(faker.number()).thenReturn(numberMock);
         when(faker.number().digits(3)).thenReturn("931");
         when(faker.number().digits(4)).thenReturn("1234");
-        when(finance.creditCard()).thenReturn(givenBankingCard.getCardNumber());
+        //        when(finance.creditCard()).thenReturn(givenBankingCard.getCardNumber());
         when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
         when(bankingCardRepository.save(any(BankingCard.class))).thenReturn(givenBankingCard);
 

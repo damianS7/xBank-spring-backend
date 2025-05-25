@@ -13,7 +13,9 @@ import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import net.datafaker.Faker;
+import net.datafaker.providers.base.Country;
 import net.datafaker.providers.base.Finance;
+import net.datafaker.providers.base.Number;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -86,6 +88,8 @@ public class BankingAccountServiceTest {
     @DisplayName("Should open a BankingAccount")
     void shouldOpenBankingAccount() {
         // given
+        Country country = Mockito.mock(Country.class);
+        Number number = Mockito.mock(Number.class);
         setUpContext(customerA);
 
         final String accountNumber = "US99 0000 1111 1122 3333 4444";
@@ -100,8 +104,9 @@ public class BankingAccountServiceTest {
         bankingAccount.setAccountNumber(accountNumber);
 
         // when
-        when(faker.finance()).thenReturn(finance);
-        when(finance.iban()).thenReturn("US99 0000 1111 1122 3333 4444");
+        Mockito.when(faker.country()).thenReturn(country);
+        Mockito.when(faker.number()).thenReturn(number);
+        when(faker.country().countryCode2()).thenReturn("US");
         when(customerRepository.findByEmail(customerA.getEmail())).thenReturn(Optional.of(customerA));
         when(bankingAccountRepository.save(any(BankingAccount.class))).thenReturn(bankingAccount);
 

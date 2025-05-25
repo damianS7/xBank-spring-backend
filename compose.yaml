@@ -1,8 +1,11 @@
 name: 'xbank'
 services:
   db:
+    container_name: db
+    build:
+      context: .
+      dockerfile: ./docker/db/Dockerfile
     image: postgres:17.4
-    container_name: xbank-db
     restart: always
     environment:
       POSTGRES_DB: postgres
@@ -13,23 +16,22 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  app:
-    build: .
+  backend:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
     env_file: .env
-    image: openjdk:21
-    container_name: xbank-backend
     depends_on:
       - db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432//postgres
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASS}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
     ports:
       - "8080:8080"
-    volumes:
-      - .:/app
-    command: [ "java", "-jar", "target/xBank.jar" ]
 
 volumes:
   pgdata:

@@ -1,8 +1,8 @@
-name: 'xBank-container'
+name: 'xbank'
 services:
   db:
     image: postgres:17.4
-    container_name: app-database
+    container_name: xbank-db
     restart: always
     environment:
       POSTGRES_DB: postgres
@@ -17,7 +17,7 @@ services:
     build: .
     env_file: .env
     image: openjdk:21
-    container_name: xBank-app
+    container_name: xbank-backend
     depends_on:
       - db
     environment:
@@ -29,7 +29,7 @@ services:
       - "8080:8080"
     volumes:
       - .:/app
-    command: ["java", "-jar", "target/xBank.jar"]
+    command: [ "java", "-jar", "target/xBank.jar" ]
 
 volumes:
   pgdata:

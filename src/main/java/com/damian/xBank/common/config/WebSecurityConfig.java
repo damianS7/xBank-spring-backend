@@ -53,6 +53,11 @@ public class WebSecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin("http://localhost:8081");
+        config.addAllowedOrigin("http://dev.xbank.local:8081");
+        config.addAllowedOrigin("http://xbank.local:8081");
+        config.addAllowedOrigin("http://dev.admin.xbank.local:8081");
+        config.addAllowedOrigin("http://admin.xbank.local:8081");
+        //        config.addAllowedOriginPattern("http://*.frontend.app:8081");
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");  // Permite todos los encabezados
         config.setAllowCredentials(true);  // Permite enviar cookies

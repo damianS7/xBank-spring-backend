@@ -34,8 +34,8 @@ public class BankingAccountController {
     }
 
     // endpoint to set an alias for an account
-    @PutMapping("/customers/me/banking/account/{id}/alias")
-    public ResponseEntity<?> putBankingAccountAlias(
+    @PutMapping("/customers/me/banking/accounts/{id}/alias")
+    public ResponseEntity<?> setBankingAccountAlias(
             @PathVariable @Positive
             Long id,
             @Validated @RequestBody
@@ -51,7 +51,7 @@ public class BankingAccountController {
 
     // endpoint to receive accounts from logged customer
     @GetMapping("/customers/me/banking/accounts")
-    public ResponseEntity<?> getLoggedCustomerBankingAccounts() {
+    public ResponseEntity<?> getCustomerBankingAccounts() {
         Set<BankingAccount> bankingAccounts = bankingAccountService.getCustomerLoggedBankingAccounts();
         Set<BankingAccountDTO> bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountSetDTO(bankingAccounts);
 
@@ -60,7 +60,8 @@ public class BankingAccountController {
                 .body(bankingAccountDTO);
     }
 
-    // endpoint to generate a transaction
+    // TODO implement
+    // endpoint to generate a transfer
     @PostMapping("/customers/me/banking/account/{id}/transfer-to")
     public ResponseEntity<?> customerTransferRequest(
             @PathVariable @NotNull(message = "This field cannot be null") @Positive
@@ -81,9 +82,10 @@ public class BankingAccountController {
                 .body(bankingTransactionDTO);
     }
 
-    // endpoint for logged customer to open a new BankingAccount
-    @PostMapping("/customers/me/banking/accounts/open")
-    public ResponseEntity<?> createBankingAccount(
+    // TODO implement
+    // endpoint for logged customer to request for a new BankingAccount
+    @PostMapping("/customers/me/banking/accounts/request")
+    public ResponseEntity<?> requestBankingAccount(
             @Validated @RequestBody
             BankingAccountCreateRequest request
     ) {
@@ -96,8 +98,8 @@ public class BankingAccountController {
     }
 
     // endpoint for logged customer to re-open an existing BankingAccount
-    @PostMapping("/customers/me/banking/account/{id}/open")
-    public ResponseEntity<?> loggedCustomerOpenBankingAccount(
+    @PostMapping("/customers/me/banking/accounts/{id}/open")
+    public ResponseEntity<?> customerOpenBankingAccount(
             @PathVariable @NotNull @Positive
             Long id,
             @Validated @RequestBody
@@ -112,8 +114,8 @@ public class BankingAccountController {
     }
 
     // endpoint for logged customer to close a BankingAccount
-    @PostMapping("/customers/me/banking/account/{id}/close")
-    public ResponseEntity<?> loggedCustomerCloseBankingAccount(
+    @PostMapping("/customers/me/banking/accounts/{id}/close")
+    public ResponseEntity<?> customerCloseBankingAccount(
             @PathVariable @NotNull @Positive
             Long id,
             @Validated @RequestBody
@@ -128,7 +130,7 @@ public class BankingAccountController {
     }
 
     // endpoint for logged customer to request for a new BankingCard
-    @PostMapping("/customers/me/banking/accounts/{id}/card/request")
+    @PostMapping("/customers/me/banking/accounts/{id}/cards/request")
     public ResponseEntity<?> customerRequestBankingCard(
             @PathVariable @NotNull @Positive
             Long id,

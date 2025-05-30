@@ -1,5 +1,6 @@
 package com.damian.xBank.banking.transactions;
 
+import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionAuthorizationException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionNotFoundException;
 import com.damian.xBank.customer.Customer;
@@ -17,6 +18,10 @@ public class BankingTransactionService {
             BankingTransactionRepository bankingTransactionRepository
     ) {
         this.bankingTransactionRepository = bankingTransactionRepository;
+    }
+
+    public BankingTransaction handleCreateTransactionRequest(Long id, BankingAccountTransactionCreateRequest request) {
+        return null;
     }
 
     public BankingTransaction patchStatusTransaction(

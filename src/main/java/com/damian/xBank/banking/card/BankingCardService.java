@@ -2,8 +2,6 @@ package com.damian.xBank.banking.card;
 
 import com.damian.xBank.auth.http.PasswordConfirmationRequest;
 import com.damian.xBank.banking.account.BankingAccount;
-import com.damian.xBank.banking.account.BankingAccountRepository;
-import com.damian.xBank.banking.account.BankingAccountService;
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
@@ -12,10 +10,10 @@ import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
 import com.damian.xBank.banking.transactions.BankingTransactionRepository;
+import com.damian.xBank.banking.transactions.BankingTransactionService;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.AuthCustomer;
 import com.damian.xBank.customer.Customer;
-import com.damian.xBank.customer.CustomerRepository;
 import net.datafaker.Faker;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,19 +31,18 @@ public class BankingCardService {
     private final BankingCardRepository bankingCardRepository;
     private final BankingTransactionRepository bankingTransactionRepository;
     private final Faker faker;
-    private final BankingAccountService bankingAccountService;
+    private final BankingTransactionService bankingTransactionService;
 
     public BankingCardService(
             BankingCardRepository bankingCardRepository,
-            BankingAccountRepository bankingAccountRepository,
             BankingTransactionRepository bankingTransactionRepository,
-            CustomerRepository customerRepository,
-            Faker faker, BankingAccountService bankingAccountService
+            Faker faker,
+            BankingTransactionService bankingTransactionService
     ) {
         this.bankingCardRepository = bankingCardRepository;
         this.bankingTransactionRepository = bankingTransactionRepository;
         this.faker = faker;
-        this.bankingAccountService = bankingAccountService;
+        this.bankingTransactionService = bankingTransactionService;
     }
 
     public Set<BankingCard> getBankingCards() {
@@ -91,7 +88,7 @@ public class BankingCardService {
         }
 
         // we return the transaction
-        return bankingAccountService.handleCreateTransactionRequest(
+        return bankingTransactionService.handleCreateTransactionRequest(
                 bankingCard.getAssociatedBankingAccount().getId(), request
         );
     }

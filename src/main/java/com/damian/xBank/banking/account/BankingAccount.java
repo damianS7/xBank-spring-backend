@@ -184,4 +184,23 @@ public class BankingAccount {
     public void setAlias(String alias) {
         this.alias = alias;
     }
+
+    // returns true if the operation can be carried
+    public boolean hasEnoughFunds(BigDecimal amount) {
+        // if its 0 then balance is equal to the amount willing to spend
+        // if its 1 then balance is greater than the amount willing to spend
+        return this.getBalance().compareTo(amount) >= 0;
+    }
+
+    public BigDecimal subtractAmount(BigDecimal amount) {
+        if (this.hasEnoughFunds(amount)) {
+            this.setBalance(this.getBalance().subtract(amount));
+        }
+        return this.getBalance();
+    }
+
+    public BigDecimal addAmount(BigDecimal amount) {
+        this.setBalance(this.getBalance().add(amount));
+        return this.getBalance();
+    }
 }

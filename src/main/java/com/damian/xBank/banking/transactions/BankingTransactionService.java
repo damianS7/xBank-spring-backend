@@ -1,38 +1,138 @@
 package com.damian.xBank.banking.transactions;
 
-import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
+import com.damian.xBank.banking.account.BankingAccount;
+import com.damian.xBank.banking.account.BankingAccountRepository;
+import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionAuthorizationException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionNotFoundException;
+import com.damian.xBank.common.utils.AuthCustomer;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRole;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Service
 public class BankingTransactionService {
     private final BankingTransactionRepository bankingTransactionRepository;
+    private final BankingAccountRepository bankingAccountRepository;
 
     public BankingTransactionService(
-            BankingTransactionRepository bankingTransactionRepository
+            BankingTransactionRepository bankingTransactionRepository,
+            BankingAccountRepository bankingAccountRepository
     ) {
         this.bankingTransactionRepository = bankingTransactionRepository;
+        this.bankingAccountRepository = bankingAccountRepository;
     }
 
-    public BankingTransaction handleCreateTransactionRequest(Long id, BankingAccountTransactionCreateRequest request) {
-        return null;
+    public Page<BankingTransaction> getBankingCardTransactions(Long bankingCardId, Pageable pageable) {
+        return bankingTransactionRepository.findByBankingCardId(bankingCardId, pageable);
     }
+
+    public Page<BankingTransaction> getBankingAccountTransactions(Long accountId, Pageable pageable) {
+        return bankingTransactionRepository.findByBankingAccountId(accountId, pageable);
+    }
+
+    // deposit
+    public BankingTransaction generateTransaction(
+            BankingAccount bankingAccount,
+            BankingTransactionType transactionType,
+            BigDecimal amount,
+            String description
+    ) {
+        return this.createTransaction(
+                bankingAccount,
+                transactionType,
+                amount,
+                description
+        );
+    }
+
+    // transfer to
+    public BankingTransaction generateTransaction(
+            BankingAccount fromBankingAccount,
+            BankingAccount toBankingAccount,
+            BigDecimal amount,
+            String description
+    ) {
+        // generate 2 transaction
+        BankingTransaction toTransaction = createTransaction(
+                toBankingAccount,
+                BankingTransactionType.TRANSFER_FROM,
+                amount,
+                "Transfer from "
+                + fromBankingAccount.getOwner().getFullName().toUpperCase()
+        );
+
+        return this.createTransaction(
+                fromBankingAccount,
+                BankingTransactionType.TRANSFER_TO,
+                amount,
+                description
+        );
+    }
+
+    public BankingTransaction generateTransaction(
+            BankingCard fromBankingCard,
+            BankingTransactionType transactionType,
+            BigDecimal amount,
+            String description
+    ) {
+        return this.createTransaction(
+                fromBankingCard.getAssociatedBankingAccount(),
+                transactionType,
+                amount,
+                description
+        );
+    }
+
+    public BankingTransaction createTransaction(
+            BankingAccount bankingAccount,
+            BankingTransactionType transactionType,
+            BigDecimal amount,
+            String description
+    ) {
+        BankingTransaction transaction = new BankingTransaction(bankingAccount);
+        transaction.setTransactionType(transactionType);
+        transaction.setAmount(amount);
+        transaction.setDescription(description);
+        return transaction;
+    }
+
+    /**
+     * Stores a banking account transaction by adding it to the owner's account and persisting the account.
+     *
+     * @param transaction the banking account transaction to store
+     * @return the stored banking account transaction
+     */
+    public BankingTransaction storeTransaction(BankingTransaction transaction) {
+        final BankingAccount bankingAccount = transaction.getAssociatedBankingAccount();
+
+        transaction.setCreatedAt(Instant.now());
+        transaction.setUpdatedAt(Instant.now());
+
+        // Add the transaction to the owners account
+        bankingAccount.addAccountTransaction(transaction);
+
+        // Persist the owner's account with the new transaction
+        //        bankingAccountRepository.save(bankingAccount);
+
+        bankingTransactionRepository.save(transaction);
+
+        // Return the stored transaction
+        return transaction;
+    }
+
 
     public BankingTransaction patchStatusTransaction(
             Long bankingTransactionId,
             BankingTransactionPatchRequest request
     ) {
         // Customer logged
-        final Customer customerLogged = (Customer) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
+        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
 
         // if the logged customer is not admin
         if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {

@@ -22,7 +22,7 @@ public class BankingTransaction {
     @JoinColumn(name = "banking_card_id", referencedColumnName = "id", nullable = true)
     private BankingCard bankingCard;
 
-    @Column(precision = 15, scale = 3)
+    @Column(precision = 15, scale = 2)
     private BigDecimal amount;
 
     @Column
@@ -43,6 +43,10 @@ public class BankingTransaction {
     public BankingTransaction(BankingAccount bankingAccount) {
         this();
         this.bankingAccount = bankingAccount;
+    }
+
+    public BankingTransaction(BankingCard bankingCard) {
+        this(bankingCard.getAssociatedBankingAccount());
     }
 
     public BankingTransaction() {

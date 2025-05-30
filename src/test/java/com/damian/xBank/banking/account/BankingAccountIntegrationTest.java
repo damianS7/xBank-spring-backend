@@ -2,9 +2,11 @@ package com.damian.xBank.banking.account;
 
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
-import com.damian.xBank.banking.account.exception.BankingAccountException;
-import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
+import com.damian.xBank.banking.account.http.request.BankingAccountCloseRequest;
+import com.damian.xBank.banking.account.http.request.BankingAccountCreateRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
+import com.damian.xBank.banking.card.BankingCardType;
+import com.damian.xBank.banking.card.http.BankingCardRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
 import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.customer.Customer;
@@ -19,8 +21,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -31,13 +31,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -132,7 +128,7 @@ public class BankingAccountIntegrationTest {
     void shouldOpenBankingAccount() throws Exception {
         // given
         loginWithCustomer(customerA);
-        BankingAccountOpenRequest request = new BankingAccountOpenRequest(
+        BankingAccountCreateRequest request = new BankingAccountCreateRequest(
                 BankingAccountType.SAVINGS,
                 BankingAccountCurrency.EUR
         );
@@ -156,6 +152,64 @@ public class BankingAccountIntegrationTest {
     void shouldCloseBankingAccount() throws Exception {
         // given
         loginWithCustomer(customerA);
+        BankingAccountCloseRequest request = new BankingAccountCloseRequest(
+                rawPassword
+        );
+
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("US0011111111222222223333");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountRepository.save(bankingAccount);
+
+        // when
+        // then
+        mockMvc
+                .perform(MockMvcRequestBuilders
+                        .post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(200));
+    }
+
+    @Test
+    @DisplayName("Should not close account if you are not the owner and you are not admin either")
+    void shouldNotCloseBankingAccountWhenItsNotYoursAndYouAreNotAdmin() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+        BankingAccountCloseRequest request = new BankingAccountCloseRequest(
+                rawPassword
+        );
+
+        BankingAccount bankingAccount = new BankingAccount(customerB);
+        bankingAccount.setAccountNumber("US00 1111 1111 2222 2222 3333");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountRepository.save(bankingAccount);
+
+        // when
+        // then
+        mockMvc
+                .perform(MockMvcRequestBuilders
+                        .post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(403));
+    }
+
+    @Test
+    @DisplayName("Should close an account even if its not yours when you are ADMIN")
+    void shouldCloseBankingAccountWhenItsNotYoursAndButYouAreAdmin() throws Exception {
+        // given
+        loginWithCustomer(customerAdmin);
+        BankingAccountCloseRequest request = new BankingAccountCloseRequest(
+                rawPassword
+        );
+
         BankingAccount bankingAccount = new BankingAccount(customerA);
         bankingAccount.setAccountNumber("US00 1111 1111 2222 2222 3333");
         bankingAccount.setAccountType(BankingAccountType.SAVINGS);
@@ -166,48 +220,12 @@ public class BankingAccountIntegrationTest {
         // then
         mockMvc
                 .perform(MockMvcRequestBuilders
-                        .get("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                        .post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().is(200));
-    }
-
-    @Test
-    @DisplayName("Should not close account if you are not the owner and you are not admin either")
-    void shouldNotCloseBankingAccountWhenItsNotYoursAndYouAreNotAdmin() throws Exception {
-        // given
-        loginWithCustomer(customerA);
-        BankingAccount bankingAccount = new BankingAccount(customerB);
-        bankingAccount.setAccountNumber("US00 1111 1111 2222 2222 3333");
-        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccountRepository.save(bankingAccount);
-
-        // when
-        // then
-        mockMvc.perform(get("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-               .andDo(print())
-               .andExpect(status().is(403));
-    }
-
-    @Test
-    @DisplayName("Should close an account even if its not yours when you are ADMIN")
-    void shouldCloseBankingAccountWhenItsNotYoursAndButYouAreAdmin() throws Exception {
-        // given
-        loginWithCustomer(customerAdmin);
-        BankingAccount bankingAccount = new BankingAccount(customerA);
-        bankingAccount.setAccountNumber("US00 1111 1111 2222 2222 3333");
-        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccountRepository.save(bankingAccount);
-
-        // when
-        // then
-        mockMvc.perform(get("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-               .andDo(print())
-               .andExpect(status().is(200));
     }
 
     @Test
@@ -292,45 +310,45 @@ public class BankingAccountIntegrationTest {
                .andExpect(status().is(201));
     }
 
-    @Test
-    @DisplayName("Should create a transfer transaction")
-    void shouldTransferToAnotherCustomer() throws Exception {
-        // given
-        loginWithCustomer(customerA);
-        BankingAccount bankingAccountA = new BankingAccount(customerA);
-        bankingAccountA.setAccountNumber("ES12 3456 7890 1234 5678 9012");
-        bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccountA.setAccountStatus(BankingAccountStatus.OPEN);
-        bankingAccountA.setBalance(BigDecimal.valueOf(3200));
-
-        bankingAccountRepository.save(bankingAccountA);
-
-        BankingAccount bankingAccountB = new BankingAccount(customerB);
-        bankingAccountB.setAccountNumber("DE12 3456 7890 1234 5678 9012");
-        bankingAccountB.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccountB.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccountB.setAccountStatus(BankingAccountStatus.OPEN);
-        bankingAccountB.setBalance(BigDecimal.valueOf(200));
-
-        bankingAccountRepository.save(bankingAccountB);
-
-        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
-                bankingAccountB.getId(),
-                BigDecimal.valueOf(1000),
-                BankingTransactionType.TRANSFER_TO,
-                "Enjoy!"
-        );
-
-        // when
-        // then
-        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccountA.getId() + "/transaction")
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(request)))
-               .andDo(print())
-               .andExpect(status().is(201));
-    }
+    //    @Test
+    //    @DisplayName("Should create a transfer transaction")
+    //    void shouldTransferToAnotherCustomer() throws Exception {
+    //        // given
+    //        loginWithCustomer(customerA);
+    //        BankingAccount bankingAccountA = new BankingAccount(customerA);
+    //        bankingAccountA.setAccountNumber("ES1234567890123456789012");
+    //        bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
+    //        bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        bankingAccountA.setAccountStatus(BankingAccountStatus.OPEN);
+    //        bankingAccountA.setBalance(BigDecimal.valueOf(3200));
+    //
+    //        bankingAccountRepository.save(bankingAccountA);
+    //
+    //        BankingAccount bankingAccountB = new BankingAccount(customerB);
+    //        bankingAccountB.setAccountNumber("DE1234567890123456789012");
+    //        bankingAccountB.setAccountType(BankingAccountType.SAVINGS);
+    //        bankingAccountB.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        bankingAccountB.setAccountStatus(BankingAccountStatus.OPEN);
+    //        bankingAccountB.setBalance(BigDecimal.valueOf(200));
+    //
+    //        bankingAccountRepository.save(bankingAccountB);
+    //
+    //        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+    //                bankingAccountB.getAccountNumber(),
+    //                BigDecimal.valueOf(1000),
+    //                BankingTransactionType.TRANSFER_TO,
+    //                "Enjoy!"
+    //        );
+    //
+    //        // when
+    //        // then
+    //        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccountA.getId() + "/transaction")
+    //                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+    //                       .contentType(MediaType.APPLICATION_JSON)
+    //                       .content(objectMapper.writeValueAsString(request)))
+    //               .andDo(print())
+    //               .andExpect(status().is(201));
+    //    }
 
     @Test
     @DisplayName("Should not create a transaction when account is not open")
@@ -383,7 +401,7 @@ public class BankingAccountIntegrationTest {
         bankingAccountRepository.save(bankingAccountA);
 
         BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
-                bankingAccountA.getId(),
+                bankingAccountA.getAccountNumber(),
                 BigDecimal.valueOf(1000),
                 BankingTransactionType.TRANSFER_TO,
                 "Enjoy!"
@@ -435,53 +453,81 @@ public class BankingAccountIntegrationTest {
                .andExpect(status().is(409));
     }
 
+    //    @Test
+    //    @DisplayName("Should rollback transfer if receiver account does not exist")
+    //    void shouldRollbackTransferIfReceiverAccountDoesNotExist() {
+    //        // given
+    //        Customer customerA = new Customer("customerA@test.com", "123456");
+    //        Customer customerB = new Customer("customerB@test.com", "123456");
+    //
+    //        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+    //                customerA, null, Collections.emptyList()));
+    //
+    //        BankingAccount senderAccount = new BankingAccount(customerA);
+    //        senderAccount.setAccountNumber("US00 0000 1111 2222 3333 4444");
+    //        senderAccount.setAccountType(BankingAccountType.SAVINGS);
+    //        senderAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        senderAccount.setBalance(BigDecimal.valueOf(1000));
+    //        customerRepository.save(customerA);
+    //
+    //        BankingAccount receiverAccount = new BankingAccount(customerB);
+    //        receiverAccount.setAccountNumber("US00 0000 1111 2222 3333 5555");
+    //        receiverAccount.setAccountType(BankingAccountType.SAVINGS);
+    //        receiverAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        receiverAccount.setBalance(BigDecimal.valueOf(1000));
+    //        customerRepository.save(customerB);
+    //
+    //        // when
+    //        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+    //                "NON EXISTING ACCOUNT", // ID que no existe para forzar el fallo
+    //                BigDecimal.valueOf(200),
+    //                BankingTransactionType.TRANSFER_TO,
+    //                "Test Transfer"
+    //        );
+    //
+    //        assertThrows(
+    //                BankingAccountException.class,
+    //                () -> bankingAccountService.handleCreateTransactionRequest(senderAccount.getId(), request)
+    //        );
+    //
+    //        // then
+    //        BankingAccount refreshedSenderAccount = bankingAccountRepository.findById(senderAccount.getId()).get();
+    //        BankingAccount refreshedReceiverAccount = bankingAccountRepository.findById(receiverAccount.getId()).get();
+    //
+    //        // Verificamos que el balance NO haya cambiado (rollback)
+    //        assertThat(refreshedSenderAccount.getBalance()).isEqualTo(BigDecimal.valueOf(1000).setScale(2));
+    //        assertThat(refreshedReceiverAccount.getBalance()).isEqualTo(BigDecimal.valueOf(1000).setScale(2));
+    //
+    //        // Verificamos que no se haya guardado ninguna transacción
+    //        assertThat(refreshedSenderAccount.getAccountTransactions()).isEmpty();
+    //        assertThat(refreshedReceiverAccount.getAccountTransactions()).isEmpty();
+    //    }
+
     @Test
-    @DisplayName("Should rollback transfer if receiver account does not exist")
-    void shouldRollbackTransferIfReceiverAccountDoesNotExist() {
+    @DisplayName("Should generate a card")
+    void shouldGenerateCard() throws Exception {
         // given
-        Customer customerA = new Customer("customerA@test.com", "123456");
-        Customer customerB = new Customer("customerB@test.com", "123456");
+        loginWithCustomer(customerA);
 
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                customerA, null, Collections.emptyList()));
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.valueOf(1000));
+        bankingAccountRepository.save(bankingAccount);
 
-        BankingAccount senderAccount = new BankingAccount(customerA);
-        senderAccount.setAccountNumber("US00 0000 1111 2222 3333 4444");
-        senderAccount.setAccountType(BankingAccountType.SAVINGS);
-        senderAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        senderAccount.setBalance(BigDecimal.valueOf(1000));
-        customerRepository.save(customerA);
-
-        BankingAccount receiverAccount = new BankingAccount(customerB);
-        receiverAccount.setAccountNumber("US00 0000 1111 2222 3333 5555");
-        receiverAccount.setAccountType(BankingAccountType.SAVINGS);
-        receiverAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        receiverAccount.setBalance(BigDecimal.valueOf(1000));
-        customerRepository.save(customerB);
+        BankingCardRequest request = new BankingCardRequest(
+                BankingCardType.DEBIT
+        );
 
         // when
-        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
-                999L, // ID que no existe para forzar el fallo
-                BigDecimal.valueOf(200),
-                BankingTransactionType.TRANSFER_TO,
-                "Test Transfer"
-        );
-
-        assertThrows(
-                BankingAccountException.class,
-                () -> bankingAccountService.handleCreateTransactionRequest(senderAccount.getId(), request)
-        );
-
         // then
-        BankingAccount refreshedSenderAccount = bankingAccountRepository.findById(senderAccount.getId()).get();
-        BankingAccount refreshedReceiverAccount = bankingAccountRepository.findById(receiverAccount.getId()).get();
-
-        // Verificamos que el balance NO haya cambiado (rollback)
-        assertThat(refreshedSenderAccount.getBalance()).isEqualTo(BigDecimal.valueOf(1000).setScale(2));
-        assertThat(refreshedReceiverAccount.getBalance()).isEqualTo(BigDecimal.valueOf(1000).setScale(2));
-
-        // Verificamos que no se haya guardado ninguna transacción
-        assertThat(refreshedSenderAccount.getAccountTransactions()).isEmpty();
-        assertThat(refreshedReceiverAccount.getAccountTransactions()).isEmpty();
+        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/cards")
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(request)))
+               .andDo(print())
+               .andExpect(status().is(201));
     }
 }

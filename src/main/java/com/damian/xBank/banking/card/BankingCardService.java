@@ -3,20 +3,14 @@ package com.damian.xBank.banking.card;
 import com.damian.xBank.auth.http.PasswordConfirmationRequest;
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
-import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
-import com.damian.xBank.banking.transactions.BankingTransaction;
-import com.damian.xBank.banking.transactions.BankingTransactionRepository;
-import com.damian.xBank.banking.transactions.BankingTransactionService;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.AuthCustomer;
 import com.damian.xBank.customer.Customer;
 import net.datafaker.Faker;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -29,20 +23,14 @@ import java.util.Set;
 public class BankingCardService {
 
     private final BankingCardRepository bankingCardRepository;
-    private final BankingTransactionRepository bankingTransactionRepository;
     private final Faker faker;
-    private final BankingTransactionService bankingTransactionService;
 
     public BankingCardService(
             BankingCardRepository bankingCardRepository,
-            BankingTransactionRepository bankingTransactionRepository,
-            Faker faker,
-            BankingTransactionService bankingTransactionService
+            Faker faker
     ) {
         this.bankingCardRepository = bankingCardRepository;
-        this.bankingTransactionRepository = bankingTransactionRepository;
         this.faker = faker;
-        this.bankingTransactionService = bankingTransactionService;
     }
 
     public Set<BankingCard> getBankingCards() {
@@ -57,44 +45,6 @@ public class BankingCardService {
 
     public Set<BankingCard> getBankingCards(Long customerId) {
         return bankingCardRepository.findCardsByCustomerId(customerId);
-    }
-
-    public BankingTransaction spend(
-            Long bankingCardId,
-            BankingAccountTransactionCreateRequest request
-    ) {
-        // Customer logged
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
-
-        // bankingCard to be used
-        BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
-                () -> new BankingCardNotFoundException(bankingCardId)
-        );
-
-        // if the owner of the card is not the current logged customer.
-        if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
-            throw new BankingCardAuthorizationException();
-        }
-
-        final boolean isCardDisabled = bankingCard.getCardStatus().equals(BankingCardStatus.DISABLED);
-        final boolean isCardLocked = bankingCard.getLockStatus().equals(BankingCardLockStatus.LOCKED);
-
-        if (isCardDisabled) {
-            throw new BankingCardAuthorizationException("The card is disabled.");
-        }
-
-        if (isCardLocked) {
-            throw new BankingCardAuthorizationException("The card is locked.");
-        }
-
-        // we return the transaction
-        return bankingTransactionService.handleCreateTransactionRequest(
-                bankingCard.getAssociatedBankingAccount().getId(), request
-        );
-    }
-
-    public Page<BankingTransaction> getBankingCardTransactions(Long bankingCardId, Pageable pageable) {
-        return bankingTransactionRepository.findByBankingCardId(bankingCardId, pageable);
     }
 
     public BankingCard createCard(BankingAccount bankingAccount, BankingCardType cardType) {

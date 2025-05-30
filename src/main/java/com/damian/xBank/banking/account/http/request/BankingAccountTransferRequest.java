@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 
-public record BankingAccountTransactionCreateRequest(
+public record BankingAccountTransferRequest(
         // the account that receives the money in case its a TRANSFER
         String toBankingAccountNumber,
 
@@ -20,6 +20,9 @@ public record BankingAccountTransactionCreateRequest(
 
         @NotNull(message = "You must give a description for this operation")
         @NotBlank(message = "You must give a description for this operation")
-        String description
+        String description,
+
+        @NotNull(message = "Password must not be null")
+        String password
 ) {
 }

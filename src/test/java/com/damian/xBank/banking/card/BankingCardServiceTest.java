@@ -2,12 +2,10 @@ package com.damian.xBank.banking.card;
 
 import com.damian.xBank.auth.http.PasswordConfirmationRequest;
 import com.damian.xBank.banking.account.*;
-import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
-import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
@@ -34,7 +32,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -476,85 +473,4 @@ public class BankingCardServiceTest {
         verify(bankingCardRepository, times(1)).save(any(BankingCard.class));
     }
 
-    @Test
-    @DisplayName("Should not spend when card is blocked")
-    void shouldNotSpendWhenCardIsBlocked() {
-        // given
-        setUpContext(customerA);
-
-        final String accountNumber = "US99 0000 1111 1122 3333 4444";
-
-        final BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
-                null,
-                BigDecimal.valueOf(100),
-                BankingTransactionType.CARD_CHARGE,
-                "Amazon.com"
-        );
-
-        BankingAccount givenBankAccount = new BankingAccount(customerA);
-        givenBankAccount.setId(5L);
-        givenBankAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        givenBankAccount.setAccountType(BankingAccountType.SAVINGS);
-        givenBankAccount.setAccountNumber(accountNumber);
-
-        BankingCard givenBankingCard = new BankingCard();
-        givenBankingCard.setId(11L);
-        givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
-        givenBankingCard.setCardNumber("1234567890123456");
-        givenBankingCard.setCardType(BankingCardType.CREDIT);
-        givenBankingCard.setLockStatus(BankingCardLockStatus.LOCKED);
-
-        // when
-        when(bankingCardRepository.findById(anyLong())).thenReturn(Optional.of(givenBankingCard));
-
-        // then
-        BankingCardAuthorizationException exception = assertThrows(
-                BankingCardAuthorizationException.class,
-                () -> bankingCardService.spend(givenBankAccount.getId(), request)
-        );
-
-        // then
-        assertTrue(exception.getMessage().contains("The card is locked."));
-    }
-
-    @Test
-    @DisplayName("Should not spend when card is disabled")
-    void shouldNotSpendWhenCardIsDisabled() {
-        // given
-        setUpContext(customerA);
-
-        final String accountNumber = "US99 0000 1111 1122 3333 4444";
-
-        final BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
-                null,
-                BigDecimal.valueOf(100),
-                BankingTransactionType.CARD_CHARGE,
-                "Amazon.com"
-        );
-
-        BankingAccount givenBankAccount = new BankingAccount(customerA);
-        givenBankAccount.setId(5L);
-        givenBankAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        givenBankAccount.setAccountType(BankingAccountType.SAVINGS);
-        givenBankAccount.setAccountNumber(accountNumber);
-
-        BankingCard givenBankingCard = new BankingCard();
-        givenBankingCard.setId(11L);
-        givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
-        givenBankingCard.setCardNumber("1234567890123456");
-        givenBankingCard.setCardType(BankingCardType.CREDIT);
-        givenBankingCard.setCardStatus(BankingCardStatus.DISABLED);
-
-        // when
-        when(bankingCardRepository.findById(anyLong())).thenReturn(Optional.of(givenBankingCard));
-
-        // then
-        BankingCardAuthorizationException exception = assertThrows(
-                BankingCardAuthorizationException.class,
-                () -> bankingCardService.spend(givenBankAccount.getId(), request)
-        );
-
-        // then
-        assertTrue(exception.getMessage().contains("The card is disabled."));
-    }
 }

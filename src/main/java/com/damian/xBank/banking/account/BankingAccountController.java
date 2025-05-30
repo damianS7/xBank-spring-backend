@@ -11,10 +11,6 @@ import com.damian.xBank.banking.transactions.BankingTransactionDTOMapper;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -26,21 +22,26 @@ import java.util.Set;
 @RestController
 public class BankingAccountController {
     private final BankingAccountService bankingAccountService;
+    private final BankingAccountCardService bankingAccountCardService;
 
     @Autowired
-    public BankingAccountController(BankingAccountService bankingAccountService) {
+    public BankingAccountController(
+            BankingAccountService bankingAccountService,
+            BankingAccountCardService bankingAccountCardService
+    ) {
         this.bankingAccountService = bankingAccountService;
+        this.bankingAccountCardService = bankingAccountCardService;
     }
 
     // endpoint to set an alias for an account
-    @PutMapping("/customers/me/banking/account/{accountId}/alias")
+    @PutMapping("/customers/me/banking/account/{id}/alias")
     public ResponseEntity<?> putBankingAccountAlias(
-            @PathVariable @NotNull(message = "This field cannot be null") @Positive
-            Long accountId,
+            @PathVariable @Positive
+            Long id,
             @Validated @RequestBody
             BankingAccountAliasUpdateRequest request
     ) {
-        BankingAccount bankingAccount = bankingAccountService.setBankingAccountAlias(accountId, request);
+        BankingAccount bankingAccount = bankingAccountService.setBankingAccountAlias(id, request);
         BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
 
         return ResponseEntity
@@ -60,14 +61,14 @@ public class BankingAccountController {
     }
 
     // endpoint to generate a transaction
-    @PostMapping("/customers/me/banking/account/{id}/transaction")
-    public ResponseEntity<?> loggedCustomerCreateTransaction(
+    @PostMapping("/customers/me/banking/account/{id}/transfer-to")
+    public ResponseEntity<?> customerTransferRequest(
             @PathVariable @NotNull(message = "This field cannot be null") @Positive
             Long id,
             @Validated @RequestBody
-            BankingAccountTransactionCreateRequest request
+            BankingAccountTransferRequest request
     ) {
-        BankingTransaction bankingTransaction = bankingAccountService.handleCreateTransactionRequest(
+        BankingTransaction bankingTransaction = bankingAccountService.transferRequest(
                 id,
                 request
         );
@@ -134,29 +135,12 @@ public class BankingAccountController {
             @Validated @RequestBody
             BankingCardRequest request
     ) {
-        BankingCard bankingCard = bankingAccountService.requestBankingCard(id, request);
+        BankingCard bankingCard = bankingAccountCardService.requestBankingCard(id, request);
         BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(bankingCardDTO);
-    }
-
-    // endpoint for logged customer to get all transactions of a BankingCard
-    @GetMapping("/customers/me/banking/accounts/{id}/transactions")
-    public ResponseEntity<?> loggedCustomerBankingAccountTransactions(
-            @PathVariable @NotNull @Positive
-            Long id,
-            @PageableDefault(size = 2, sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable
-    ) {
-        Page<BankingTransaction> transactions = bankingAccountService.getBankingAccountTransactions(id, pageable);
-        Page<BankingTransactionDTO> transactionDTOS = BankingTransactionDTOMapper
-                .toBankingTransactionPageDTO(transactions);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(transactionDTOS);
     }
 }
 

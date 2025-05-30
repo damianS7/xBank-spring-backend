@@ -1,4 +1,11 @@
 package com.damian.xBank.banking.account.http.request;
 
-public record BankingAccountCloseRequest(Long accountId) {
+import jakarta.validation.constraints.NotNull;
+
+public record BankingAccountCloseRequest(
+        @NotNull(
+                message = "Password must not be null"
+        )
+        String password
+) {
 }

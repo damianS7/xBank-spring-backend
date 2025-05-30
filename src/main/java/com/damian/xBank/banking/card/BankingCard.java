@@ -167,4 +167,23 @@ public class BankingCard {
     public void setDailyLimit(BigDecimal dailyLimit) {
         this.dailyLimit = dailyLimit;
     }
+
+    public BigDecimal getBalance() {
+        return this.getAssociatedBankingAccount().getBalance();
+    }
+
+    // returns true if the operation can be carried
+    public boolean hasEnoughFundsToSpend(BigDecimal amount) {
+        // if its 0 then balance is equal to the amount willing to spend
+        // if its 1 then balance is greater than the amount willing to spend
+        return this.getAssociatedBankingAccount().hasEnoughFunds(amount);
+    }
+
+    public BigDecimal chargeAmount(BigDecimal amount) {
+        return this.getAssociatedBankingAccount().subtractAmount(amount);
+    }
+
+    public String getHolderName() {
+        return this.getAssociatedBankingAccount().getOwner().getFullName();
+    }
 }

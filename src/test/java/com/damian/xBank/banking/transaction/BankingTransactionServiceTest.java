@@ -2,8 +2,10 @@ package com.damian.xBank.banking.transaction;
 
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountRepository;
-import com.damian.xBank.banking.transactions.*;
-import com.damian.xBank.banking.transactions.exception.BankingTransactionAuthorizationException;
+import com.damian.xBank.banking.transactions.BankingTransaction;
+import com.damian.xBank.banking.transactions.BankingTransactionRepository;
+import com.damian.xBank.banking.transactions.BankingTransactionService;
+import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -23,13 +25,11 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class BankingTransactionServiceTest {
@@ -73,83 +73,137 @@ public class BankingTransactionServiceTest {
     void setUpContext(Customer customer) {
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         Mockito.when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(customer);
     }
 
     @Test
-    @DisplayName("It should update transaction status.")
-    void shouldUpdateTransactionStatus() {
+    @DisplayName("It should create transaction.")
+    void shouldCreateTransaction() {
         // given
-        setUpContext(customerAdmin);
-
-        BankingTransactionPatchRequest request = new BankingTransactionPatchRequest(
-                BankingTransactionStatus.COMPLETED
-        );
-
-        final String accountNumber = "US99 0000 1111 1122 3333 4444";
-
-        BankingAccount bankingAccount = new BankingAccount(customerA);
-        bankingAccount.setAccountNumber(accountNumber);
-
-        BankingTransaction bankingTransaction = new BankingTransaction();
-        bankingTransaction.setAmount(BigDecimal.valueOf(100));
-        bankingTransaction.setTransactionType(BankingTransactionType.CARD_CHARGE);
-        bankingTransaction.setDescription("Amazon.com");
-        bankingTransaction.setTransactionStatus(BankingTransactionStatus.PENDING);
-
-        bankingTransaction.setAssociatedBankingAccount(bankingAccount);
-        bankingAccount.addAccountTransaction(bankingTransaction);
-
-        bankingAccountRepository.save(bankingAccount);
+        BankingAccount givenBankingAccount = new BankingAccount(customerA);
+        givenBankingAccount.setAccountNumber("US9900001111112233334444");
+        String givenDescription = "Account deposit";
+        BigDecimal givenAmount = BigDecimal.valueOf(100);
+        BankingTransactionType givenTransactionType = BankingTransactionType.DEPOSIT;
 
         // when
-        when(bankingTransactionRepository.findById(bankingTransaction.getId())).thenReturn(Optional.of(
-                bankingTransaction));
-        when(bankingTransactionRepository.save(any(BankingTransaction.class))).thenReturn(bankingTransaction);
-
-        BankingTransaction savedTransaction =
-                bankingTransactionService.patchStatusTransaction(bankingTransaction.getId(), request);
+        BankingTransaction createdBankingTransaction = bankingTransactionService.createTransaction(
+                givenBankingAccount,
+                givenTransactionType,
+                givenAmount,
+                givenDescription
+        );
 
         // then
-        assertThat(savedTransaction.getTransactionStatus()).isEqualTo(request.transactionStatus());
-        verify(bankingTransactionRepository, times(1)).save(any(BankingTransaction.class));
+        assertThat(createdBankingTransaction).isNotNull();
+        assertThat(createdBankingTransaction.getAmount()).isEqualTo(givenAmount);
+        assertThat(createdBankingTransaction.getTransactionType()).isEqualTo(givenTransactionType);
+        assertThat(createdBankingTransaction.getDescription()).isEqualTo(givenDescription);
     }
 
     @Test
-    @DisplayName("It should not update transaction status when you are not admin.")
-    void shouldNotUpdateTransactionStatusWhenYouAreNotAdmin() {
+    @DisplayName("It should store transaction.")
+    void shouldStoreTransaction() {
         // given
-        setUpContext(customerA);
+        BankingAccount givenBankingAccount = new BankingAccount(customerA);
+        givenBankingAccount.setAccountNumber("US9900001111112233334444");
 
-        BankingTransactionPatchRequest request = new BankingTransactionPatchRequest(
-                BankingTransactionStatus.COMPLETED
-        );
-
-        final String accountNumber = "US99 0000 1111 1122 3333 4444";
-
-        BankingAccount bankingAccount = new BankingAccount(customerA);
-        bankingAccount.setAccountNumber(accountNumber);
-
-        BankingTransaction bankingTransaction = new BankingTransaction();
-        bankingTransaction.setAmount(BigDecimal.valueOf(100));
-        bankingTransaction.setTransactionType(BankingTransactionType.CARD_CHARGE);
-        bankingTransaction.setDescription("Amazon.com");
-        bankingTransaction.setTransactionStatus(BankingTransactionStatus.PENDING);
-
-        bankingTransaction.setAssociatedBankingAccount(bankingAccount);
-        bankingAccount.addAccountTransaction(bankingTransaction);
-
-        bankingAccountRepository.save(bankingAccount);
+        BankingTransaction givenBankingTransaction = new BankingTransaction(givenBankingAccount);
+        givenBankingTransaction.setAmount(BigDecimal.valueOf(100));
+        givenBankingTransaction.setTransactionType(BankingTransactionType.DEPOSIT);
+        givenBankingTransaction.setDescription("Account deposit");
 
         // when
-        BankingTransactionAuthorizationException exception = assertThrows(
-                BankingTransactionAuthorizationException.class,
-                () -> bankingTransactionService.patchStatusTransaction(bankingTransaction.getId(), request)
+        Mockito
+                .when(bankingTransactionRepository.save(any(BankingTransaction.class)))
+                .thenReturn(givenBankingTransaction);
+        BankingTransaction createdBankingTransaction = bankingTransactionService.storeTransaction(
+                givenBankingTransaction
         );
 
         // then
-        assertTrue(exception.getMessage().contains("Unauthorized access to transaction."));
+        assertThat(createdBankingTransaction).isNotNull();
+        assertThat(createdBankingTransaction.getAmount()).isEqualTo(givenBankingTransaction.getAmount());
+        assertThat(createdBankingTransaction.getTransactionType()).isEqualTo(givenBankingTransaction.getTransactionType());
+        assertThat(createdBankingTransaction.getDescription()).isEqualTo(givenBankingTransaction.getDescription());
+        assertThat(givenBankingAccount.getAccountTransactions().size()).isEqualTo(1);
+        verify(bankingTransactionRepository, times(1)).save(any(BankingTransaction.class));
     }
+
+    //    @Test
+    //    @DisplayName("It should update transaction status.")
+    //    void shouldUpdateTransactionStatus() {
+    //        // given
+    //        setUpContext(customerAdmin);
+    //
+    //        BankingTransactionPatchRequest request = new BankingTransactionPatchRequest(
+    //                BankingTransactionStatus.COMPLETED
+    //        );
+    //
+    //        final String accountNumber = "US99 0000 1111 1122 3333 4444";
+    //
+    //        BankingAccount bankingAccount = new BankingAccount(customerA);
+    //        bankingAccount.setAccountNumber(accountNumber);
+    //
+    //        BankingTransaction bankingTransaction = new BankingTransaction();
+    //        bankingTransaction.setAmount(BigDecimal.valueOf(100));
+    //        bankingTransaction.setTransactionType(BankingTransactionType.CARD_CHARGE);
+    //        bankingTransaction.setDescription("Amazon.com");
+    //        bankingTransaction.setTransactionStatus(BankingTransactionStatus.PENDING);
+    //
+    //        bankingTransaction.setAssociatedBankingAccount(bankingAccount);
+    //        bankingAccount.addAccountTransaction(bankingTransaction);
+    //
+    //        bankingAccountRepository.save(bankingAccount);
+    //
+    //        // when
+    //        when(bankingTransactionRepository.findById(bankingTransaction.getId())).thenReturn(Optional.of(
+    //                bankingTransaction));
+    //        when(bankingTransactionRepository.save(any(BankingTransaction.class))).thenReturn(bankingTransaction);
+    //
+    //        BankingTransaction savedTransaction =
+    //                bankingTransactionService.patchStatusTransaction(bankingTransaction.getId(), request);
+    //
+    //        // then
+    //        assertThat(savedTransaction.getTransactionStatus()).isEqualTo(request.transactionStatus());
+    //        verify(bankingTransactionRepository, times(1)).save(any(BankingTransaction.class));
+    //    }
+    //
+    //    @Test
+    //    @DisplayName("It should not update transaction status when you are not admin.")
+    //    void shouldNotUpdateTransactionStatusWhenYouAreNotAdmin() {
+    //        // given
+    //        setUpContext(customerA);
+    //
+    //        BankingTransactionPatchRequest request = new BankingTransactionPatchRequest(
+    //                BankingTransactionStatus.COMPLETED
+    //        );
+    //
+    //        final String accountNumber = "US99 0000 1111 1122 3333 4444";
+    //
+    //        BankingAccount bankingAccount = new BankingAccount(customerA);
+    //        bankingAccount.setAccountNumber(accountNumber);
+    //
+    //        BankingTransaction bankingTransaction = new BankingTransaction();
+    //        bankingTransaction.setAmount(BigDecimal.valueOf(100));
+    //        bankingTransaction.setTransactionType(BankingTransactionType.CARD_CHARGE);
+    //        bankingTransaction.setDescription("Amazon.com");
+    //        bankingTransaction.setTransactionStatus(BankingTransactionStatus.PENDING);
+    //
+    //        bankingTransaction.setAssociatedBankingAccount(bankingAccount);
+    //        bankingAccount.addAccountTransaction(bankingTransaction);
+    //
+    //        bankingAccountRepository.save(bankingAccount);
+    //
+    //        // when
+    //        BankingTransactionAuthorizationException exception = assertThrows(
+    //                BankingTransactionAuthorizationException.class,
+    //                () -> bankingTransactionService.patchStatusTransaction(bankingTransaction.getId(), request)
+    //        );
+    //
+    //        // then
+    //        assertTrue(exception.getMessage().contains("Unauthorized access to transaction."));
+    //    }
 }

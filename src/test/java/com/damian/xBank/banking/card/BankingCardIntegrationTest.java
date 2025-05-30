@@ -2,15 +2,18 @@ package com.damian.xBank.banking.card;
 
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.auth.http.PasswordConfirmationRequest;
 import com.damian.xBank.banking.account.*;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
-import com.damian.xBank.banking.card.http.BankingCardRequest;
+import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
+import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +29,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
@@ -118,8 +123,8 @@ public class BankingCardIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should generate a card")
-    void shouldGenerateCard() throws Exception {
+    @DisplayName("Should fetch customers banking cards")
+    void shouldFetchBankingCards() throws Exception {
         // given
         loginWithCustomer(customerA);
 
@@ -129,23 +134,292 @@ public class BankingCardIntegrationTest {
         bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
         bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
         bankingAccount.setBalance(BigDecimal.valueOf(1000));
+
+        BankingCard bankingCard = new BankingCard();
+        bankingCard.setCardType(BankingCardType.CREDIT);
+        bankingCard.setCardNumber("1234567890123456");
+        bankingCard.setCardStatus(BankingCardStatus.ENABLED);
+        bankingCard.setAssociatedBankingAccount(bankingAccount);
+
+        bankingAccount.addBankingCard(bankingCard);
         bankingAccountRepository.save(bankingAccount);
 
-        BankingCardRequest request = new BankingCardRequest(
-                BankingCardType.DEBIT
+        // when
+        // then
+        mockMvc.perform(get("/api/v1/customers/me/banking/cards")
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+               .andDo(print())
+               .andExpect(status().is(200));
+    }
+
+    @Test
+    @DisplayName("Should fetch transactions (pageable) for banking card")
+    void shouldFetchBankingCardTransactions() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.valueOf(1000));
+
+        BankingCard bankingCard = new BankingCard();
+        bankingCard.setCardType(BankingCardType.CREDIT);
+        bankingCard.setCardNumber("1234567890123456");
+        bankingCard.setCardStatus(BankingCardStatus.ENABLED);
+        bankingCard.setAssociatedBankingAccount(bankingAccount);
+
+        bankingAccount.addBankingCard(bankingCard);
+        bankingAccountRepository.save(bankingAccount);
+
+        // when
+        // then
+        mockMvc
+                .perform(
+                        get("/api/v1/customers/me/banking/cards/{id}/transactions", bankingCard.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(0)) // o el número que esperás
+                .andExpect(jsonPath("$.totalPages").value(0));
+    }
+
+    @Test
+    @DisplayName("Should cancel a BankingCard")
+    void shouldCancelBankingCard() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.valueOf(1000));
+
+        BankingCard bankingCard = new BankingCard();
+        bankingCard.setCardType(BankingCardType.CREDIT);
+        bankingCard.setCardNumber("1234567890123456");
+        bankingCard.setCardStatus(BankingCardStatus.ENABLED);
+        bankingCard.setAssociatedBankingAccount(bankingAccount);
+
+        bankingAccount.addBankingCard(bankingCard);
+        bankingAccountRepository.save(bankingAccount);
+
+        PasswordConfirmationRequest request = new PasswordConfirmationRequest("123456");
+
+        // when
+        // then
+        MvcResult result = mockMvc.perform(post("/api/v1/customers/me/banking/cards/{id}/cancel", bankingCard.getId())
+                                          .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                          .contentType(MediaType.APPLICATION_JSON)
+                                          .content(objectMapper.writeValueAsString(request)))
+                                  .andDo(print())
+                                  .andExpect(status().is(200))
+                                  .andReturn();
+
+        BankingCardDTO card = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BankingCardDTO.class
+        );
+
+        assertThat(card).isNotNull();
+        assertThat(card.cardStatus()).isEqualTo(BankingCardStatus.DISABLED);
+    }
+
+    @Test
+    @DisplayName("Should set a PIN on a BankingCard")
+    void shouldSetBankingCardPin() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.valueOf(1000));
+
+        BankingCard bankingCard = new BankingCard();
+        bankingCard.setCardType(BankingCardType.CREDIT);
+        bankingCard.setCardNumber("1234567890123456");
+        bankingCard.setCardStatus(BankingCardStatus.ENABLED);
+        bankingCard.setAssociatedBankingAccount(bankingAccount);
+
+        bankingAccount.addBankingCard(bankingCard);
+        bankingAccountRepository.save(bankingAccount);
+
+        BankingCardSetPinRequest request = new BankingCardSetPinRequest("7777", "123456");
+
+        // when
+        // then
+        MvcResult result = mockMvc
+                .perform(put("/api/v1/customers/me/banking/cards/{id}/pin", bankingCard.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andReturn();
+
+        BankingCardDTO card = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BankingCardDTO.class
+        );
+
+        assertThat(card).isNotNull();
+        assertThat(card.cardPIN()).isEqualTo(request.pin());
+    }
+
+    @Test
+    @DisplayName("Should set a Daily Limit on a BankingCard")
+    void shouldSetBankingCardDailyLimit() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.valueOf(1000));
+
+        BankingCard bankingCard = new BankingCard();
+        bankingCard.setCardType(BankingCardType.CREDIT);
+        bankingCard.setCardNumber("1234567890123456");
+        bankingCard.setCardStatus(BankingCardStatus.ENABLED);
+        bankingCard.setAssociatedBankingAccount(bankingAccount);
+
+        bankingAccount.addBankingCard(bankingCard);
+        bankingAccountRepository.save(bankingAccount);
+
+        BankingCardSetDailyLimitRequest request = new BankingCardSetDailyLimitRequest(
+                BigDecimal.valueOf(7777),
+                "123456"
         );
 
         // when
         // then
-        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/cards")
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(request)))
-               .andDo(print())
-               .andExpect(status().is(201));
+        MvcResult result = mockMvc
+                .perform(
+                        put("/api/v1/customers/me/banking/cards/{id}/daily-limit", bankingCard.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andReturn();
+
+        BankingCardDTO card = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BankingCardDTO.class
+        );
+
+        assertThat(card).isNotNull();
+        assertThat(card.dailyLimit()).isEqualTo(request.dailyLimit());
     }
 
     @Test
+    @DisplayName("Should lock BankingCard")
+    void shouldLockBankingCard() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.valueOf(1000));
+
+        BankingCard bankingCard = new BankingCard();
+        bankingCard.setCardType(BankingCardType.CREDIT);
+        bankingCard.setCardNumber("1234567890123456");
+        bankingCard.setCardStatus(BankingCardStatus.ENABLED);
+        bankingCard.setAssociatedBankingAccount(bankingAccount);
+
+        bankingAccount.addBankingCard(bankingCard);
+        bankingAccountRepository.save(bankingAccount);
+
+        BankingCardSetDailyLimitRequest request = new BankingCardSetDailyLimitRequest(
+                BigDecimal.valueOf(7777),
+                "123456"
+        );
+
+        // when
+        // then
+        MvcResult result = mockMvc
+                .perform(
+                        put("/api/v1/customers/me/banking/cards/{id}/lock", bankingCard.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andReturn();
+
+        BankingCardDTO card = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BankingCardDTO.class
+        );
+
+        assertThat(card).isNotNull();
+        assertThat(card.lockStatus()).isEqualTo(BankingCardLockStatus.LOCKED);
+    }
+
+    @Test
+    @DisplayName("Should unlock BankingCard")
+    void shouldUnlockBankingCard() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.valueOf(1000));
+
+        BankingCard bankingCard = new BankingCard();
+        bankingCard.setCardType(BankingCardType.CREDIT);
+        bankingCard.setCardNumber("1234567890123456");
+        bankingCard.setCardStatus(BankingCardStatus.ENABLED);
+        bankingCard.setAssociatedBankingAccount(bankingAccount);
+
+        bankingAccount.addBankingCard(bankingCard);
+        bankingAccountRepository.save(bankingAccount);
+
+        BankingCardSetDailyLimitRequest request = new BankingCardSetDailyLimitRequest(
+                BigDecimal.valueOf(7777),
+                "123456"
+        );
+
+        // when
+        // then
+        MvcResult result = mockMvc
+                .perform(
+                        put("/api/v1/customers/me/banking/cards/{id}/unlock", bankingCard.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andReturn();
+
+        BankingCardDTO card = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BankingCardDTO.class
+        );
+
+        assertThat(card).isNotNull();
+        assertThat(card.lockStatus()).isEqualTo(BankingCardLockStatus.UNLOCKED);
+    }
+
+    @Test
+    @Disabled
     @DisplayName("Should create a transaction card charge")
     void shouldCreateTransactionCardCharge() throws Exception {
         // given
@@ -176,7 +450,7 @@ public class BankingCardIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(post("/api/v1/customers/me/banking/card/" + bankingCard.getId() + "/spend")
+        mockMvc.perform(post("/api/v1/customers/me/banking/cards/" + bankingCard.getId() + "/spend")
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(request)))

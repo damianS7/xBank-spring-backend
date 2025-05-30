@@ -12,19 +12,18 @@ import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BankingAccountCardService {
+public class BankingAccountCardManagerService {
     private final int MAX_CARDS_PER_ACCOUNT = 5;
     private final BankingCardService bankingCardService;
     private final BankingAccountRepository bankingAccountRepository;
 
-    public BankingAccountCardService(
+    public BankingAccountCardManagerService(
             BankingAccountRepository bankingAccountRepository,
             BankingCardService bankingCardService
     ) {
         this.bankingAccountRepository = bankingAccountRepository;
         this.bankingCardService = bankingCardService;
     }
-
 
     public BankingCard requestBankingCard(Long bankingAccountId, BankingCardRequest request) {
         // Customer logged

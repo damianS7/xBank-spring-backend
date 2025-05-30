@@ -4,17 +4,25 @@ import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationExc
 import com.damian.xBank.banking.account.exception.BankingAccountException;
 import com.damian.xBank.banking.account.exception.BankingAccountInsufficientFundsException;
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
-import com.damian.xBank.banking.account.http.request.BankingAccountAliasUpdateRequest;
-import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
-import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
+import com.damian.xBank.banking.account.http.request.*;
+import com.damian.xBank.banking.card.BankingCard;
+import com.damian.xBank.banking.card.BankingCardService;
+import com.damian.xBank.banking.card.BankingCardStatus;
+import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccountLimitReached;
+import com.damian.xBank.banking.card.http.BankingCardRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
+import com.damian.xBank.banking.transactions.BankingTransactionRepository;
 import com.damian.xBank.banking.transactions.BankingTransactionType;
+import com.damian.xBank.common.utils.AuthCustomer;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import net.datafaker.Faker;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,17 +32,27 @@ import java.util.Set;
 
 @Service
 public class BankingAccountService {
+    private final int MAX_CARDS_PER_ACCOUNT = 5;
     private final BankingAccountRepository bankingAccountRepository;
     private final CustomerRepository customerRepository;
+    private final BankingTransactionRepository bankingTransactionRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final BankingCardService bankingCardService;
     private final Faker faker;
 
     public BankingAccountService(
             BankingAccountRepository bankingAccountRepository,
             CustomerRepository customerRepository,
+            BankingTransactionRepository bankingTransactionRepository,
+            BCryptPasswordEncoder bCryptPasswordEncoder,
+            BankingCardService bankingCardService,
             Faker faker
     ) {
         this.bankingAccountRepository = bankingAccountRepository;
         this.customerRepository = customerRepository;
+        this.bankingTransactionRepository = bankingTransactionRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.bankingCardService = bankingCardService;
         this.faker = faker;
     }
 
@@ -67,20 +85,16 @@ public class BankingAccountService {
         if (isTransfer(request.transactionType())) {
 
             // Validate that the transfer request contains a receiver ID
-            if (request.toBankingAccountId() == null) {
-                throw new BankingAccountException("A transfer must contain the receiver id");
+            if (request.toBankingAccountNumber() == null) {
+                throw new BankingAccountException("A transfer must contain the account number of the receiver");
             }
 
-            // Ensure that the transfer is not to the same banking account
-            if (fromBankingAccountId.equals(request.toBankingAccountId())) {
-                throw new BankingAccountException("You cannot transfer to the same banking account");
-            }
         }
 
         // Generate and return the transaction
         return generateTransaction(
                 fromBankingAccountId,
-                request.toBankingAccountId(),
+                request.toBankingAccountNumber(),
                 request.amount(),
                 request.transactionType(),
                 request.description()
@@ -92,16 +106,16 @@ public class BankingAccountService {
      * {@link BankingTransactionType#TRANSFER_TO}, it also creates and persists a second transaction of type
      * {@link BankingTransactionType#TRANSFER_FROM} for the destination account.
      *
-     * @param fromBankAccountId the ID of the source banking account
-     * @param toBankAccountId   the ID of the destination banking account, or null if not a transfer
-     * @param amount            the amount of the transaction
-     * @param transactionType   the type of the transaction
-     * @param description       the description of the transaction
+     * @param fromBankAccountId   the ID of the source banking account
+     * @param toBankAccountNumber the Account number of the destination banking account, or null if not a transfer
+     * @param amount              the amount of the transaction
+     * @param transactionType     the type of the transaction
+     * @param description         the description of the transaction
      * @return the created BankingAccountTransaction
      */
     private BankingTransaction generateTransaction(
             Long fromBankAccountId,
-            Long toBankAccountId,
+            String toBankAccountNumber,
             BigDecimal amount,
             BankingTransactionType transactionType,
             String description
@@ -115,10 +129,16 @@ public class BankingAccountService {
                 description
         );
 
+        final BankingAccount toBankingAccount = bankingAccountRepository
+                .findByAccountNumber(toBankAccountNumber)
+                .orElseThrow(
+                        () -> new BankingAccountNotFoundException(toBankAccountNumber)
+                );
+
         // If the transaction is a transfer, create a corresponding transaction for the destination account
         if (transactionType.equals(BankingTransactionType.TRANSFER_TO)) {
             BankingTransaction toTransaction = createTransaction(
-                    toBankAccountId,
+                    toBankingAccount.getId(),
                     amount,
                     BankingTransactionType.TRANSFER_FROM,
                     "Transfer from "
@@ -275,7 +295,7 @@ public class BankingAccountService {
         return bankingAccountRepository.findByCustomer_Id(customerId);
     }
 
-    public BankingAccount openBankingAccount(BankingAccountOpenRequest request) {
+    public BankingAccount createBankingAccount(BankingAccountCreateRequest request) {
         // we extract the customer logged from the SecurityContext
         final Customer customerLogged = (Customer) SecurityContextHolder
                 .getContext()
@@ -296,7 +316,7 @@ public class BankingAccountService {
         return bankingAccountRepository.save(bankingAccount);
     }
 
-    public BankingAccount closeBankingAccount(Long bankingAccountId) {
+    public BankingAccount openBankingAccount(Long bankingAccountId, BankingAccountOpenRequest request) {
         // Customer logged
         final Customer customerLogged = (Customer) SecurityContextHolder
                 .getContext()
@@ -315,7 +335,50 @@ public class BankingAccountService {
                 // banking account does not belong to this customer
                 throw new BankingAccountAuthorizationException();
             }
+
+            // TODO check password from request
         }
+
+        // we mark the account as closed
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+
+        // we change the updateAt timestamp field
+        bankingAccount.setUpdatedAt(Instant.now());
+
+        // save the data and return BankingAccount
+        return bankingAccountRepository.save(bankingAccount);
+    }
+
+    public BankingAccount closeBankingAccount(Long bankingAccountId, BankingAccountCloseRequest request) {
+        // Customer logged
+        final Customer customerLogged = (Customer) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        // Banking account to be closed
+        final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
+                () -> new BankingAccountNotFoundException(bankingAccountId) // Banking account not found
+        );
+
+        // if the logged customer is not admin
+        if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
+            // check if the account to be closed belongs to this customer.
+            if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
+                // banking account does not belong to this customer
+                throw new BankingAccountAuthorizationException();
+            }
+
+            // check password
+            if (!bCryptPasswordEncoder.matches(request.password(), customerLogged.getPassword())) {
+                throw new BankingAccountAuthorizationException("Wrong password");
+            }
+        }
+
+        return this.closeBankingAccount(bankingAccount);
+    }
+
+    public BankingAccount closeBankingAccount(BankingAccount bankingAccount) {
 
         // we mark the account as closed
         bankingAccount.setAccountStatus(BankingAccountStatus.CLOSED);
@@ -356,5 +419,47 @@ public class BankingAccountService {
         //ES00 0000 0000 0000 0000 0000
         String country = faker.country().countryCode2().toUpperCase();
         return country + faker.number().digits(22);
+    }
+
+    public Page<BankingTransaction> getBankingAccountTransactions(Long accountId, Pageable pageable) {
+        return bankingTransactionRepository.findByBankingAccountId(accountId, pageable);
+    }
+
+    private int countActiveCards(BankingAccount bankingAccount) {
+        return (int) bankingAccount
+                .getBankingCards()
+                .stream()
+                .filter(bankingCard -> bankingCard.getCardStatus().equals(BankingCardStatus.ENABLED))
+                .count();
+    }
+
+    public BankingCard requestBankingCard(Long bankingAccountId, BankingCardRequest request) {
+        // Customer logged
+        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+
+        // we get the BankingAccount where the card will be created.
+        final BankingAccount bankingAccount = bankingAccountRepository
+                .findById(bankingAccountId)
+                .orElseThrow(
+                        () -> new BankingAccountNotFoundException(bankingAccountId)
+                );
+
+        // if the logged customer is not admin
+        if (!AuthCustomer.isAdmin(customerLogged)) {
+            // check if the account belongs to this customer.
+            if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
+                throw new BankingAccountAuthorizationException(bankingAccountId);
+            }
+
+            // check password
+        }
+
+        // count how many active (ENABLED) cards has this account and check if exceeds the limit.
+        if (countActiveCards(bankingAccount) >= MAX_CARDS_PER_ACCOUNT) {
+            throw new BankingCardMaximumCardsPerAccountLimitReached();
+        }
+
+        // create the card and associate to the account
+        return bankingCardService.createCard(bankingAccount, request.cardType());
     }
 }

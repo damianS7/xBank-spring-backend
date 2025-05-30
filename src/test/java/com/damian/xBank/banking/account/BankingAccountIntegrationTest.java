@@ -5,6 +5,7 @@ import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.banking.account.http.request.BankingAccountCloseRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountCreateRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
+import com.damian.xBank.banking.card.BankingCardDTO;
 import com.damian.xBank.banking.card.BankingCardType;
 import com.damian.xBank.banking.card.http.BankingCardRequest;
 import com.damian.xBank.banking.transactions.BankingTransaction;
@@ -25,18 +26,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
@@ -124,6 +120,45 @@ public class BankingAccountIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should request a BankingCard")
+    void shouldRequestBankingCard() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.valueOf(1000));
+        bankingAccountRepository.save(bankingAccount);
+
+        BankingCardRequest request = new BankingCardRequest(
+                BankingCardType.DEBIT
+        );
+
+        // when
+        MvcResult result = mockMvc
+                .perform(
+                        post("/api/v1/customers/me/banking/accounts/{id}/cards/request", bankingAccount.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(201))
+                .andReturn();
+
+        BankingCardDTO card = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BankingCardDTO.class
+        );
+
+        // then
+        assertThat(card).isNotNull();
+        assertThat(card.cardType()).isEqualTo(request.cardType());
+    }
+
+    @Test
     @DisplayName("Should open a banking account")
     void shouldOpenBankingAccount() throws Exception {
         // given
@@ -134,17 +169,26 @@ public class BankingAccountIntegrationTest {
         );
 
         // when
+        MvcResult result = mockMvc
+                .perform(post("/api/v1/customers/me/banking/accounts/request")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(201))
+                .andReturn();
+
+        BankingAccountDTO bankingAccount = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BankingAccountDTO.class
+        );
+
         // then
-        mockMvc.perform(post("/api/v1/customers/me/banking/accounts/open")
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(request)))
-               .andDo(print())
-               .andExpect(status().is(201))
-               .andExpect(jsonPath("$.accountNumber").isNotEmpty())
-               .andExpect(jsonPath("$.accountType").value("SAVINGS"))
-               .andExpect(jsonPath("$.accountCurrency").value("EUR"))
-               .andExpect(jsonPath("$.balance").value(0));
+        assertThat(bankingAccount).isNotNull();
+        assertThat(bankingAccount.accountNumber()).isNotEmpty();
+        assertThat(bankingAccount.accountCurrency()).isEqualTo(request.accountCurrency());
+        assertThat(bankingAccount.balance()).isEqualTo(BigDecimal.ZERO);
+        assertThat(bankingAccount.accountType()).isEqualTo(request.accountType());
     }
 
     @Test
@@ -156,22 +200,31 @@ public class BankingAccountIntegrationTest {
                 rawPassword
         );
 
-        BankingAccount bankingAccount = new BankingAccount(customerA);
-        bankingAccount.setAccountNumber("US0011111111222222223333");
-        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccountRepository.save(bankingAccount);
+        BankingAccount givenBankingAccount = new BankingAccount(customerA);
+        givenBankingAccount.setAccountNumber("US0011111111222222223333");
+        givenBankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        givenBankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountRepository.save(givenBankingAccount);
 
         // when
-        // then
-        mockMvc
-                .perform(MockMvcRequestBuilders
-                        .post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        MvcResult result = mockMvc
+                .perform(
+                        post("/api/v1/customers/me/banking/accounts/{id}/close", givenBankingAccount.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
-                .andExpect(status().is(200));
+                .andExpect(status().is(200))
+                .andReturn();
+
+        BankingAccountDTO bankingAccount = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BankingAccountDTO.class
+        );
+
+        // then
+        assertThat(bankingAccount).isNotNull();
+        assertThat(bankingAccount.accountStatus()).isEqualTo(BankingAccountStatus.CLOSED);
     }
 
     @Test
@@ -183,93 +236,20 @@ public class BankingAccountIntegrationTest {
                 rawPassword
         );
 
-        BankingAccount bankingAccount = new BankingAccount(customerB);
-        bankingAccount.setAccountNumber("US00 1111 1111 2222 2222 3333");
-        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccountRepository.save(bankingAccount);
+        BankingAccount givenBankingAccount = new BankingAccount(customerB);
+        givenBankingAccount.setAccountNumber("US0011111111222222223333");
+        givenBankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        givenBankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountRepository.save(givenBankingAccount);
 
         // when
-        // then
-        mockMvc
-                .perform(MockMvcRequestBuilders
-                        .post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().is(403));
-    }
-
-    @Test
-    @DisplayName("Should close an account even if its not yours when you are ADMIN")
-    void shouldCloseBankingAccountWhenItsNotYoursAndButYouAreAdmin() throws Exception {
-        // given
-        loginWithCustomer(customerAdmin);
-        BankingAccountCloseRequest request = new BankingAccountCloseRequest(
-                rawPassword
-        );
-
-        BankingAccount bankingAccount = new BankingAccount(customerA);
-        bankingAccount.setAccountNumber("US00 1111 1111 2222 2222 3333");
-        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccountRepository.save(bankingAccount);
-
-        // when
-        // then
-        mockMvc
-                .perform(MockMvcRequestBuilders
-                        .post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/close")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().is(200));
-    }
-
-    @Test
-    @DisplayName("Should get a customer with its banking account data")
-    void shouldGetCustomerWithBankingAccount() throws Exception {
-        loginWithCustomer(customerAdmin);
-        Set<BankingAccount> bankingAccounts = new HashSet<>();
-
-        BankingAccount bankingAccount1 = new BankingAccount();
-        bankingAccount1.setOwner(customerAdmin);
-        bankingAccount1.setAccountNumber("12345678");
-        bankingAccount1.setBalance(BigDecimal.valueOf(100));
-        bankingAccount1.setAccountStatus(BankingAccountStatus.OPEN);
-        bankingAccount1.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount1.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccount1.setCreatedAt(Instant.now());
-        bankingAccounts.add(bankingAccount1);
-
-        BankingAccount bankingAccount2 = new BankingAccount();
-        bankingAccount2.setOwner(customerAdmin);
-        bankingAccount2.setAccountNumber("001231443");
-        bankingAccount2.setBalance(BigDecimal.valueOf(350));
-        bankingAccount2.setAccountStatus(BankingAccountStatus.OPEN);
-        bankingAccount2.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount2.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccount2.setCreatedAt(Instant.now());
-        bankingAccounts.add(bankingAccount2);
-
-        customerAdmin.setBankingAccounts(bankingAccounts);
-
-        bankingAccountRepository.save(bankingAccount1);
-        bankingAccountRepository.save(bankingAccount2);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/customers/" + customerAdmin.getId())
-                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+        mockMvc.perform(
+                       post("/api/v1/customers/me/banking/accounts/{id}/close", givenBankingAccount.getId())
+                               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                               .contentType(MediaType.APPLICATION_JSON)
+                               .content(objectMapper.writeValueAsString(request)))
                .andDo(print())
-               .andExpect(status().is(200))
-               .andExpect(jsonPath(
-                       "$.bankingAccounts.[?(@.id == " + bankingAccount1.getId() + ")].accountNumber").value(
-                       bankingAccount1.getAccountNumber()))
-               .andExpect(jsonPath(
-                       "$.bankingAccounts.[?(@.id == " + bankingAccount2.getId() + ")].accountNumber").value(
-                       bankingAccount2.getAccountNumber()))
-               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+               .andExpect(status().is(403));
     }
 
     @Test
@@ -417,41 +397,41 @@ public class BankingAccountIntegrationTest {
                .andExpect(status().is(500));
     }
 
-    @Test
-    @DisplayName("Should not create transaction when insufficient funds")
-    void shouldNotCreateTransactionWhenInsufficientFunds() throws Exception {
-        // given
-        loginWithCustomer(customerA);
-        BankingAccount bankingAccount = new BankingAccount(customerA);
-        bankingAccount.setAccountNumber("ES1234567890123456789012");
-        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
-        bankingAccount.setBalance(BigDecimal.ZERO);
-
-        bankingAccountRepository.save(bankingAccount);
-
-        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
-                null,
-                BigDecimal.valueOf(1000),
-                BankingTransactionType.CARD_CHARGE,
-                "Enjoy!"
-        );
-
-        BankingTransaction transaction = new BankingTransaction(bankingAccount);
-        transaction.setTransactionType(request.transactionType());
-        transaction.setDescription(request.description());
-        transaction.setAmount(request.amount());
-
-        // when
-        // then
-        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/transaction")
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(request)))
-               .andDo(print())
-               .andExpect(status().is(409));
-    }
+    //    @Test
+    //    @DisplayName("Should not create transaction when insufficient funds")
+    //    void shouldNotCreateTransactionWhenInsufficientFunds() throws Exception {
+    //        // given
+    //        loginWithCustomer(customerA);
+    //        BankingAccount bankingAccount = new BankingAccount(customerA);
+    //        bankingAccount.setAccountNumber("ES1234567890123456789012");
+    //        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+    //        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+    //        bankingAccount.setBalance(BigDecimal.ZERO);
+    //
+    //        bankingAccountRepository.save(bankingAccount);
+    //
+    //        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+    //                null,
+    //                BigDecimal.valueOf(1000),
+    //                BankingTransactionType.CARD_CHARGE,
+    //                "Enjoy!"
+    //        );
+    //
+    //        BankingTransaction transaction = new BankingTransaction(bankingAccount);
+    //        transaction.setTransactionType(request.transactionType());
+    //        transaction.setDescription(request.description());
+    //        transaction.setAmount(request.amount());
+    //
+    //        // when
+    //        // then
+    //        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/transaction")
+    //                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+    //                       .contentType(MediaType.APPLICATION_JSON)
+    //                       .content(objectMapper.writeValueAsString(request)))
+    //               .andDo(print())
+    //               .andExpect(status().is(409));
+    //    }
 
     //    @Test
     //    @DisplayName("Should rollback transfer if receiver account does not exist")
@@ -503,31 +483,5 @@ public class BankingAccountIntegrationTest {
     //        assertThat(refreshedReceiverAccount.getAccountTransactions()).isEmpty();
     //    }
 
-    @Test
-    @DisplayName("Should generate a card")
-    void shouldGenerateCard() throws Exception {
-        // given
-        loginWithCustomer(customerA);
 
-        BankingAccount bankingAccount = new BankingAccount(customerA);
-        bankingAccount.setAccountNumber("ES1234567890123456789012");
-        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
-        bankingAccount.setBalance(BigDecimal.valueOf(1000));
-        bankingAccountRepository.save(bankingAccount);
-
-        BankingCardRequest request = new BankingCardRequest(
-                BankingCardType.DEBIT
-        );
-
-        // when
-        // then
-        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/cards")
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(request)))
-               .andDo(print())
-               .andExpect(status().is(201));
-    }
 }

@@ -4,7 +4,10 @@ import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardSpendRequest;
 import com.damian.xBank.banking.card.http.BankingCardWithdrawalRequest;
-import com.damian.xBank.banking.transactions.*;
+import com.damian.xBank.banking.transactions.BankingTransaction;
+import com.damian.xBank.banking.transactions.BankingTransactionService;
+import com.damian.xBank.banking.transactions.BankingTransactionStatus;
+import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.common.utils.AuthCustomer;
 import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
@@ -15,16 +18,13 @@ import java.math.BigDecimal;
 public class BankingCardUsageService {
 
     private final BankingCardRepository bankingCardRepository;
-    private final BankingTransactionRepository bankingTransactionRepository;
     private final BankingTransactionService bankingTransactionService;
 
     public BankingCardUsageService(
             BankingCardRepository bankingCardRepository,
-            BankingTransactionRepository bankingTransactionRepository,
             BankingTransactionService bankingTransactionService
     ) {
         this.bankingCardRepository = bankingCardRepository;
-        this.bankingTransactionRepository = bankingTransactionRepository;
         this.bankingTransactionService = bankingTransactionService;
     }
 
@@ -77,9 +77,7 @@ public class BankingCardUsageService {
 
         // check balance
         if (!card.hasEnoughFundsToSpend(amount)) {
-            transaction.setTransactionStatus(BankingTransactionStatus.FAILED);
-            transaction.setDescription("Not enough balance.");
-            throw new BankingCardAuthorizationException("Not enough balance.");
+            throw new BankingCardAuthorizationException("Insufficient funds.");
         }
 
         // if the transaction is created, deduce the amount from balance

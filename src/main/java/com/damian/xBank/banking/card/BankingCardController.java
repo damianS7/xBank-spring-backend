@@ -62,7 +62,7 @@ public class BankingCardController {
 
 
     // endpoint for logged customer to cancel a BankingCard
-    @GetMapping("/customers/me/banking/cards/{id}/cancel")
+    @PostMapping("/customers/me/banking/cards/{id}/cancel")
     public ResponseEntity<?> customerCancelBankingCard(
             @PathVariable @NotNull @Positive
             Long id,

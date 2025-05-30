@@ -6,6 +6,7 @@ import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.card.BankingCardRepository;
 import com.damian.xBank.banking.card.BankingCardService;
 import com.damian.xBank.banking.card.BankingCardType;
+import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccountLimitReached;
 import com.damian.xBank.banking.card.http.BankingCardRequest;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
@@ -206,5 +207,37 @@ public class BankingAccountCardManagerServiceTest {
         assertThat(requestedBankingCard).isNotNull();
         assertThat(requestedBankingCard.getCardNumber()).isEqualTo(givenBankingCard.getCardNumber());
         assertThat(requestedBankingCard.getCardType()).isEqualTo(givenBankingCard.getCardType());
+    }
+
+    @Test
+    @DisplayName("Should fail to request a BankingCard when reached limit")
+    void shouldFailToRequestBankingCardWhenLimitReached() {
+        // given
+        setUpContext(customerA);
+
+        BankingAccount givenBankAccount = new BankingAccount(customerA);
+        givenBankAccount.setId(1L);
+        givenBankAccount.setAccountNumber("US9900001111112233334444");
+        givenBankAccount.addBankingCard(new BankingCard());
+        givenBankAccount.addBankingCard(new BankingCard());
+        givenBankAccount.addBankingCard(new BankingCard());
+        givenBankAccount.addBankingCard(new BankingCard());
+        givenBankAccount.addBankingCard(new BankingCard());
+
+        BankingCardRequest request = new BankingCardRequest(BankingCardType.CREDIT);
+
+        // when
+        when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
+
+        BankingCardMaximumCardsPerAccountLimitReached exception = assertThrows(
+                BankingCardMaximumCardsPerAccountLimitReached.class,
+                () -> bankingAccountCardManagerService.requestBankingCard(
+                        givenBankAccount.getId(),
+                        request
+                )
+        );
+
+        // then
+        assertTrue(exception.getMessage().contains("The account has reached the maximum number of cards allowed"));
     }
 }

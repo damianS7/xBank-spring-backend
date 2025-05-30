@@ -6,11 +6,11 @@ public class BankingCardMaximumCardsPerAccountLimitReached extends BankingCardEx
     }
 
     public BankingCardMaximumCardsPerAccountLimitReached(int maxCardsPerAccount) {
-        this("The account already has reached the maximum number of cards allowed.");
+        this("The account has reached the maximum number of cards allowed.");
     }
 
     public BankingCardMaximumCardsPerAccountLimitReached() {
-        this("The account already has reached the maximum number of cards allowed.");
+        this("The account has reached the maximum number of cards allowed.");
     }
 }
 // BankingCardMaximumCardsPerAccountLimitReached

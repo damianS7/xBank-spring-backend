@@ -22,15 +22,15 @@ import java.util.Set;
 @RestController
 public class BankingAccountController {
     private final BankingAccountService bankingAccountService;
-    private final BankingAccountCardService bankingAccountCardService;
+    private final BankingAccountCardManagerService bankingAccountCardManagerService;
 
     @Autowired
     public BankingAccountController(
             BankingAccountService bankingAccountService,
-            BankingAccountCardService bankingAccountCardService
+            BankingAccountCardManagerService bankingAccountCardManagerService
     ) {
         this.bankingAccountService = bankingAccountService;
-        this.bankingAccountCardService = bankingAccountCardService;
+        this.bankingAccountCardManagerService = bankingAccountCardManagerService;
     }
 
     // endpoint to set an alias for an account
@@ -135,7 +135,7 @@ public class BankingAccountController {
             @Validated @RequestBody
             BankingCardRequest request
     ) {
-        BankingCard bankingCard = bankingAccountCardService.requestBankingCard(id, request);
+        BankingCard bankingCard = bankingAccountCardManagerService.requestBankingCard(id, request);
         BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
 
         return ResponseEntity

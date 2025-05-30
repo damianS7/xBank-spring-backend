@@ -81,8 +81,8 @@ public class BankingAccountServiceTest {
     void setUpContext(Customer customer) {
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         Mockito.when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(customer);
     }
 
@@ -293,117 +293,188 @@ public class BankingAccountServiceTest {
     }
 
     //    @Test
-    //    @DisplayName("Should generate a BankingCard")
-    //    void shouldGenerateBankingCard() {
+    //    @DisplayName("Should create a transaction deposit")
+    //    void shouldDeposit() {
     //        // given
-    //        Number numberMock = mock(Number.class);
+    //        BankingAccount bankingAccount = new BankingAccount(customerA);
+    //        bankingAccount.setId(12L);
+    //        bankingAccount.setAccountNumber("ES1234567890123456789012");
+    //        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+    //        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+    //        bankingAccount.setBalance(BigDecimal.ZERO);
     //
-    //        setUpContext(customerA);
+    //        BankingTransaction givenTransaction = new BankingTransaction();
+    //        givenTransaction.setTransactionType(BankingTransactionType.DEPOSIT);
+    //        givenTransaction.setId(5L);
+    //        givenTransaction.setAmount(BigDecimal.valueOf(200));
+    //        givenTransaction.setDescription("Just a gift :)");
     //
-    //        BankingCardRequest request = new BankingCardRequest(BankingCardType.CREDIT);
-    //
-    //        final String accountNumber = "US99 0000 1111 1122 3333 4444";
-    //
-    //        BankingAccount givenBankAccount = new BankingAccount(customerA);
-    //        givenBankAccount.setId(5L);
-    //        givenBankAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-    //        givenBankAccount.setAccountType(BankingAccountType.SAVINGS);
-    //        givenBankAccount.setAccountNumber(accountNumber);
-    //
-    //        BankingCard givenBankingCard = new BankingCard();
-    //        givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
-    //        givenBankingCard.setCardNumber("1234567890123456");
-    //        givenBankingCard.setCardType(BankingCardType.CREDIT);
-    //        givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
+    //        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+    //                null,
+    //                givenTransaction.getAmount(),
+    //                givenTransaction.getTransactionType(),
+    //                givenTransaction.getDescription()
+    //        );
     //
     //        // when
-    //        //        when(faker.finance()).thenReturn(finance);
-    //        when(faker.number()).thenReturn(numberMock);
-    //        when(faker.number().digits(3)).thenReturn("931");
-    //        when(faker.number().digits(4)).thenReturn("1234");
-    //        //        when(finance.creditCard()).thenReturn(givenBankingCard.getCardNumber());
-    //        when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
-    //        when(bankingCardRepository.save(any(BankingCard.class))).thenReturn(givenBankingCard);
-    //
-    //        BankingCard savedCard = bankingCardService.createCard(givenBankAccount.getId(), request);
-    //
-    //        // then
-    //        assertThat(savedCard.getCardNumber()).isEqualTo(givenBankingCard.getCardNumber());
-    //        assertThat(savedCard.getCardType()).isEqualTo(givenBankingCard.getCardType());
-    //        verify(bankingCardRepository, times(1)).save(any(BankingCard.class));
-    //    }
-    //
-    //    @Test
-    //    @DisplayName("Should generate a BankingCard when account is not yours but you are admin")
-    //    void shouldGenerateBankingCardWhenAccountIsNotYoursButYouAreAdmin() {
-    //        // given
-    //        Number numberMock = mock(Number.class);
-    //        setUpContext(customerAdmin);
-    //
-    //        BankingCardRequest request = new BankingCardRequest(BankingCardType.CREDIT);
-    //
-    //        final String accountNumber = "US99 0000 1111 1122 3333 4444";
-    //
-    //        BankingAccount givenBankAccount = new BankingAccount(customerA);
-    //        givenBankAccount.setId(5L);
-    //        givenBankAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-    //        givenBankAccount.setAccountType(BankingAccountType.SAVINGS);
-    //        givenBankAccount.setAccountNumber(accountNumber);
-    //
-    //        BankingCard givenBankingCard = new BankingCard();
-    //        givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
-    //        givenBankingCard.setCardNumber("1234567890123456");
-    //        givenBankingCard.setCardType(BankingCardType.CREDIT);
-    //        givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
-    //
-    //        // when
-    //        //        when(faker.finance()).thenReturn(finance);
-    //        when(faker.number()).thenReturn(numberMock);
-    //        when(faker.number().digits(3)).thenReturn("931");
-    //        when(faker.number().digits(4)).thenReturn("1234");
-    //        //        when(finance.creditCard()).thenReturn(givenBankingCard.getCardNumber());
-    //        when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
-    //        when(bankingCardRepository.save(any(BankingCard.class))).thenReturn(givenBankingCard);
-    //
-    //        BankingCard savedCard = bankingCardService.createCard(givenBankAccount.getId(), request);
-    //
-    //        // then
-    //        assertThat(savedCard.getCardNumber()).isEqualTo(givenBankingCard.getCardNumber());
-    //        assertThat(savedCard.getCardType()).isEqualTo(givenBankingCard.getCardType());
-    //        verify(bankingCardRepository, times(1)).save(any(BankingCard.class));
-    //    }
-    //
-    //    @Test
-    //    @DisplayName("Should not generate a BankingCard when BankingAccount is not yours")
-    //    void shouldNotGenerateBankingCardWhenBankingAccountIsNotYours() {
-    //        // given
-    //        setUpContext(customerA);
-    //
-    //        BankingCardRequest request = new BankingCardRequest(BankingCardType.CREDIT);
-    //
-    //        final String accountNumber = "US99 0000 1111 1122 3333 4444";
-    //
-    //        BankingAccount givenBankAccount = new BankingAccount(customerB);
-    //        givenBankAccount.setId(5L);
-    //        givenBankAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-    //        givenBankAccount.setAccountType(BankingAccountType.SAVINGS);
-    //        givenBankAccount.setAccountNumber(accountNumber);
-    //
-    //        BankingCard givenBankingCard = new BankingCard();
-    //        givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
-    //        givenBankingCard.setCardNumber("1234567890123456");
-    //        givenBankingCard.setCardType(BankingCardType.CREDIT);
-    //        givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
-    //
-    //        // when
-    //        when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
-    //
-    //        BankingAccountAuthorizationException exception = assertThrows(
-    //                BankingAccountAuthorizationException.class,
-    //                () -> bankingCardService.createCard(givenBankAccount.getId(), request)
+    //        when(bankingAccountRepository.findById(bankingAccount.getId())).thenReturn(Optional.of(bankingAccount));
+    //        BankingTransaction storedTransaction = bankingAccountService.handleCreateTransactionRequest(
+    //                bankingAccount.getId(),
+    //                request
     //        );
     //
     //        // then
-    //        assertTrue(exception.getMessage().contains("You are not the owner of this account."));
+    //        verify(bankingAccountRepository, times(1)).save(any(BankingAccount.class));
+    //        assertThat(storedTransaction.getAmount()).isEqualTo(request.amount());
+    //        assertThat(storedTransaction.getDescription()).isEqualTo(request.description());
+    //        assertThat(storedTransaction.getTransactionType()).isEqualTo(request.transactionType());
+    //    }
+
+    //    @DisplayName("Should create a transfer transaction")
+    //    void shouldTransferToAnotherCustomer() {
+    //        // given
+    //        setUpContext(customerA);
+    //
+    //        final long bankingAccountA_StartBalance = 1000;
+    //        BankingAccount bankingAccountA = new BankingAccount(customerA);
+    //        bankingAccountA.setAccountNumber("ES1234567890123444449013");
+    //        bankingAccountA.setId(1L);
+    //        bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
+    //        bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        bankingAccountA.setAccountStatus(BankingAccountStatus.OPEN);
+    //        bankingAccountA.setBalance(BigDecimal.valueOf(bankingAccountA_StartBalance));
+    //
+    //        final long bankingAccountB_StartBalance = 0;
+    //        BankingAccount bankingAccountB = new BankingAccount(customerB);
+    //        bankingAccountB.setId(5L);
+    //        bankingAccountB.setAccountNumber("ES1234567890123456789012");
+    //        bankingAccountB.setAccountType(BankingAccountType.SAVINGS);
+    //        bankingAccountB.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        bankingAccountB.setAccountStatus(BankingAccountStatus.OPEN);
+    //        bankingAccountB.setBalance(BigDecimal.valueOf(bankingAccountB_StartBalance));
+    //
+    //        BankingTransaction givenTransaction = new BankingTransaction();
+    //        givenTransaction.setTransactionType(BankingTransactionType.TRANSFER_TO);
+    //        givenTransaction.setId(5L);
+    //        givenTransaction.setAmount(BigDecimal.valueOf(200));
+    //        givenTransaction.setDescription("Just a gift :)");
+    //
+    //        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+    //                bankingAccountB.getAccountNumber(),
+    //                givenTransaction.getAmount(),
+    //                givenTransaction.getTransactionType(),
+    //                givenTransaction.getDescription()
+    //        );
+    //
+    //        // when
+    //        when(bankingAccountRepository.findById(bankingAccountB.getId())).thenReturn(Optional.of(bankingAccountB));
+    //        when(bankingAccountRepository.save(bankingAccountB)).thenReturn(bankingAccountB);
+    //        when(bankingAccountRepository.findById(bankingAccountA.getId())).thenReturn(Optional.of(bankingAccountA));
+    //        when(bankingAccountRepository.save(bankingAccountA)).thenReturn(bankingAccountA);
+    //        BankingTransaction storedTransaction = bankingAccountService.handleCreateTransactionRequest(
+    //                bankingAccountA.getId(),
+    //                request
+    //        );
+    //
+    //        // then
+    //        verify(bankingAccountRepository, times(2)).save(any(BankingAccount.class));
+    //        assertThat(storedTransaction.getAmount()).isEqualTo(request.amount());
+    //        assertThat(storedTransaction.getDescription()).isEqualTo(request.description());
+    //        assertThat(storedTransaction.getTransactionType()).isEqualTo(request.transactionType());
+    //        // banking account A should be 0
+    //        assertThat(bankingAccountA.getBalance()).isEqualTo(
+    //                BigDecimal.valueOf(bankingAccountA_StartBalance).subtract(request.amount())
+    //        );
+    //        // banking account b should be 200
+    //        assertThat(bankingAccountB.getBalance()).isEqualTo(
+    //                BigDecimal.valueOf(bankingAccountB_StartBalance).add(request.amount())
+    //        );
+    //
+    //    }
+    //
+    //    @Test
+    //    @DisplayName("Should not transfer to same banking account")
+    //    void shouldNotTransferToSameBankingAccount() {
+    //        // given
+    //        final long bankingAccountA_StartBalance = 1000;
+    //        BankingAccount bankingAccountA = new BankingAccount(customerA);
+    //        bankingAccountA.setAccountNumber("ES1234567890123444449013");
+    //        bankingAccountA.setId(1L);
+    //        bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
+    //        bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        bankingAccountA.setAccountStatus(BankingAccountStatus.OPEN);
+    //        bankingAccountA.setBalance(BigDecimal.valueOf(bankingAccountA_StartBalance));
+    //        bankingAccountRepository.save(bankingAccountA);
+    //
+    //        BankingTransaction givenTransaction = new BankingTransaction();
+    //        givenTransaction.setTransactionType(BankingTransactionType.TRANSFER_TO);
+    //        givenTransaction.setId(5L);
+    //        givenTransaction.setAmount(BigDecimal.valueOf(200));
+    //        givenTransaction.setDescription("Just a gift :)");
+    //
+    //        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+    //                bankingAccountA.getAccountNumber(),
+    //                givenTransaction.getAmount(),
+    //                givenTransaction.getTransactionType(),
+    //                givenTransaction.getDescription()
+    //        );
+    //
+    //        // when
+    //        BankingAccountException exception = assertThrows(
+    //                BankingAccountException.class,
+    //                () -> bankingAccountService.handleCreateTransactionRequest(
+    //                        bankingAccountA.getId(),
+    //                        request
+    //                )
+    //        );
+    //
+    //        // then
+    //        //        verify(bankingAccountRepository, times(0)).save(any(BankingAccount.class));
+    //        assertThat(exception.getMessage()).isEqualTo(
+    //                "You cannot transfer to the same banking account"
+    //        );
+    //    }
+    //
+    //    @Test
+    //    @DisplayName("Should not transfer when account not exists and balance must remain same")
+    //    void shouldNotTransferWhenDestinyNotExist() {
+    //        // given
+    //
+    //        final long bankingAccountA_StartBalance = 1000;
+    //        BankingAccount bankingAccountA = new BankingAccount(customerA);
+    //        bankingAccountA.setAccountNumber("ES1234567890123444449013");
+    //        bankingAccountA.setId(1L);
+    //        bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
+    //        bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        bankingAccountA.setAccountStatus(BankingAccountStatus.OPEN);
+    //        bankingAccountA.setBalance(BigDecimal.valueOf(bankingAccountA_StartBalance));
+    //
+    //        BankingTransaction givenTransaction = new BankingTransaction();
+    //        givenTransaction.setTransactionType(BankingTransactionType.TRANSFER_TO);
+    //        givenTransaction.setId(5L);
+    //        givenTransaction.setAmount(BigDecimal.valueOf(200));
+    //        givenTransaction.setDescription("Just a gift :)");
+    //
+    //        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+    //                "FAKE ACCOUNT NUMBER",
+    //                givenTransaction.getAmount(),
+    //                givenTransaction.getTransactionType(),
+    //                givenTransaction.getDescription()
+    //        );
+    //
+    //        // when
+    //        BankingAccountNotFoundException exception = assertThrows(
+    //                BankingAccountNotFoundException.class,
+    //                () -> bankingAccountService.handleCreateTransactionRequest(
+    //                        bankingAccountA.getId(),
+    //                        request
+    //                )
+    //        );
+    //
+    //        // then
+    //        verify(bankingAccountRepository, times(0)).save(any(BankingAccount.class));
+    //        assertThat(bankingAccountA.getBalance()).isEqualTo(BigDecimal.valueOf(bankingAccountA_StartBalance));
+    //        assertTrue(exception.getMessage().contains("Banking account not found"));
     //    }
 }

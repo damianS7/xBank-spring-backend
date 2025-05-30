@@ -1,13 +1,9 @@
 package com.damian.xBank.banking.card.admin;
 
-import com.damian.xBank.banking.card.BankingCard;
-import com.damian.xBank.banking.card.BankingCardDTO;
-import com.damian.xBank.banking.card.BankingCardDTOMapper;
 import com.damian.xBank.banking.card.BankingCardService;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,12 +53,13 @@ public class BankingCardAdminController {
             @PathVariable @NotNull @Positive
             Long id
     ) {
-        BankingCard bankingCard = bankingCardService.cancelCard(id);
-        BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(bankingCardDTO);
+        //        BankingCard bankingCard = bankingCardService.cancelCard(id);
+        //        BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
+        //
+        //        return ResponseEntity
+        //                .status(HttpStatus.OK)
+        //                .body(bankingCardDTO);
+        return null;
     }
 }
 

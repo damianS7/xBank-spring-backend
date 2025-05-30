@@ -4,7 +4,7 @@ import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.banking.account.*;
 import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
-import com.damian.xBank.banking.card.http.BankingCardCreateRequest;
+import com.damian.xBank.banking.card.http.BankingCardRequest;
 import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
@@ -131,7 +131,7 @@ public class BankingCardIntegrationTest {
         bankingAccount.setBalance(BigDecimal.valueOf(1000));
         bankingAccountRepository.save(bankingAccount);
 
-        BankingCardCreateRequest request = new BankingCardCreateRequest(
+        BankingCardRequest request = new BankingCardRequest(
                 BankingCardType.DEBIT
         );
 

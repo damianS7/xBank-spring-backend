@@ -1,8 +1,8 @@
-package com.damian.xBank.banking.card.http;
+package com.damian.xBank.auth.http;
 
 import jakarta.validation.constraints.NotNull;
 
-public record BankingCardLockStatusRequest(
+public record PasswordConfirmationRequest(
         @NotNull(
                 message = "Password must not be null"
         )

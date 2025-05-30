@@ -8,6 +8,11 @@ public record BankingCardSetPinRequest(
                 message = "PIN must not be null"
         )
         @Pattern(regexp = "\\d{4}", message = "PIN must be exactly 4 digits")
-        String pin
+        String pin,
+
+        @NotNull(
+                message = "Password must not be null"
+        )
+        String password
 ) {
 }

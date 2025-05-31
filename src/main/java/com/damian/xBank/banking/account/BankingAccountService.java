@@ -75,12 +75,7 @@ public class BankingAccountService {
         // we extract the customer logged from the SecurityContext
         final Customer customerLogged = AuthCustomer.getLoggedCustomer();
 
-        // we get the Customer entity so we can save at the end
-        final Customer customer = customerRepository.findByEmail(customerLogged.getEmail()).orElseThrow(
-                () -> new CustomerNotFoundException(customerLogged.getEmail())
-        );
-
-        return this.createBankingAccount(customer, request.accountType(), request.accountCurrency());
+        return this.createBankingAccountForCustomer(customerLogged.getId(), request);
     }
 
     private BankingAccount updateBankingAccountStatus(

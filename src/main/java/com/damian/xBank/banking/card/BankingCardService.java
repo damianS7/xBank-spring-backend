@@ -6,12 +6,12 @@ import com.damian.xBank.banking.account.exception.BankingAccountNotFoundExceptio
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
+import com.damian.xBank.banking.card.http.BankingCardSetLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.AuthCustomer;
 import com.damian.xBank.customer.Customer;
 import net.datafaker.Faker;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -33,21 +33,24 @@ public class BankingCardService {
         this.faker = faker;
     }
 
-    public Set<BankingCard> getBankingCards() {
+    // return the cards of the logged customer
+    public Set<BankingCard> getLoggedCustomerBankingCards() {
         // Customer logged
-        final Customer customerLogged = (Customer) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
+        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
 
-        return this.getBankingCards(customerLogged.getId());
+        return this.getCustomerBankingCards(customerLogged.getId());
     }
 
-    public Set<BankingCard> getBankingCards(Long customerId) {
+    // return the cards of a customer
+    public Set<BankingCard> getCustomerBankingCards(Long customerId) {
         return bankingCardRepository.findCardsByCustomerId(customerId);
     }
 
-    public BankingCard createCard(BankingAccount bankingAccount, BankingCardType cardType) {
+    // create a new card and associate to the account
+    public BankingCard createBankingCard(
+            BankingAccount bankingAccount,
+            BankingCardType cardType
+    ) {
         // create the card and associate to the account
         BankingCard bankingCard = new BankingCard();
         bankingCard.setCardCvv(this.generateCardCVV());
@@ -63,31 +66,45 @@ public class BankingCardService {
         return bankingCardRepository.save(bankingCard);
     }
 
-    public BankingCard lockCardRequest(
-            Long bankingCardId,
-            PasswordConfirmationRequest request
+    // set the lock status of the card
+    private BankingCard setCardLockStatus(
+            BankingCard card,
+            BankingCardLockStatus cardLockStatus
     ) {
-        return this.setCardLockStatusRequest(bankingCardId, BankingCardLockStatus.LOCKED, request);
+        // we mark the card as locked
+        card.setLockStatus(cardLockStatus);
+
+        // we change the updateAt timestamp field
+        card.setUpdatedAt(Instant.now());
+
+        // save the data and return BankingAccount
+        return bankingCardRepository.save(card);
     }
 
-    public BankingCard unlockCardRequest(
+    // (admin) set the lock status of the card.
+    public BankingCard setCardLockStatusAsAdmin(
             Long bankingCardId,
-            PasswordConfirmationRequest request
+            BankingCardLockStatus cardLockStatus
     ) {
-        return this.setCardLockStatusRequest(bankingCardId, BankingCardLockStatus.UNLOCKED, request);
+        // Banking card to set lock status
+        final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
+                // Banking card not found
+                () -> new BankingCardNotFoundException(bankingCardId));
+
+        return this.setCardLockStatus(bankingCard, cardLockStatus);
     }
 
-    public BankingCard setCardLockStatusRequest(
+    // set the lock status of the card for customers logged
+    public BankingCard setCardLockStatus(
             Long bankingCardId,
-            BankingCardLockStatus cardLockStatus,
-            PasswordConfirmationRequest request
+            BankingCardSetLockStatusRequest request
     ) {
         // Customer logged
         final Customer customerLogged = AuthCustomer.getLoggedCustomer();
 
         // Banking account to be closed
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
-                // Banking account not found
+                // Banking card not found
                 () -> new BankingCardNotFoundException(bankingCardId));
 
         // if the logged customer is admin just set the lock status and skip checks
@@ -104,21 +121,42 @@ public class BankingCardService {
             }
         }
 
-        return this.setCardLockStatus(bankingCard, cardLockStatus);
+        return this.setCardLockStatus(bankingCard, request.lockStatus());
     }
 
-    public BankingCard setCardLockStatus(BankingCard card, BankingCardLockStatus cardLockStatus) {
-        // we mark the card as locked
-        card.setLockStatus(cardLockStatus);
+    // set the limit of the card
+    private BankingCard setDailyLimit(
+            BankingCard bankingCard,
+            BigDecimal dailyLimit
+    ) {
+        // we set the limit of the card
+        bankingCard.setDailyLimit(dailyLimit);
 
         // we change the updateAt timestamp field
-        card.setUpdatedAt(Instant.now());
+        bankingCard.setUpdatedAt(Instant.now());
 
-        // save the data and return BankingAccount
-        return bankingCardRepository.save(card);
+        // save the data and return BankingCard
+        return bankingCardRepository.save(bankingCard);
     }
 
-    public BankingCard setDailyLimitRequest(Long bankingCardId, BankingCardSetDailyLimitRequest request) {
+    // (admin) set the limit of the card
+    public BankingCard setDailyLimitAsAdmin(
+            Long bankingCardId,
+            BigDecimal dailyLimit
+    ) {
+        // Banking card to set limit
+        final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
+                // Banking card not found
+                () -> new BankingCardNotFoundException(bankingCardId));
+
+        return this.setDailyLimit(bankingCard, dailyLimit);
+    }
+
+    // set the limit of the card for customers logged
+    public BankingCard setDailyLimit(
+            Long bankingCardId,
+            BankingCardSetDailyLimitRequest request
+    ) {
         // Customer logged
         final Customer customerLogged = AuthCustomer.getLoggedCustomer();
 
@@ -144,9 +182,10 @@ public class BankingCardService {
         return this.setDailyLimit(bankingCard, request.dailyLimit());
     }
 
-    public BankingCard setDailyLimit(BankingCard bankingCard, BigDecimal dailyLimit) {
-        // we set the limit of the card
-        bankingCard.setDailyLimit(dailyLimit);
+    // cancel the card
+    private BankingCard cancelCard(BankingCard bankingCard) {
+        // we mark the card as disabled
+        bankingCard.setCardStatus(BankingCardStatus.DISABLED);
 
         // we change the updateAt timestamp field
         bankingCard.setUpdatedAt(Instant.now());
@@ -155,13 +194,27 @@ public class BankingCardService {
         return bankingCardRepository.save(bankingCard);
     }
 
-    public BankingCard cancelCardRequest(Long bankingCardId, PasswordConfirmationRequest request) {
+    // (admin) cancel the card
+    public BankingCard cancelCardAsAdmin(Long bankingCardId) {
+        // Banking card to cancel
+        final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
+                // Banking card not found
+                () -> new BankingCardNotFoundException(bankingCardId));
+
+        return this.cancelCard(bankingCard);
+    }
+
+    // cancel the card for customers logged
+    public BankingCard cancelCard(
+            Long bankingCardId,
+            PasswordConfirmationRequest request
+    ) {
         // Customer logged
         final Customer customerLogged = AuthCustomer.getLoggedCustomer();
 
         // Banking card to be cancel
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
-                // Banking account not found
+                // Banking card not found
                 () -> new BankingCardNotFoundException(bankingCardId));
 
         // if the logged customer is not admin
@@ -181,18 +234,30 @@ public class BankingCardService {
         return this.cancelCard(bankingCard);
     }
 
-    public BankingCard cancelCard(BankingCard bankingCard) {
-        // we mark the card as disabled
-        bankingCard.setCardStatus(BankingCardStatus.DISABLED);
+    // set the pin
+    private BankingCard setBankingCardPin(BankingCard bankingCard, String pin) {
+        // we set the new pin
+        bankingCard.setCardPin(pin);
 
         // we change the updateAt timestamp field
         bankingCard.setUpdatedAt(Instant.now());
 
-        // save the data and return BankingCard
+        // save the data and return BankingAccount
         return bankingCardRepository.save(bankingCard);
     }
 
-    public BankingCard setBankingCardPinRequest(Long bankingCardId, BankingCardSetPinRequest request) {
+    // (admin) set the pin
+    public BankingCard setBankingCardPinAsAdmin(Long bankingCardId, String pin) {
+        // Banking card to set pin
+        final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
+                // Banking card not found
+                () -> new BankingCardNotFoundException(bankingCardId));
+
+        return this.setBankingCardPin(bankingCard, pin);
+    }
+
+    // set the pin for customers logged
+    public BankingCard setBankingCardPin(Long bankingCardId, BankingCardSetPinRequest request) {
         // Customer logged
         final Customer customerLogged = AuthCustomer.getLoggedCustomer();
 
@@ -218,17 +283,6 @@ public class BankingCardService {
         }
 
         return this.setBankingCardPin(bankingCard, request.pin());
-    }
-
-    public BankingCard setBankingCardPin(BankingCard bankingCard, String pin) {
-        // we set the new pin
-        bankingCard.setCardPin(pin);
-
-        // we change the updateAt timestamp field
-        bankingCard.setUpdatedAt(Instant.now());
-
-        // save the data and return BankingAccount
-        return bankingCardRepository.save(bankingCard);
     }
 
     public String generateCardNumber() {

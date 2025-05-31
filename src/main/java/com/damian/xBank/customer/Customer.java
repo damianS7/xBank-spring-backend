@@ -184,4 +184,20 @@ public class Customer implements CustomerDetails {
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
+
+    @Override
+    public String toString() {
+        return "Customer{" +
+               "id=" + id +
+               ", email='" + email + '\'' +
+               ", auth_id=" + auth.getId() +
+               ", auth_password=" + auth.getPassword() +
+               ", auth_account_status=" + auth.getAuthAccountStatus() +
+               ", profile=" + profile.getId() +
+               ", role=" + role +
+               ", createdAt=" + createdAt +
+               ", updatedAt=" + updatedAt +
+               '}';
+
+    }
 }

@@ -109,7 +109,7 @@ public class BankingAccountCardManagerServiceTest {
 
         // when
         when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
-        when(bankingCardService.createCard(any(BankingAccount.class), any(BankingCardType.class)))
+        when(bankingCardService.createBankingCard(any(BankingAccount.class), any(BankingCardType.class)))
                 .thenReturn(givenBankingCard);
 
         BankingCard requestedBankingCard = bankingAccountCardManagerService.requestBankingCard(
@@ -195,7 +195,7 @@ public class BankingAccountCardManagerServiceTest {
 
         // when
         when(bankingAccountRepository.findById(anyLong())).thenReturn(Optional.of(givenBankAccount));
-        when(bankingCardService.createCard(any(BankingAccount.class), any(BankingCardType.class)))
+        when(bankingCardService.createBankingCard(any(BankingAccount.class), any(BankingCardType.class)))
                 .thenReturn(givenBankingCard);
 
         BankingCard requestedBankingCard = bankingAccountCardManagerService.requestBankingCard(

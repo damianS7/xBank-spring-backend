@@ -52,7 +52,7 @@ public class BankingAccountCardManagerService {
         }
 
         // create the card and associate to the account and return it.
-        return bankingCardService.createCard(bankingAccount, request.cardType());
+        return bankingCardService.createBankingCard(bankingAccount, request.cardType());
     }
 
     // It counts how many active (ENABLED) cards has this account

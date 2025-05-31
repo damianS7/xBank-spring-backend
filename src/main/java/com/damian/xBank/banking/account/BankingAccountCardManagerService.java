@@ -29,7 +29,7 @@ public class BankingAccountCardManagerService {
         // Customer logged
         final Customer customerLogged = AuthCustomer.getLoggedCustomer();
 
-        // we get the BankingAccount where the card will be created.
+        // we get the BankingAccount to associate the card created.
         final BankingAccount bankingAccount = bankingAccountRepository
                 .findById(bankingAccountId)
                 .orElseThrow(
@@ -46,15 +46,16 @@ public class BankingAccountCardManagerService {
             // check password
         }
 
-        // count how many active (ENABLED) cards has this account and check if exceeds the limit.
+        // if customer has reached the maximum amount of cards per account.
         if (countActiveCards(bankingAccount) >= MAX_CARDS_PER_ACCOUNT) {
             throw new BankingCardMaximumCardsPerAccountLimitReached();
         }
 
-        // create the card and associate to the account
+        // create the card and associate to the account and return it.
         return bankingCardService.createCard(bankingAccount, request.cardType());
     }
 
+    // It counts how many active (ENABLED) cards has this account
     private int countActiveCards(BankingAccount bankingAccount) {
         return (int) bankingAccount
                 .getBankingCards()

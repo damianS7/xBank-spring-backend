@@ -3,11 +3,6 @@ package com.damian.xBank.banking.card;
 import com.damian.xBank.auth.http.PasswordConfirmationRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
-import com.damian.xBank.banking.card.http.BankingCardSpendRequest;
-import com.damian.xBank.banking.card.http.BankingCardWithdrawalRequest;
-import com.damian.xBank.banking.transactions.BankingTransaction;
-import com.damian.xBank.banking.transactions.BankingTransactionDTO;
-import com.damian.xBank.banking.transactions.BankingTransactionDTOMapper;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,39 +38,6 @@ public class BankingCardController {
                 .status(HttpStatus.OK)
                 .body(bankingCardsDTO);
     }
-
-    // endpoint to create a spend with a BankingCard
-    @PostMapping("/customers/me/banking/cards/{id}/spend")
-    public ResponseEntity<?> customerCardSpend(
-            @PathVariable @NotNull @Positive
-            Long id,
-            @Validated @RequestBody
-            BankingCardSpendRequest request
-    ) {
-        BankingTransaction transaction = bankingCardUsageService.spendRequest(id, request);
-        BankingTransactionDTO transactionDTO = BankingTransactionDTOMapper.toBankingTransactionDTO(transaction);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(transactionDTO);
-    }
-
-    // endpoint to withdraw from a BankingCard
-    @PostMapping("/customers/me/banking/cards/{id}/withdraw")
-    public ResponseEntity<?> customerCardWithdraw(
-            @PathVariable @NotNull @Positive
-            Long id,
-            @Validated @RequestBody
-            BankingCardWithdrawalRequest request
-    ) {
-        BankingTransaction transaction = bankingCardUsageService.withdrawalRequest(id, request);
-        BankingTransactionDTO transactionDTO = BankingTransactionDTOMapper.toBankingTransactionDTO(transaction);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(transactionDTO);
-    }
-
 
     // endpoint for logged customer to cancel a BankingCard
     @PostMapping("/customers/me/banking/cards/{id}/cancel")

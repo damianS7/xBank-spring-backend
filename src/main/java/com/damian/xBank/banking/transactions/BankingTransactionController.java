@@ -1,5 +1,7 @@
 package com.damian.xBank.banking.transactions;
 
+import com.damian.xBank.banking.transactions.http.BankingAccountTransactionRequest;
+import com.damian.xBank.banking.transactions.http.BankingCardTransactionRequest;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +11,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/v1")
 @RestController
@@ -56,6 +56,28 @@ public class BankingTransactionController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(transactionDTOS);
+    }
+
+    // endpoint for logged customer to do card transactions
+    @PostMapping("/customers/me/banking/cards/{id}/transactions")
+    public ResponseEntity<?> customerBankingCardTransaction(
+            @PathVariable @NotNull @Positive
+            Long id,
+            @Validated @RequestBody
+            BankingCardTransactionRequest request
+    ) {
+        return null;
+    }
+
+    // endpoint for logged customer to do card transactions
+    @PostMapping("/customers/me/banking/accounts/{id}/transactions")
+    public ResponseEntity<?> customerBankingAccountTransaction(
+            @PathVariable @NotNull @Positive
+            Long id,
+            @Validated @RequestBody
+            BankingAccountTransactionRequest request
+    ) {
+        return null;
     }
 }
 

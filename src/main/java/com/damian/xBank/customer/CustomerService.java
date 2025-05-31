@@ -149,7 +149,9 @@ public class CustomerService {
 
         // Before making any changes we check that the password sent by the customer matches the one in the entity
         if (!bCryptPasswordEncoder.matches(request.currentPassword(), customer.getPassword())) {
-            throw new PasswordMismatchException();
+            throw new PasswordMismatchException(
+                    PasswordMismatchException.PASSWORD_MISMATCH
+            );
         }
 
         // if the email is not null we modify in the customer

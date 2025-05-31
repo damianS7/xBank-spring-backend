@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CustomerDetailsService implements UserDetailsService {
-    private CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
 
     public CustomerDetailsService(CustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
@@ -20,8 +20,9 @@ public class CustomerDetailsService implements UserDetailsService {
     }
 
     public CustomerDetails loadCustomerByEmail(String email) throws UsernameNotFoundException {
-        return customerRepository.findByEmail(email)
-                                 .orElseThrow(AuthenticationBadCredentialsException::new
-                                 );
+        return customerRepository
+                .findByEmail(email)
+                .orElseThrow(AuthenticationBadCredentialsException::new
+                );
     }
 }

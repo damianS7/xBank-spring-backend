@@ -7,6 +7,7 @@ import java.time.LocalDate;
 public record BankingCardDTO(
         Long id,
         Long bankingAccountId,
+        String cardHolder,
         String cardNumber,
         String cardCVV,
         String cardPIN,

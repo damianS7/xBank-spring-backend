@@ -8,6 +8,7 @@ public class BankingCardDTOMapper {
         return new BankingCardDTO(
                 bankingCard.getId(),
                 bankingCard.getAssociatedBankingAccount().getId(),
+                bankingCard.getHolderName(),
                 bankingCard.getCardNumber(),
                 bankingCard.getCardCvv(),
                 bankingCard.getCardPin(),

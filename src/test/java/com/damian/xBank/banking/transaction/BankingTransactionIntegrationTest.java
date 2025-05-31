@@ -3,14 +3,18 @@ package com.damian.xBank.banking.transaction;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.banking.account.*;
+import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.card.BankingCardStatus;
 import com.damian.xBank.banking.card.BankingCardType;
+import com.damian.xBank.banking.transactions.BankingTransaction;
+import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,4 +181,278 @@ public class BankingTransactionIntegrationTest {
                 .andExpect(jsonPath("$.content.length()").value(0)) // o el número que esperás
                 .andExpect(jsonPath("$.totalPages").value(0));
     }
+
+    @Test
+    @DisplayName("Should create a transaction deposit")
+    void shouldCreateTransactionDeposit() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.ZERO);
+
+        bankingAccountRepository.save(bankingAccount);
+
+        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+                null,
+                BigDecimal.valueOf(1000),
+                BankingTransactionType.DEPOSIT,
+                "Enjoy!"
+        );
+
+        BankingTransaction transaction = new BankingTransaction(bankingAccount);
+        transaction.setTransactionType(request.transactionType());
+        transaction.setDescription(request.description());
+        transaction.setAmount(request.amount());
+
+        // when
+        //        when(bankingAccountService.createTransaction(request)).thenReturn(transaction);
+
+        // then
+        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/transaction")
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(request)))
+               .andDo(print())
+               .andExpect(status().is(201));
+    }
+
+
+    //    @Test
+    //    @DisplayName("Should create a transfer transaction")
+    //    void shouldTransferToAnotherCustomer() throws Exception {
+    //        // given
+    //        loginWithCustomer(customerA);
+    //        BankingAccount bankingAccountA = new BankingAccount(customerA);
+    //        bankingAccountA.setAccountNumber("ES1234567890123456789012");
+    //        bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
+    //        bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        bankingAccountA.setAccountStatus(BankingAccountStatus.OPEN);
+    //        bankingAccountA.setBalance(BigDecimal.valueOf(3200));
+    //
+    //        bankingAccountRepository.save(bankingAccountA);
+    //
+    //        BankingAccount bankingAccountB = new BankingAccount(customerB);
+    //        bankingAccountB.setAccountNumber("DE1234567890123456789012");
+    //        bankingAccountB.setAccountType(BankingAccountType.SAVINGS);
+    //        bankingAccountB.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        bankingAccountB.setAccountStatus(BankingAccountStatus.OPEN);
+    //        bankingAccountB.setBalance(BigDecimal.valueOf(200));
+    //
+    //        bankingAccountRepository.save(bankingAccountB);
+    //
+    //        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+    //                bankingAccountB.getAccountNumber(),
+    //                BigDecimal.valueOf(1000),
+    //                BankingTransactionType.TRANSFER_TO,
+    //                "Enjoy!"
+    //        );
+    //
+    //        // when
+    //        // then
+    //        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccountA.getId() + "/transaction")
+    //                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+    //                       .contentType(MediaType.APPLICATION_JSON)
+    //                       .content(objectMapper.writeValueAsString(request)))
+    //               .andDo(print())
+    //               .andExpect(status().is(201));
+    //    }
+
+    @Test
+    @DisplayName("Should not create a transaction when account is not open")
+    void shouldNotCreateTransactionWhenAccountIsNotOpen() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.CLOSED);
+        bankingAccount.setBalance(BigDecimal.ZERO);
+
+        bankingAccountRepository.save(bankingAccount);
+
+        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+                null,
+                BigDecimal.valueOf(1000),
+                BankingTransactionType.DEPOSIT,
+                "Enjoy!"
+        );
+
+        BankingTransaction transaction = new BankingTransaction(bankingAccount);
+        transaction.setTransactionType(request.transactionType());
+        transaction.setDescription(request.description());
+        transaction.setAmount(request.amount());
+
+        // when
+        // then
+        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/transaction")
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(request)))
+               .andDo(print())
+               .andExpect(status().is(500));
+    }
+
+    @Test
+    @DisplayName("Should not transfer to same banking account")
+    void shouldNotTransferToSameBankingAccount() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+        BankingAccount bankingAccountA = new BankingAccount(customerA);
+        bankingAccountA.setAccountNumber("ES12 3456 7890 1234 5678 9012");
+        bankingAccountA.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccountA.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountA.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccountA.setBalance(BigDecimal.valueOf(3200));
+
+        bankingAccountRepository.save(bankingAccountA);
+
+        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+                bankingAccountA.getAccountNumber(),
+                BigDecimal.valueOf(1000),
+                BankingTransactionType.TRANSFER_TO,
+                "Enjoy!"
+        );
+
+        // when
+        // then
+        mockMvc.perform(post("/api/v1/banking/customers/me/account/" + bankingAccountA.getId() + "/transaction")
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(request)))
+               .andDo(print())
+               .andExpect(status().is(500));
+    }
+
+    // TODO shouldSpend
+    @Test
+    @Disabled
+    @DisplayName("Should create a transaction card charge")
+    void shouldCreateTransactionCardCharge() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+
+        BankingAccount bankingAccount = new BankingAccount(customerA);
+        bankingAccount.setAccountNumber("ES1234567890123456789012");
+        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+        bankingAccount.setBalance(BigDecimal.valueOf(1000));
+
+        BankingCard bankingCard = new BankingCard();
+        bankingCard.setCardType(BankingCardType.CREDIT);
+        bankingCard.setCardNumber("1234567890123456");
+        bankingCard.setCardStatus(BankingCardStatus.ENABLED);
+        bankingCard.setAssociatedBankingAccount(bankingAccount);
+
+        bankingAccount.addBankingCard(bankingCard);
+        bankingAccountRepository.save(bankingAccount);
+
+        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+                null,
+                BigDecimal.valueOf(100),
+                BankingTransactionType.CARD_CHARGE,
+                "Amazon.com"
+        );
+
+        // when
+        // then
+        mockMvc.perform(post("/api/v1/customers/me/banking/cards/" + bankingCard.getId() + "/spend")
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(request)))
+               .andDo(print())
+               .andExpect(status().is(201));
+    }
+
+    //    @Test
+    //    @DisplayName("Should not create transaction when insufficient funds")
+    //    void shouldNotCreateTransactionWhenInsufficientFunds() throws Exception {
+    //        // given
+    //        loginWithCustomer(customerA);
+    //        BankingAccount bankingAccount = new BankingAccount(customerA);
+    //        bankingAccount.setAccountNumber("ES1234567890123456789012");
+    //        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
+    //        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
+    //        bankingAccount.setBalance(BigDecimal.ZERO);
+    //
+    //        bankingAccountRepository.save(bankingAccount);
+    //
+    //        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+    //                null,
+    //                BigDecimal.valueOf(1000),
+    //                BankingTransactionType.CARD_CHARGE,
+    //                "Enjoy!"
+    //        );
+    //
+    //        BankingTransaction transaction = new BankingTransaction(bankingAccount);
+    //        transaction.setTransactionType(request.transactionType());
+    //        transaction.setDescription(request.description());
+    //        transaction.setAmount(request.amount());
+    //
+    //        // when
+    //        // then
+    //        mockMvc.perform(post("/api/v1/customers/me/banking/account/" + bankingAccount.getId() + "/transaction")
+    //                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+    //                       .contentType(MediaType.APPLICATION_JSON)
+    //                       .content(objectMapper.writeValueAsString(request)))
+    //               .andDo(print())
+    //               .andExpect(status().is(409));
+    //    }
+
+    //    @Test
+    //    @DisplayName("Should rollback transfer if receiver account does not exist")
+    //    void shouldRollbackTransferIfReceiverAccountDoesNotExist() {
+    //        // given
+    //        Customer customerA = new Customer("customerA@test.com", "123456");
+    //        Customer customerB = new Customer("customerB@test.com", "123456");
+    //
+    //        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+    //                customerA, null, Collections.emptyList()));
+    //
+    //        BankingAccount senderAccount = new BankingAccount(customerA);
+    //        senderAccount.setAccountNumber("US00 0000 1111 2222 3333 4444");
+    //        senderAccount.setAccountType(BankingAccountType.SAVINGS);
+    //        senderAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        senderAccount.setBalance(BigDecimal.valueOf(1000));
+    //        customerRepository.save(customerA);
+    //
+    //        BankingAccount receiverAccount = new BankingAccount(customerB);
+    //        receiverAccount.setAccountNumber("US00 0000 1111 2222 3333 5555");
+    //        receiverAccount.setAccountType(BankingAccountType.SAVINGS);
+    //        receiverAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+    //        receiverAccount.setBalance(BigDecimal.valueOf(1000));
+    //        customerRepository.save(customerB);
+    //
+    //        // when
+    //        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
+    //                "NON EXISTING ACCOUNT", // ID que no existe para forzar el fallo
+    //                BigDecimal.valueOf(200),
+    //                BankingTransactionType.TRANSFER_TO,
+    //                "Test Transfer"
+    //        );
+    //
+    //        assertThrows(
+    //                BankingAccountException.class,
+    //                () -> bankingAccountService.handleCreateTransactionRequest(senderAccount.getId(), request)
+    //        );
+    //
+    //        // then
+    //        BankingAccount refreshedSenderAccount = bankingAccountRepository.findById(senderAccount.getId()).get();
+    //        BankingAccount refreshedReceiverAccount = bankingAccountRepository.findById(receiverAccount.getId()).get();
+    //
+    //        // Verificamos que el balance NO haya cambiado (rollback)
+    //        assertThat(refreshedSenderAccount.getBalance()).isEqualTo(BigDecimal.valueOf(1000).setScale(2));
+    //        assertThat(refreshedReceiverAccount.getBalance()).isEqualTo(BigDecimal.valueOf(1000).setScale(2));
+    //
+    //        // Verificamos que no se haya guardado ninguna transacción
+    //        assertThat(refreshedSenderAccount.getAccountTransactions()).isEmpty();
+    //        assertThat(refreshedReceiverAccount.getAccountTransactions()).isEmpty();
+    //    }
+
 }

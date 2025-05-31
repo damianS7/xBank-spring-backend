@@ -4,16 +4,13 @@ import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.auth.http.PasswordConfirmationRequest;
 import com.damian.xBank.banking.account.*;
-import com.damian.xBank.banking.account.http.request.BankingAccountTransactionCreateRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
-import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -380,45 +377,5 @@ public class BankingCardIntegrationTest {
 
         assertThat(card).isNotNull();
         assertThat(card.lockStatus()).isEqualTo(BankingCardLockStatus.UNLOCKED);
-    }
-
-    @Test
-    @Disabled
-    @DisplayName("Should create a transaction card charge")
-    void shouldCreateTransactionCardCharge() throws Exception {
-        // given
-        loginWithCustomer(customerA);
-
-        BankingAccount bankingAccount = new BankingAccount(customerA);
-        bankingAccount.setAccountNumber("ES1234567890123456789012");
-        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
-        bankingAccount.setBalance(BigDecimal.valueOf(1000));
-
-        BankingCard bankingCard = new BankingCard();
-        bankingCard.setCardType(BankingCardType.CREDIT);
-        bankingCard.setCardNumber("1234567890123456");
-        bankingCard.setCardStatus(BankingCardStatus.ENABLED);
-        bankingCard.setAssociatedBankingAccount(bankingAccount);
-
-        bankingAccount.addBankingCard(bankingCard);
-        bankingAccountRepository.save(bankingAccount);
-
-        BankingAccountTransactionCreateRequest request = new BankingAccountTransactionCreateRequest(
-                null,
-                BigDecimal.valueOf(100),
-                BankingTransactionType.CARD_CHARGE,
-                "Amazon.com"
-        );
-
-        // when
-        // then
-        mockMvc.perform(post("/api/v1/customers/me/banking/cards/" + bankingCard.getId() + "/spend")
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(request)))
-               .andDo(print())
-               .andExpect(status().is(201));
     }
 }

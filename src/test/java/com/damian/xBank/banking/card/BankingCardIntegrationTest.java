@@ -5,6 +5,7 @@ import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.auth.http.PasswordConfirmationRequest;
 import com.damian.xBank.banking.account.*;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
+import com.damian.xBank.banking.card.http.BankingCardSetLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
@@ -50,13 +51,7 @@ public class BankingCardIntegrationTest {
     private BankingAccountRepository bankingAccountRepository;
 
     @Autowired
-    private BankingCardRepository bankingCardRepository;
-
-    @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    @Autowired
-    private BankingAccountService bankingAccountService;
 
     private Customer customerA;
     private Customer customerB;
@@ -64,7 +59,7 @@ public class BankingCardIntegrationTest {
     private String token;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         customerRepository.deleteAll();
 
         customerA = new Customer();
@@ -173,20 +168,21 @@ public class BankingCardIntegrationTest {
         PasswordConfirmationRequest request = new PasswordConfirmationRequest("123456");
 
         // when
-        // then
-        MvcResult result = mockMvc.perform(post("/api/v1/customers/me/banking/cards/{id}/cancel", bankingCard.getId())
-                                          .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                                          .contentType(MediaType.APPLICATION_JSON)
-                                          .content(objectMapper.writeValueAsString(request)))
-                                  .andDo(print())
-                                  .andExpect(status().is(200))
-                                  .andReturn();
+        MvcResult result = mockMvc
+                .perform(patch("/api/v1/customers/me/banking/cards/{id}/cancel", bankingCard.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andReturn();
 
         BankingCardDTO card = objectMapper.readValue(
                 result.getResponse().getContentAsString(),
                 BankingCardDTO.class
         );
 
+        // then
         assertThat(card).isNotNull();
         assertThat(card.cardStatus()).isEqualTo(BankingCardStatus.DISABLED);
     }
@@ -216,9 +212,8 @@ public class BankingCardIntegrationTest {
         BankingCardSetPinRequest request = new BankingCardSetPinRequest("7777", "123456");
 
         // when
-        // then
         MvcResult result = mockMvc
-                .perform(put("/api/v1/customers/me/banking/cards/{id}/pin", bankingCard.getId())
+                .perform(patch("/api/v1/customers/me/banking/cards/{id}/pin", bankingCard.getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -231,6 +226,7 @@ public class BankingCardIntegrationTest {
                 BankingCardDTO.class
         );
 
+        // then
         assertThat(card).isNotNull();
         assertThat(card.cardPIN()).isEqualTo(request.pin());
     }
@@ -263,10 +259,9 @@ public class BankingCardIntegrationTest {
         );
 
         // when
-        // then
         MvcResult result = mockMvc
                 .perform(
-                        put("/api/v1/customers/me/banking/cards/{id}/daily-limit", bankingCard.getId())
+                        patch("/api/v1/customers/me/banking/cards/{id}/daily-limit", bankingCard.getId())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
@@ -279,6 +274,7 @@ public class BankingCardIntegrationTest {
                 BankingCardDTO.class
         );
 
+        // then
         assertThat(card).isNotNull();
         assertThat(card.dailyLimit()).isEqualTo(request.dailyLimit());
     }
@@ -305,16 +301,15 @@ public class BankingCardIntegrationTest {
         bankingAccount.addBankingCard(bankingCard);
         bankingAccountRepository.save(bankingAccount);
 
-        BankingCardSetDailyLimitRequest request = new BankingCardSetDailyLimitRequest(
-                BigDecimal.valueOf(7777),
+        BankingCardSetLockStatusRequest request = new BankingCardSetLockStatusRequest(
+                BankingCardLockStatus.LOCKED,
                 "123456"
         );
 
         // when
-        // then
         MvcResult result = mockMvc
                 .perform(
-                        put("/api/v1/customers/me/banking/cards/{id}/lock", bankingCard.getId())
+                        patch("/api/v1/customers/me/banking/cards/{id}/lock-status", bankingCard.getId())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
@@ -327,6 +322,7 @@ public class BankingCardIntegrationTest {
                 BankingCardDTO.class
         );
 
+        // then
         assertThat(card).isNotNull();
         assertThat(card.lockStatus()).isEqualTo(BankingCardLockStatus.LOCKED);
     }
@@ -353,16 +349,15 @@ public class BankingCardIntegrationTest {
         bankingAccount.addBankingCard(bankingCard);
         bankingAccountRepository.save(bankingAccount);
 
-        BankingCardSetDailyLimitRequest request = new BankingCardSetDailyLimitRequest(
-                BigDecimal.valueOf(7777),
+        BankingCardSetLockStatusRequest request = new BankingCardSetLockStatusRequest(
+                BankingCardLockStatus.LOCKED,
                 "123456"
         );
 
         // when
-        // then
         MvcResult result = mockMvc
                 .perform(
-                        put("/api/v1/customers/me/banking/cards/{id}/unlock", bankingCard.getId())
+                        patch("/api/v1/customers/me/banking/cards/{id}/lock-status", bankingCard.getId())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
@@ -375,6 +370,7 @@ public class BankingCardIntegrationTest {
                 BankingCardDTO.class
         );
 
+        // then
         assertThat(card).isNotNull();
         assertThat(card.lockStatus()).isEqualTo(BankingCardLockStatus.UNLOCKED);
     }

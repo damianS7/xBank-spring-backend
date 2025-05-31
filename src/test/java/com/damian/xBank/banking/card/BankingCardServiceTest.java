@@ -1,7 +1,9 @@
 package com.damian.xBank.banking.card;
 
 import com.damian.xBank.auth.http.PasswordConfirmationRequest;
-import com.damian.xBank.banking.account.*;
+import com.damian.xBank.banking.account.BankingAccount;
+import com.damian.xBank.banking.account.BankingAccountCurrency;
+import com.damian.xBank.banking.account.BankingAccountType;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
@@ -12,7 +14,6 @@ import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import net.datafaker.Faker;
-import net.datafaker.providers.base.Finance;
 import net.datafaker.providers.base.Number;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,9 +40,6 @@ import static org.mockito.Mockito.*;
 public class BankingCardServiceTest {
 
     @Mock
-    private BankingAccountRepository bankingAccountRepository;
-
-    @Mock
     private BankingCardRepository bankingCardRepository;
 
     @Mock
@@ -49,12 +47,6 @@ public class BankingCardServiceTest {
 
     @Mock
     private Faker faker;
-
-    @Mock
-    private Finance finance;
-
-    @InjectMocks
-    private BankingAccountService bankingAccountService;
 
     @InjectMocks
     private BankingCardService bankingCardService;

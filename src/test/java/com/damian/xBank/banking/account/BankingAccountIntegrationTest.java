@@ -2,6 +2,7 @@ package com.damian.xBank.banking.account;
 
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.banking.account.http.request.BankingAccountAliasUpdateRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountCloseRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountCreateRequest;
 import com.damian.xBank.banking.card.BankingCardDTO;
@@ -28,6 +29,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -156,7 +158,7 @@ public class BankingAccountIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should open a banking account")
+    @DisplayName("Should open banking account")
     void shouldOpenBankingAccount() throws Exception {
         // given
         loginWithCustomer(customerA);
@@ -205,11 +207,10 @@ public class BankingAccountIntegrationTest {
 
         // when
         MvcResult result = mockMvc
-                .perform(
-                        post("/api/v1/customers/me/banking/accounts/{id}/close", givenBankingAccount.getId())
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+                .perform(patch("/api/v1/customers/me/banking/accounts/{id}/close", givenBankingAccount.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
                 .andExpect(status().is(200))
                 .andReturn();
@@ -222,6 +223,42 @@ public class BankingAccountIntegrationTest {
         // then
         assertThat(bankingAccount).isNotNull();
         assertThat(bankingAccount.accountStatus()).isEqualTo(BankingAccountStatus.CLOSED);
+    }
+
+    @Test
+    @DisplayName("Should set an alias to your own banking account")
+    void shouldSetAliasToBankingAccount() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+        BankingAccountAliasUpdateRequest request = new BankingAccountAliasUpdateRequest(
+                "account for savings",
+                rawPassword
+        );
+
+        BankingAccount givenBankingAccount = new BankingAccount(customerA);
+        givenBankingAccount.setAccountNumber("US0011111111222222223333");
+        givenBankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        givenBankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountRepository.save(givenBankingAccount);
+
+        // when
+        MvcResult result = mockMvc
+                .perform(patch("/api/v1/customers/me/banking/accounts/{id}/alias", givenBankingAccount.getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andReturn();
+
+        BankingAccountDTO bankingAccount = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BankingAccountDTO.class
+        );
+
+        // then
+        assertThat(bankingAccount).isNotNull();
+        assertThat(bankingAccount.alias()).isEqualTo(request.alias());
     }
 
     @Test
@@ -240,11 +277,10 @@ public class BankingAccountIntegrationTest {
         bankingAccountRepository.save(givenBankingAccount);
 
         // when
-        mockMvc.perform(
-                       post("/api/v1/customers/me/banking/accounts/{id}/close", givenBankingAccount.getId())
-                               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                               .contentType(MediaType.APPLICATION_JSON)
-                               .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(patch("/api/v1/customers/me/banking/accounts/{id}/close", givenBankingAccount.getId())
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(request)))
                .andDo(print())
                .andExpect(status().is(403));
     }

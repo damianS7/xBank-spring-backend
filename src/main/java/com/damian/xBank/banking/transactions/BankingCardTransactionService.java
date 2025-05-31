@@ -1,13 +1,13 @@
-package com.damian.xBank.banking.card;
+package com.damian.xBank.banking.transactions;
 
+import com.damian.xBank.banking.card.BankingCard;
+import com.damian.xBank.banking.card.BankingCardLockStatus;
+import com.damian.xBank.banking.card.BankingCardRepository;
+import com.damian.xBank.banking.card.BankingCardStatus;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardSpendRequest;
 import com.damian.xBank.banking.card.http.BankingCardWithdrawalRequest;
-import com.damian.xBank.banking.transactions.BankingTransaction;
-import com.damian.xBank.banking.transactions.BankingTransactionService;
-import com.damian.xBank.banking.transactions.BankingTransactionStatus;
-import com.damian.xBank.banking.transactions.BankingTransactionType;
 import com.damian.xBank.common.utils.AuthCustomer;
 import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
@@ -15,12 +15,12 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 
 @Service
-public class BankingCardUsageService {
+public class BankingCardTransactionService {
 
     private final BankingCardRepository bankingCardRepository;
     private final BankingTransactionService bankingTransactionService;
 
-    public BankingCardUsageService(
+    public BankingCardTransactionService(
             BankingCardRepository bankingCardRepository,
             BankingTransactionService bankingTransactionService
     ) {

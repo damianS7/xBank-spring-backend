@@ -2,10 +2,7 @@ package com.damian.xBank.banking.card;
 
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
-import com.damian.xBank.banking.transactions.BankingTransaction;
-import com.damian.xBank.banking.transactions.BankingTransactionService;
-import com.damian.xBank.banking.transactions.BankingTransactionStatus;
-import com.damian.xBank.banking.transactions.BankingTransactionType;
+import com.damian.xBank.banking.transactions.*;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -32,7 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class BankingCardUsageServiceTest {
+public class BankingCardTransactionServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
@@ -41,7 +38,7 @@ public class BankingCardUsageServiceTest {
     private BankingTransactionService bankingTransactionService;
 
     @InjectMocks
-    private BankingCardUsageService bankingCardUsageService;
+    private BankingTransactionController.BankingCardUsageService bankingCardUsageService;
 
     private Customer customerA;
     private Customer customerB;
@@ -70,6 +67,15 @@ public class BankingCardUsageServiceTest {
         Mockito.when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(customer);
     }
 
+    // TODO spendRequest
+    @Test
+    @DisplayName("Should spend")
+    void shouldSpendRequest() {
+
+    }
+
+    // TODO withdrawal and withdrawalRequest
+
     @Test
     @DisplayName("Should spend")
     void shouldSpend() {
@@ -90,14 +96,14 @@ public class BankingCardUsageServiceTest {
         givenBankingTransaction.setAmount(BigDecimal.valueOf(100));
         givenBankingTransaction.setDescription("Amazon.com");
 
-        when(bankingTransactionService.generateTransaction(
+        when(bankingTransactionService.createTransaction(
                 any(BankingCard.class),
                 any(BankingTransactionType.class),
                 any(BigDecimal.class),
                 any(String.class)
         )).thenReturn(givenBankingTransaction);
 
-        when(bankingTransactionService.storeTransaction(
+        when(bankingTransactionService.persistTransaction(
                 any(BankingTransaction.class)
         )).thenReturn(givenBankingTransaction);
 
@@ -185,7 +191,7 @@ public class BankingCardUsageServiceTest {
         givenBankingTransaction.setAmount(BigDecimal.valueOf(100));
         givenBankingTransaction.setDescription("Amazon.com");
 
-        when(bankingTransactionService.generateTransaction(
+        when(bankingTransactionService.createTransaction(
                 any(BankingCard.class),
                 any(BankingTransactionType.class),
                 any(BigDecimal.class),

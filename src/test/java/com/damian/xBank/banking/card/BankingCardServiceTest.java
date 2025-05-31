@@ -5,6 +5,7 @@ import com.damian.xBank.banking.account.*;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
+import com.damian.xBank.banking.card.http.BankingCardSetLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.customer.Customer;
@@ -62,13 +63,15 @@ public class BankingCardServiceTest {
     private Customer customerB;
     private Customer customerAdmin;
 
+    private final String RAW_PASSWORD = "123456";
+
     @BeforeEach
     void setUp() {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         customerRepository.deleteAll();
-        customerA = new Customer(99L, "customerA@test.com", bCryptPasswordEncoder.encode("123456"));
-        customerB = new Customer(92L, "customerB@test.com", bCryptPasswordEncoder.encode("123456"));
-        customerAdmin = new Customer(95L, "admin@test.com", bCryptPasswordEncoder.encode("123456"));
+        customerA = new Customer(99L, "customerA@test.com", bCryptPasswordEncoder.encode(RAW_PASSWORD));
+        customerB = new Customer(92L, "customerB@test.com", bCryptPasswordEncoder.encode(RAW_PASSWORD));
+        customerAdmin = new Customer(95L, "admin@test.com", bCryptPasswordEncoder.encode(RAW_PASSWORD));
         customerAdmin.setRole(CustomerRole.ADMIN);
     }
 
@@ -104,7 +107,7 @@ public class BankingCardServiceTest {
         when(bankingCardRepository.save(any(BankingCard.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        BankingCard createdCard = bankingCardService.createCard(givenBankAccount, BankingCardType.DEBIT);
+        BankingCard createdCard = bankingCardService.createBankingCard(givenBankAccount, BankingCardType.DEBIT);
 
         // then
         assertThat(createdCard).isNotNull();
@@ -119,6 +122,9 @@ public class BankingCardServiceTest {
     @DisplayName("Should cancel a BankingCard")
     void shouldCancelBankingCard() {
         // given
+        setUpContext(customerA);
+        PasswordConfirmationRequest givenRequest = new PasswordConfirmationRequest(RAW_PASSWORD);
+
         BankingAccount givenBankAccount = new BankingAccount(customerA);
         givenBankAccount.setId(5L);
         givenBankAccount.setAccountCurrency(BankingAccountCurrency.EUR);
@@ -132,10 +138,11 @@ public class BankingCardServiceTest {
         givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
 
         // when
+        when(bankingCardRepository.findById(anyLong())).thenReturn(Optional.of(givenBankingCard));
         when(bankingCardRepository.save(any(BankingCard.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        BankingCard cancelledCard = bankingCardService.cancelCard(givenBankingCard);
+        BankingCard cancelledCard = bankingCardService.cancelCard(givenBankingCard.getId(), givenRequest);
 
         // then
         assertThat(cancelledCard.getCardNumber()).isEqualTo(givenBankingCard.getCardNumber());
@@ -162,14 +169,14 @@ public class BankingCardServiceTest {
         givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
 
         // password confirmation
-        PasswordConfirmationRequest request = new PasswordConfirmationRequest("123456");
+        PasswordConfirmationRequest request = new PasswordConfirmationRequest(RAW_PASSWORD);
 
         // when
         when(bankingCardRepository.findById(anyLong())).thenReturn(Optional.of(givenBankingCard));
         when(bankingCardRepository.save(any(BankingCard.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        BankingCard cancelledCard = bankingCardService.cancelCardRequest(givenBankingCard.getId(), request);
+        BankingCard cancelledCard = bankingCardService.cancelCard(givenBankingCard.getId(), request);
 
         // then
         assertThat(cancelledCard.getCardNumber()).isEqualTo(givenBankingCard.getCardNumber());
@@ -196,14 +203,14 @@ public class BankingCardServiceTest {
         givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
 
         // password confirmation
-        PasswordConfirmationRequest request = new PasswordConfirmationRequest("123456");
+        PasswordConfirmationRequest request = new PasswordConfirmationRequest(RAW_PASSWORD);
 
         // when
         when(bankingCardRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         assertThrows(
                 BankingCardNotFoundException.class,
-                () -> bankingCardService.cancelCardRequest(givenBankingCard.getId(), request)
+                () -> bankingCardService.cancelCard(givenBankingCard.getId(), request)
         );
 
         // then
@@ -228,14 +235,14 @@ public class BankingCardServiceTest {
         givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
 
         // password confirmation
-        PasswordConfirmationRequest request = new PasswordConfirmationRequest("123456");
+        PasswordConfirmationRequest request = new PasswordConfirmationRequest(RAW_PASSWORD);
 
         // when
         when(bankingCardRepository.findById(anyLong())).thenReturn(Optional.of(givenBankingCard));
 
         assertThrows(
                 BankingCardAuthorizationException.class,
-                () -> bankingCardService.cancelCardRequest(givenBankingCard.getId(), request)
+                () -> bankingCardService.cancelCard(givenBankingCard.getId(), request)
         );
 
         // then
@@ -267,47 +274,16 @@ public class BankingCardServiceTest {
 
         assertThrows(
                 PasswordMismatchException.class,
-                () -> bankingCardService.cancelCardRequest(givenBankingCard.getId(), request)
+                () -> bankingCardService.cancelCard(givenBankingCard.getId(), request)
         );
 
         // then
         verify(bankingCardRepository, times(0)).save(any(BankingCard.class));
     }
 
-
     @Test
     @DisplayName("Should set PIN to BankingCard")
     void shouldSetBankingCardPin() {
-        // given
-        BankingAccount givenBankAccount = new BankingAccount(customerA);
-        givenBankAccount.setId(5L);
-        givenBankAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        givenBankAccount.setAccountType(BankingAccountType.SAVINGS);
-        givenBankAccount.setAccountNumber("US9900001111112233334444");
-
-        BankingCard givenBankingCard = new BankingCard();
-        givenBankingCard.setId(11L);
-        givenBankingCard.setCardNumber("1234567890123456");
-        givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
-        givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
-
-        BankingCardSetPinRequest request = new BankingCardSetPinRequest("7777", "123456");
-
-        // when
-        when(bankingCardRepository.save(any(BankingCard.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        BankingCard savedCard = bankingCardService.setBankingCardPin(givenBankingCard, request.pin());
-
-        // then
-        assertThat(savedCard).isNotNull();
-        assertThat(savedCard.getCardPin()).isEqualTo(request.pin());
-        verify(bankingCardRepository, times(1)).save(any(BankingCard.class));
-    }
-
-    @Test
-    @DisplayName("Should set PIN to BankingCard")
-    void shouldSetBankingCardPinRequest() {
         // given
         setUpContext(customerA);
         BankingAccount givenBankAccount = new BankingAccount(customerA);
@@ -322,14 +298,14 @@ public class BankingCardServiceTest {
         givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
         givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
 
-        BankingCardSetPinRequest request = new BankingCardSetPinRequest("7777", "123456");
+        BankingCardSetPinRequest request = new BankingCardSetPinRequest("7777", RAW_PASSWORD);
 
         // when
         when(bankingCardRepository.findById(anyLong())).thenReturn(Optional.of(givenBankingCard));
         when(bankingCardRepository.save(any(BankingCard.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        BankingCard savedCard = bankingCardService.setBankingCardPinRequest(givenBankingCard.getId(), request);
+        BankingCard savedCard = bankingCardService.setBankingCardPin(givenBankingCard.getId(), request);
 
         // then
         assertThat(savedCard).isNotNull();
@@ -341,38 +317,6 @@ public class BankingCardServiceTest {
     @DisplayName("Should set daily limit to BankingCard")
     void shouldSetBankingCardDailyLimit() {
         // given
-        BankingAccount givenBankAccount = new BankingAccount(customerA);
-        givenBankAccount.setId(5L);
-        givenBankAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        givenBankAccount.setAccountType(BankingAccountType.SAVINGS);
-        givenBankAccount.setAccountNumber("US9900001111112233334444");
-
-        BankingCard givenBankingCard = new BankingCard();
-        givenBankingCard.setId(11L);
-        givenBankingCard.setCardNumber("1234567890123456");
-        givenBankingCard.setCardStatus(BankingCardStatus.ENABLED);
-        givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
-
-        BankingCardSetDailyLimitRequest request = new BankingCardSetDailyLimitRequest(
-                BigDecimal.valueOf(7777), "123456"
-        );
-
-        // when
-        when(bankingCardRepository.save(any(BankingCard.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        BankingCard savedCard = bankingCardService.setDailyLimit(givenBankingCard, request.dailyLimit());
-
-        // then
-        assertThat(savedCard).isNotNull();
-        assertThat(savedCard.getDailyLimit()).isEqualTo(request.dailyLimit());
-        verify(bankingCardRepository, times(1)).save(any(BankingCard.class));
-    }
-
-    @Test
-    @DisplayName("Should set daily limit to BankingCard")
-    void shouldSetBankingCardDailyLimitRequest() {
-        // given
         setUpContext(customerA);
         BankingAccount givenBankAccount = new BankingAccount(customerA);
         givenBankAccount.setId(5L);
@@ -387,7 +331,8 @@ public class BankingCardServiceTest {
         givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
 
         BankingCardSetDailyLimitRequest request = new BankingCardSetDailyLimitRequest(
-                BigDecimal.valueOf(7777), "123456"
+                BigDecimal.valueOf(7777),
+                RAW_PASSWORD
         );
 
         // when
@@ -395,9 +340,7 @@ public class BankingCardServiceTest {
         when(bankingCardRepository.save(any(BankingCard.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        BankingCard savedCard = bankingCardService.setDailyLimitRequest(
-                givenBankingCard.getId(), request
-        );
+        BankingCard savedCard = bankingCardService.setDailyLimit(givenBankingCard.getId(), request);
 
         // then
         assertThat(savedCard).isNotNull();
@@ -409,6 +352,12 @@ public class BankingCardServiceTest {
     @DisplayName("Should set lock/unlock to BankingCard")
     void shouldSetBankingCardLockStatus() {
         // given
+        setUpContext(customerA);
+        BankingCardSetLockStatusRequest givenRequest = new BankingCardSetLockStatusRequest(
+                BankingCardLockStatus.LOCKED,
+                RAW_PASSWORD
+        );
+
         BankingAccount givenBankAccount = new BankingAccount(customerA);
         givenBankAccount.setId(5L);
         givenBankAccount.setAccountCurrency(BankingAccountCurrency.EUR);
@@ -423,54 +372,18 @@ public class BankingCardServiceTest {
         givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
 
         // when
-        when(bankingCardRepository.save(any(BankingCard.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        BankingCard savedCard = bankingCardService.setCardLockStatus(
-                givenBankingCard,
-                BankingCardLockStatus.LOCKED
-        );
-
-        // then
-        assertThat(savedCard).isNotNull();
-        assertThat(savedCard.getLockStatus()).isEqualTo(BankingCardLockStatus.LOCKED);
-        verify(bankingCardRepository, times(1)).save(any(BankingCard.class));
-    }
-
-    @Test
-    @DisplayName("Should set lock/unlock to BankingCard")
-    void shouldSetBankingCardLockStatusRequest() {
-        // given
-        setUpContext(customerA);
-        BankingAccount givenBankAccount = new BankingAccount(customerA);
-        givenBankAccount.setId(5L);
-        givenBankAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        givenBankAccount.setAccountType(BankingAccountType.SAVINGS);
-        givenBankAccount.setAccountNumber("US9900001111112233334444");
-
-        BankingCard givenBankingCard = new BankingCard();
-        givenBankingCard.setId(11L);
-        givenBankingCard.setCardNumber("1234567890123456");
-        givenBankingCard.setLockStatus(BankingCardLockStatus.LOCKED);
-        givenBankingCard.setAssociatedBankingAccount(givenBankAccount);
-
-        PasswordConfirmationRequest request = new PasswordConfirmationRequest(
-                "123456"
-        );
-
-        // when
         when(bankingCardRepository.findById(anyLong())).thenReturn(Optional.of(givenBankingCard));
         when(bankingCardRepository.save(any(BankingCard.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        BankingCard savedCard = bankingCardService.setCardLockStatusRequest(
-                givenBankingCard.getId(), BankingCardLockStatus.UNLOCKED, request
+        BankingCard savedCard = bankingCardService.setCardLockStatus(
+                givenBankingCard.getId(),
+                givenRequest
         );
 
         // then
         assertThat(savedCard).isNotNull();
-        assertThat(savedCard.getLockStatus()).isEqualTo(BankingCardLockStatus.UNLOCKED);
+        assertThat(savedCard.getLockStatus()).isEqualTo(givenRequest.lockStatus());
         verify(bankingCardRepository, times(1)).save(any(BankingCard.class));
     }
-
 }

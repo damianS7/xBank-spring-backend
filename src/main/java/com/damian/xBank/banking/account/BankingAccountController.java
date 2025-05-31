@@ -22,24 +22,21 @@ import java.util.Set;
 @RestController
 public class BankingAccountController {
     private final BankingAccountService bankingAccountService;
-    private final BankingAccountOperationService bankingAccountOperationService;
     private final BankingAccountCardManagerService bankingAccountCardManagerService;
 
     @Autowired
     public BankingAccountController(
             BankingAccountService bankingAccountService,
-            BankingAccountOperationService bankingAccountOperationService,
             BankingAccountCardManagerService bankingAccountCardManagerService
     ) {
         this.bankingAccountService = bankingAccountService;
-        this.bankingAccountOperationService = bankingAccountOperationService;
         this.bankingAccountCardManagerService = bankingAccountCardManagerService;
     }
 
-    // endpoint to receive accounts from logged customer
+    // return all the accounts from the logged customer
     @GetMapping("/customers/me/banking/accounts")
     public ResponseEntity<?> getCustomerBankingAccounts() {
-        Set<BankingAccount> bankingAccounts = bankingAccountService.getCustomerBankingAccounts();
+        Set<BankingAccount> bankingAccounts = bankingAccountService.getLoggedCustomerBankingAccounts();
         Set<BankingAccountDTO> bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountSetDTO(bankingAccounts);
 
         return ResponseEntity
@@ -47,14 +44,13 @@ public class BankingAccountController {
                 .body(bankingAccountDTO);
     }
 
-    // TODO implement
     // endpoint for logged customer to request for a new BankingAccount
     @PostMapping("/customers/me/banking/accounts/request")
     public ResponseEntity<?> requestBankingAccount(
             @Validated @RequestBody
             BankingAccountCreateRequest request
     ) {
-        BankingAccount bankingAccount = bankingAccountService.createBankingAccount(request);
+        BankingAccount bankingAccount = bankingAccountService.createBankingAccountForLoggedCustomer(request);
         BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
 
         return ResponseEntity
@@ -63,14 +59,14 @@ public class BankingAccountController {
     }
 
     // endpoint for logged customer to re-open an existing BankingAccount
-    @PostMapping("/customers/me/banking/accounts/{id}/open")
+    @PatchMapping("/customers/me/banking/accounts/{id}/open")
     public ResponseEntity<?> customerOpenBankingAccount(
             @PathVariable @NotNull @Positive
             Long id,
             @Validated @RequestBody
             BankingAccountOpenRequest request
     ) {
-        BankingAccount bankingAccount = bankingAccountService.openBankingAccount(id, request);
+        BankingAccount bankingAccount = bankingAccountService.openBankingAccountForLoggedCustomer(id, request);
         BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
 
         return ResponseEntity
@@ -79,14 +75,14 @@ public class BankingAccountController {
     }
 
     // endpoint for logged customer to close a BankingAccount
-    @PostMapping("/customers/me/banking/accounts/{id}/close")
+    @PatchMapping("/customers/me/banking/accounts/{id}/close")
     public ResponseEntity<?> customerCloseBankingAccount(
             @PathVariable @NotNull @Positive
             Long id,
             @Validated @RequestBody
             BankingAccountCloseRequest request
     ) {
-        BankingAccount bankingAccount = bankingAccountService.closeBankingAccount(id, request);
+        BankingAccount bankingAccount = bankingAccountService.closeBankingAccountForLoggedCustomer(id, request);
         BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
 
         return ResponseEntity
@@ -95,14 +91,14 @@ public class BankingAccountController {
     }
 
     // endpoint to set an alias for an account
-    @PutMapping("/customers/me/banking/accounts/{id}/alias")
+    @PatchMapping("/customers/me/banking/accounts/{id}/alias")
     public ResponseEntity<?> setBankingAccountAlias(
             @PathVariable @Positive
             Long id,
             @Validated @RequestBody
             BankingAccountAliasUpdateRequest request
     ) {
-        BankingAccount bankingAccount = bankingAccountService.setBankingAccountAlias(id, request);
+        BankingAccount bankingAccount = bankingAccountService.setBankingAccountAliasForLoggedCustomer(id, request);
         BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
 
         return ResponseEntity

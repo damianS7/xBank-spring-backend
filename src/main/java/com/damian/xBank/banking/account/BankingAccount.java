@@ -200,6 +200,7 @@ public class BankingAccount {
     }
 
     public BigDecimal deposit(BigDecimal amount) {
-        return this.getBalance().add(amount);
+        this.setBalance(this.getBalance().add(amount));
+        return this.getBalance();
     }
 }

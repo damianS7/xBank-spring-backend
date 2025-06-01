@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 
+// rename to BankingTransactionCardRequest
 public record BankingCardTransactionRequest(
         @NotNull(message = "You must specify the type for this operation")
         BankingTransactionType transactionType,

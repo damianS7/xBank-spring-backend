@@ -6,6 +6,8 @@ import com.damian.xBank.banking.account.*;
 import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.card.BankingCardStatus;
 import com.damian.xBank.banking.card.BankingCardType;
+import com.damian.xBank.banking.transactions.BankingTransactionType;
+import com.damian.xBank.banking.transactions.http.BankingCardTransactionRequest;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -26,16 +28,14 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
-public class BankingTransactionIntegrationTest {
+public class BankingTransactionCardIntegrationTest {
     private final String rawPassword = "123456";
 
     @Autowired
@@ -117,8 +117,8 @@ public class BankingTransactionIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should fetch transactions (pageable) for banking card")
-    void shouldFetchBankingCardTransactions() throws Exception {
+    @DisplayName("Should create a transaction card charge")
+    void shouldCreateTransactionCardCharge() throws Exception {
         // given
         loginWithCustomer(customerA);
 
@@ -131,6 +131,7 @@ public class BankingTransactionIntegrationTest {
 
         BankingCard bankingCard = new BankingCard();
         bankingCard.setCardType(BankingCardType.CREDIT);
+        bankingCard.setCardPin("1234");
         bankingCard.setCardNumber("1234567890123456");
         bankingCard.setCardStatus(BankingCardStatus.ENABLED);
         bankingCard.setAssociatedBankingAccount(bankingAccount);
@@ -138,43 +139,20 @@ public class BankingTransactionIntegrationTest {
         bankingAccount.addBankingCard(bankingCard);
         bankingAccountRepository.save(bankingAccount);
 
-        // when
-        // then
-        mockMvc
-                .perform(
-                        get("/api/v1/customers/me/banking/cards/{id}/transactions", bankingCard.getId())
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andDo(print())
-                .andExpect(status().is(200))
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content.length()").value(0)) // o el número que esperás
-                .andExpect(jsonPath("$.totalPages").value(0));
-    }
-
-    @Test
-    @DisplayName("Should fetch transactions (pageable) for banking account")
-    void shouldFetchBankingAccountTransactions() throws Exception {
-        // given
-        loginWithCustomer(customerA);
-
-        BankingAccount bankingAccount = new BankingAccount(customerA);
-        bankingAccount.setAccountNumber("ES1234567890123456789012");
-        bankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        bankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccount.setAccountStatus(BankingAccountStatus.OPEN);
-        bankingAccount.setBalance(BigDecimal.valueOf(1000));
-        bankingAccountRepository.save(bankingAccount);
+        BankingCardTransactionRequest request = new BankingCardTransactionRequest(
+                BankingTransactionType.CARD_CHARGE,
+                "Amazon.com",
+                BigDecimal.valueOf(100),
+                bankingCard.getCardPin()
+        );
 
         // when
         // then
-        mockMvc
-                .perform(
-                        get("/api/v1/customers/me/banking/accounts/{id}/transactions", bankingAccount.getId())
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andDo(print())
-                .andExpect(status().is(200))
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content.length()").value(0)) // o el número que esperás
-                .andExpect(jsonPath("$.totalPages").value(0));
+        mockMvc.perform(post("/api/v1/customers/me/banking/cards/{id}/transactions", bankingCard.getId())
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(request)))
+               .andDo(print())
+               .andExpect(status().is(201));
     }
 }

@@ -1,10 +1,10 @@
 package com.damian.xBank.banking.transactions;
 
 import com.damian.xBank.banking.account.BankingAccount;
-import com.damian.xBank.banking.account.BankingAccountRepository;
 import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionAuthorizationException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionNotFoundException;
+import com.damian.xBank.banking.transactions.http.BankingTransactionUpdateStatusRequest;
 import com.damian.xBank.common.utils.AuthCustomer;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRole;
@@ -18,14 +18,11 @@ import java.time.Instant;
 @Service
 public class BankingTransactionService {
     private final BankingTransactionRepository bankingTransactionRepository;
-    private final BankingAccountRepository bankingAccountRepository;
 
     public BankingTransactionService(
-            BankingTransactionRepository bankingTransactionRepository,
-            BankingAccountRepository bankingAccountRepository
+            BankingTransactionRepository bankingTransactionRepository
     ) {
         this.bankingTransactionRepository = bankingTransactionRepository;
-        this.bankingAccountRepository = bankingAccountRepository;
     }
 
     public Page<BankingTransaction> getBankingCardTransactions(Long bankingCardId, Pageable pageable) {
@@ -36,46 +33,7 @@ public class BankingTransactionService {
         return bankingTransactionRepository.findByBankingAccountId(accountId, pageable);
     }
 
-    // deposit
-    public BankingTransaction generateTransaction(
-            BankingAccount bankingAccount,
-            BankingTransactionType transactionType,
-            BigDecimal amount,
-            String description
-    ) {
-        return this.createTransaction(
-                bankingAccount,
-                transactionType,
-                amount,
-                description
-        );
-    }
-
-    // transfer to
-    public BankingTransaction generateTransaction(
-            BankingAccount fromBankingAccount,
-            BankingAccount toBankingAccount,
-            BigDecimal amount,
-            String description
-    ) {
-        // generate 2 transaction
-        BankingTransaction toTransaction = createTransaction(
-                toBankingAccount,
-                BankingTransactionType.TRANSFER_FROM,
-                amount,
-                "Transfer from "
-                + fromBankingAccount.getOwner().getFullName().toUpperCase()
-        );
-
-        return this.createTransaction(
-                fromBankingAccount,
-                BankingTransactionType.TRANSFER_TO,
-                amount,
-                description
-        );
-    }
-
-    public BankingTransaction generateTransaction(
+    public BankingTransaction createTransaction(
             BankingCard fromBankingCard,
             BankingTransactionType transactionType,
             BigDecimal amount,
@@ -108,9 +66,8 @@ public class BankingTransactionService {
      * @param transaction the banking account transaction to store
      * @return the stored banking account transaction
      */
-    public BankingTransaction storeTransaction(BankingTransaction transaction) {
+    public BankingTransaction persistTransaction(BankingTransaction transaction) {
         final BankingAccount bankingAccount = transaction.getAssociatedBankingAccount();
-
         transaction.setCreatedAt(Instant.now());
         transaction.setUpdatedAt(Instant.now());
 
@@ -118,26 +75,25 @@ public class BankingTransactionService {
         bankingAccount.addAccountTransaction(transaction);
 
         // Persist the owner's account with the new transaction
-        //        bankingAccountRepository.save(bankingAccount);
-
-        bankingTransactionRepository.save(transaction);
-
         // Return the stored transaction
-        return transaction;
+        return bankingTransactionRepository.save(transaction);
     }
 
 
-    public BankingTransaction patchStatusTransaction(
+    // TODO only admin can do this
+    public BankingTransaction updateTransactionStatus(
             Long bankingTransactionId,
-            BankingTransactionPatchRequest request
+            BankingTransactionUpdateStatusRequest request
     ) {
         // Customer logged
         final Customer customerLogged = AuthCustomer.getLoggedCustomer();
 
         // if the logged customer is not admin
         if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
-            // banking account does not belong to this customer
-            throw new BankingTransactionAuthorizationException();
+            // banking transaction does not belong to this customer
+            throw new BankingTransactionAuthorizationException(
+                    BankingTransactionAuthorizationException.TRANSACTION_NOT_BELONG_TO_CUSTOMER
+            );
         }
 
         // Banking account to be closed
@@ -145,7 +101,8 @@ public class BankingTransactionService {
                 .findById(bankingTransactionId)
                 .orElseThrow(
                         () -> new BankingTransactionNotFoundException(
-                                bankingTransactionId)
+                                BankingTransactionNotFoundException.TRANSACTION_NOT_FOUND
+                        )
                 );
 
 

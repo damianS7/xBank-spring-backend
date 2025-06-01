@@ -117,7 +117,9 @@ public class AuthenticationService {
 
         // we get the Customer entity so we can save at the end
         Auth customerAuth = authenticationRepository.findByCustomer_Id(loggedCustomer.getId()).orElseThrow(
-                () -> new CustomerNotFoundException(loggedCustomer.getId())
+                () -> new CustomerNotFoundException(
+                        CustomerNotFoundException.NOT_FOUND
+                )
         );
 
         // Before making any changes we check that the password sent by the customer matches the one in the entity

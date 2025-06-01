@@ -33,14 +33,18 @@ public class BankingAccountCardManagerService {
         final BankingAccount bankingAccount = bankingAccountRepository
                 .findById(bankingAccountId)
                 .orElseThrow(
-                        () -> new BankingAccountNotFoundException(bankingAccountId)
+                        () -> new BankingAccountNotFoundException(
+                                BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                        )
                 );
 
         // if the logged customer is not admin
         if (!AuthCustomer.isAdmin(customerLogged)) {
             // check if the account belongs to this customer.
             if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
-                throw new BankingAccountAuthorizationException(bankingAccountId);
+                throw new BankingAccountAuthorizationException(
+                        BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER
+                );
             }
 
             // check password
@@ -48,7 +52,9 @@ public class BankingAccountCardManagerService {
 
         // if customer has reached the maximum amount of cards per account.
         if (countActiveCards(bankingAccount) >= MAX_CARDS_PER_ACCOUNT) {
-            throw new BankingCardMaximumCardsPerAccountLimitReached();
+            throw new BankingCardMaximumCardsPerAccountLimitReached(
+                    BankingCardMaximumCardsPerAccountLimitReached.LIMIT_REACHED
+            );
         }
 
         // create the card and associate to the account and return it.

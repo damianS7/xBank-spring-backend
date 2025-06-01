@@ -82,7 +82,7 @@ public class BankingTransactionCardServiceTest {
 
     @Test
     @DisplayName("Should process card transaction and spend")
-    void shouldProcessCardTransactionRequestAndSpend() {
+    void shouldProcessTransactionRequestAndSpend() {
         // given
         setUpContext(customerA);
 
@@ -125,7 +125,7 @@ public class BankingTransactionCardServiceTest {
         )).thenReturn(givenBankingTransaction);
 
         // then
-        BankingTransaction transaction = bankingTransactionCardService.processCardTransactionRequest(
+        BankingTransaction transaction = bankingTransactionCardService.processTransactionRequest(
                 givenBankingCard.getId(),
                 givenRequest
         );
@@ -156,7 +156,7 @@ public class BankingTransactionCardServiceTest {
         // then
         BankingCardNotFoundException exception = assertThrows(
                 BankingCardNotFoundException.class,
-                () -> bankingTransactionCardService.processCardTransactionRequest(
+                () -> bankingTransactionCardService.processTransactionRequest(
                         1L,
                         givenRequest
                 )
@@ -203,7 +203,7 @@ public class BankingTransactionCardServiceTest {
         // then
         BankingCardAuthorizationException exception = assertThrows(
                 BankingCardAuthorizationException.class,
-                () -> bankingTransactionCardService.processCardTransactionRequest(
+                () -> bankingTransactionCardService.processTransactionRequest(
                         givenBankingCard.getId(),
                         givenRequest
                 )
@@ -250,7 +250,7 @@ public class BankingTransactionCardServiceTest {
         // then
         BankingCardAuthorizationException exception = assertThrows(
                 BankingCardAuthorizationException.class,
-                () -> bankingTransactionCardService.processCardTransactionRequest(
+                () -> bankingTransactionCardService.processTransactionRequest(
                         givenBankingCard.getId(),
                         givenRequest
                 )
@@ -298,7 +298,7 @@ public class BankingTransactionCardServiceTest {
         // then
         BankingCardAuthorizationException exception = assertThrows(
                 BankingCardAuthorizationException.class,
-                () -> bankingTransactionCardService.processCardTransactionRequest(
+                () -> bankingTransactionCardService.processTransactionRequest(
                         givenBankingCard.getId(),
                         givenRequest
                 )
@@ -345,7 +345,7 @@ public class BankingTransactionCardServiceTest {
         // then
         BankingCardAuthorizationException exception = assertThrows(
                 BankingCardAuthorizationException.class,
-                () -> bankingTransactionCardService.processCardTransactionRequest(
+                () -> bankingTransactionCardService.processTransactionRequest(
                         givenBankingCard.getId(),
                         givenRequest
                 )

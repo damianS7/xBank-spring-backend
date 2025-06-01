@@ -18,15 +18,23 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class BankingTransactionController {
     private final BankingTransactionService bankingTransactionService;
+    private final BankingTransactionAccountService bankingTransactionAccountService;
+    private final BankingTransactionCardService bankingTransactionCardService;
 
     @Autowired
-    public BankingTransactionController(BankingTransactionService bankingTransactionService) {
+    public BankingTransactionController(
+            BankingTransactionService bankingTransactionService,
+            BankingTransactionAccountService bankingTransactionAccountService,
+            BankingTransactionCardService bankingTransactionCardService
+    ) {
         this.bankingTransactionService = bankingTransactionService;
+        this.bankingTransactionAccountService = bankingTransactionAccountService;
+        this.bankingTransactionCardService = bankingTransactionCardService;
     }
 
     // endpoint for logged customer to get all transactions of a BankingCard
     @GetMapping("/customers/me/banking/cards/{id}/transactions")
-    public ResponseEntity<?> customerBankingCardTransactions(
+    public ResponseEntity<?> getBankingCardTransactions(
             @PathVariable @NotNull @Positive
             Long id,
             @PageableDefault(size = 2, sort = "createdAt", direction = Sort.Direction.DESC)
@@ -43,7 +51,7 @@ public class BankingTransactionController {
 
     // endpoint for logged customer to get all transactions of a BankingAccount
     @GetMapping("/customers/me/banking/accounts/{id}/transactions")
-    public ResponseEntity<?> customerBankingAccountTransactions(
+    public ResponseEntity<?> getBankingAccountTransactions(
             @PathVariable @NotNull @Positive
             Long id,
             @PageableDefault(size = 2, sort = "createdAt", direction = Sort.Direction.DESC)
@@ -66,7 +74,12 @@ public class BankingTransactionController {
             @Validated @RequestBody
             BankingCardTransactionRequest request
     ) {
-        return null;
+        BankingTransaction transaction = bankingTransactionCardService.processTransactionRequest(id, request);
+        BankingTransactionDTO transactionDTO = BankingTransactionDTOMapper.toBankingTransactionDTO(transaction);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(transactionDTO);
     }
 
     // endpoint for logged customer to do card transactions
@@ -77,7 +90,13 @@ public class BankingTransactionController {
             @Validated @RequestBody
             BankingAccountTransactionRequest request
     ) {
-        return null;
+        BankingTransaction transaction = bankingTransactionAccountService.processTransactionRequest(id, request);
+        BankingTransactionDTO transactionDTO = BankingTransactionDTOMapper.toBankingTransactionDTO(transaction);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(transactionDTO);
     }
+
 }
 

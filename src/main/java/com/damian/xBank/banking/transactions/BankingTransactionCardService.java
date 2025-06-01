@@ -29,7 +29,7 @@ public class BankingTransactionCardService {
     }
 
     // handle request BankingTransactionType and determine what to do.
-    public BankingTransaction processCardTransactionRequest(
+    public BankingTransaction processTransactionRequest(
             Long cardId,
             BankingCardTransactionRequest request
     ) {

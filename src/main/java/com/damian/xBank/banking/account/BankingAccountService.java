@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Set;
 
+// TODO rename methods AsAdmin ...
 @Service
 public class BankingAccountService {
     private final CustomerRepository customerRepository;
@@ -64,7 +65,9 @@ public class BankingAccountService {
     public BankingAccount createBankingAccountForCustomer(Long customerId, BankingAccountCreateRequest request) {
         // we get the Customer entity so we can save at the end
         final Customer customer = customerRepository.findById(customerId).orElseThrow(
-                () -> new CustomerNotFoundException(customerId)
+                () -> new CustomerNotFoundException(
+                        CustomerNotFoundException.NOT_FOUND
+                )
         );
 
         return this.createBankingAccount(customer, request.accountType(), request.accountCurrency());
@@ -96,7 +99,9 @@ public class BankingAccountService {
     public BankingAccount openBankingAccount(Long bankingAccountId) {
         // Banking account to to open
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
-                () -> new BankingAccountNotFoundException(bankingAccountId) // Banking account not found
+                () -> new BankingAccountNotFoundException(
+                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                ) // Banking account not found
         );
 
         return this.updateBankingAccountStatus(bankingAccount, BankingAccountStatus.OPEN);
@@ -112,7 +117,9 @@ public class BankingAccountService {
 
         // Banking account to be open
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
-                () -> new BankingAccountNotFoundException(bankingAccountId) // Banking account not found
+                () -> new BankingAccountNotFoundException(
+                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                ) // Banking account not found
         );
 
         // if the logged customer is not admin
@@ -120,7 +127,9 @@ public class BankingAccountService {
             // check if the account to be closed belongs to this customer.
             if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
                 // banking account does not belong to this customer
-                throw new BankingAccountAuthorizationException();
+                throw new BankingAccountAuthorizationException(
+                        BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER
+                );
             }
 
             // check password
@@ -141,7 +150,9 @@ public class BankingAccountService {
     public BankingAccount closeBankingAccount(Long bankingAccountId) {
         // Banking account to to close
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
-                () -> new BankingAccountNotFoundException(bankingAccountId) // Banking account not found
+                () -> new BankingAccountNotFoundException(
+                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                ) // Banking account not found
         );
 
         return this.updateBankingAccountStatus(bankingAccount, BankingAccountStatus.CLOSED);
@@ -157,7 +168,9 @@ public class BankingAccountService {
 
         // Banking account to be closed
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
-                () -> new BankingAccountNotFoundException(bankingAccountId) // Banking account not found
+                () -> new BankingAccountNotFoundException(
+                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                ) // Banking account not found
         );
 
         // if the logged customer is not admin
@@ -165,7 +178,9 @@ public class BankingAccountService {
             // check if the account to be closed belongs to this customer.
             if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
                 // banking account does not belong to this customer
-                throw new BankingAccountAuthorizationException();
+                throw new BankingAccountAuthorizationException(
+                        BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER
+                );
             }
 
             // check password
@@ -202,7 +217,9 @@ public class BankingAccountService {
 
         // Banking account to set an alias
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
-                () -> new BankingAccountNotFoundException(bankingAccountId) // Banking account not found
+                () -> new BankingAccountNotFoundException(
+                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                ) // Banking account not found
         );
 
         return this.setBankingAccountAlias(bankingAccount, request.alias());
@@ -218,7 +235,9 @@ public class BankingAccountService {
 
         // Banking account to set alias
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
-                () -> new BankingAccountNotFoundException(bankingAccountId) // Banking account not found
+                () -> new BankingAccountNotFoundException(
+                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                ) // Banking account not found
         );
 
         // if the logged customer is not admin

@@ -2,7 +2,6 @@ package com.damian.xBank.banking.card;
 
 import com.damian.xBank.auth.http.PasswordConfirmationRequest;
 import com.damian.xBank.banking.account.BankingAccount;
-import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
@@ -89,7 +88,9 @@ public class BankingCardService {
         // Banking card to set lock status
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
-                () -> new BankingCardNotFoundException(bankingCardId));
+                () -> new BankingCardNotFoundException(
+                        BankingCardNotFoundException.CARD_NOT_FOUND
+                ));
 
         return this.setCardLockStatus(bankingCard, cardLockStatus);
     }
@@ -105,14 +106,18 @@ public class BankingCardService {
         // Banking account to be closed
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
-                () -> new BankingCardNotFoundException(bankingCardId));
+                () -> new BankingCardNotFoundException(
+                        BankingCardNotFoundException.CARD_NOT_FOUND
+                ));
 
         // if the logged customer is admin just set the lock status and skip checks
         if (!AuthCustomer.isAdmin(customerLogged)) {
             // check if the card to be closed belongs to this customer.
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
-                throw new BankingCardAuthorizationException();
+                throw new BankingCardAuthorizationException(
+                        BankingCardAuthorizationException.CARD_DOES_NOT_BELONG_TO_CUSTOMER
+                );
             }
 
             // password validation
@@ -147,7 +152,9 @@ public class BankingCardService {
         // Banking card to set limit
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
-                () -> new BankingCardNotFoundException(bankingCardId));
+                () -> new BankingCardNotFoundException(
+                        BankingCardNotFoundException.CARD_NOT_FOUND
+                ));
 
         return this.setDailyLimit(bankingCard, dailyLimit);
     }
@@ -163,19 +170,25 @@ public class BankingCardService {
         // Banking card to be closed
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
-                () -> new BankingCardNotFoundException(bankingCardId));
+                () -> new BankingCardNotFoundException(
+                        BankingCardNotFoundException.CARD_NOT_FOUND
+                ));
 
         // if the logged customer is not admin
         if (!AuthCustomer.isAdmin(customerLogged)) {
             // check if the card to be closed belongs to this customer.
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
-                throw new BankingCardAuthorizationException();
+                throw new BankingCardAuthorizationException(
+                        BankingCardAuthorizationException.CARD_DOES_NOT_BELONG_TO_CUSTOMER
+                );
             }
 
             // password validation
             if (!AuthCustomer.isPasswordCorrect(request.password(), customerLogged.getPassword())) {
-                throw new PasswordMismatchException("Password does not match.");
+                throw new PasswordMismatchException(
+                        PasswordMismatchException.PASSWORD_MISMATCH
+                );
             }
         }
 
@@ -199,7 +212,9 @@ public class BankingCardService {
         // Banking card to cancel
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
-                () -> new BankingCardNotFoundException(bankingCardId));
+                () -> new BankingCardNotFoundException(
+                        BankingCardNotFoundException.CARD_NOT_FOUND
+                ));
 
         return this.cancelCard(bankingCard);
     }
@@ -215,14 +230,18 @@ public class BankingCardService {
         // Banking card to be cancel
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
-                () -> new BankingCardNotFoundException(bankingCardId));
+                () -> new BankingCardNotFoundException(
+                        BankingCardNotFoundException.CARD_NOT_FOUND
+                ));
 
         // if the logged customer is not admin
         if (!AuthCustomer.isAdmin(customerLogged)) {
             // check if the card to be closed belongs to this customer.
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
-                throw new BankingCardAuthorizationException();
+                throw new BankingCardAuthorizationException(
+                        BankingCardAuthorizationException.CARD_DOES_NOT_BELONG_TO_CUSTOMER
+                );
             }
 
             // password validation
@@ -251,7 +270,9 @@ public class BankingCardService {
         // Banking card to set pin
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
-                () -> new BankingCardNotFoundException(bankingCardId));
+                () -> new BankingCardNotFoundException(
+                        BankingCardNotFoundException.CARD_NOT_FOUND
+                ));
 
         return this.setBankingCardPin(bankingCard, pin);
     }
@@ -264,14 +285,18 @@ public class BankingCardService {
         // Banking card to set pin on
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
-                () -> new BankingAccountNotFoundException(bankingCardId));
+                () -> new BankingCardNotFoundException(
+                        BankingCardNotFoundException.CARD_NOT_FOUND
+                ));
 
         // if the logged customer is not admin
         if (!AuthCustomer.isAdmin(customerLogged)) {
             // check if the card to be closed belongs to this customer.
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
-                throw new BankingCardAuthorizationException();
+                throw new BankingCardAuthorizationException(
+                        BankingCardAuthorizationException.CARD_DOES_NOT_BELONG_TO_CUSTOMER
+                );
             }
 
             // password validation

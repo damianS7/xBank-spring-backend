@@ -1,15 +1,9 @@
 package com.damian.xBank.banking.account.exception;
 
 public class BankingAccountNotFoundException extends BankingAccountException {
+    public static final String ACCOUNT_NOT_FOUND = "Account not found.";
+
     public BankingAccountNotFoundException(String message) {
         super(message);
-    }
-
-    public BankingAccountNotFoundException() {
-        this("Banking account not found.");
-    }
-
-    public BankingAccountNotFoundException(Long id) {
-        this("Banking account not found with id: " + id);
     }
 }

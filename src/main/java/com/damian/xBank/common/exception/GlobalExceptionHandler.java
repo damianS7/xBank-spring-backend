@@ -1,4 +1,4 @@
-package com.damian.xBank.common.config;
+package com.damian.xBank.common.exception;
 
 import com.damian.xBank.auth.exception.AuthenticationAccountDisabledException;
 import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
@@ -15,8 +15,6 @@ import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionAuthorizationException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionNotFoundException;
-import com.damian.xBank.common.exception.ApplicationException;
-import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.ApiResponse;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerException;

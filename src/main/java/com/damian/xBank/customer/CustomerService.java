@@ -65,7 +65,9 @@ public class CustomerService {
     public boolean deleteCustomer(Long customerId) {
         // if the customer does not exist we throw an exception
         if (!customerRepository.existsById(customerId)) {
-            throw new CustomerNotFoundException(customerId);
+            throw new CustomerNotFoundException(
+                    CustomerNotFoundException.NOT_FOUND
+            );
         }
 
         // we delete the customer
@@ -96,7 +98,9 @@ public class CustomerService {
     public Customer getCustomer(Long customerId) {
         // if the customer does not exist we throw an exception
         return customerRepository.findById(customerId).orElseThrow(
-                () -> new CustomerNotFoundException(customerId)
+                () -> new CustomerNotFoundException(
+                        CustomerNotFoundException.NOT_FOUND
+                )
         );
     }
 

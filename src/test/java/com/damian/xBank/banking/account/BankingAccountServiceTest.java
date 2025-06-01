@@ -236,7 +236,9 @@ public class BankingAccountServiceTest {
         );
 
         // then
-        assertTrue(exception.getMessage().contains("Banking account not found"));
+        assertTrue(exception.getMessage().contains(
+                BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+        ));
     }
 
     @Test
@@ -265,7 +267,9 @@ public class BankingAccountServiceTest {
         );
 
         // then
-        assertTrue(exception.getMessage().contains("You are not the owner of this account."));
+        assertTrue(exception.getMessage().contains(
+                BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER
+        ));
     }
 
     @Test

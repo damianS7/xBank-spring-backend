@@ -1,9 +1,9 @@
 package com.damian.xBank.customer.profile;
 
-import com.damian.xBank.auth.exception.AuthorizationException;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
+import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
 import com.damian.xBank.customer.profile.exception.ProfileException;
 import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
@@ -230,13 +230,15 @@ public class ProfileServiceTest {
         // when
         when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(true);
         when(profileRepository.findById(anyLong())).thenReturn(Optional.of(profileFromOtherUser));
-        AuthorizationException exception = assertThrows(
-                AuthorizationException.class,
+        ProfileAuthorizationException exception = assertThrows(
+                ProfileAuthorizationException.class,
                 () -> profileService.updateProfile(customer.getProfile().getId(), updateRequest)
         );
 
         // Then
         verify(profileRepository, times(0)).save(customer.getProfile());
-        assertTrue(exception.getMessage().contains("You are not the owner of this profile."));
+        assertTrue(exception.getMessage().contains(
+                ProfileAuthorizationException.PROFILE_NOT_BELONG_TO_CUSTOMER
+        ));
     }
 }

@@ -194,7 +194,9 @@ public class CustomerServiceTest {
 
         // then
         verify(customerRepository, times(0)).save(any());
-        assertTrue(exception.getMessage().contains("is already taken."));
+        assertTrue(exception.getMessage().contains(
+                CustomerEmailTakenException.EMAIL_TAKEN
+        ));
     }
 
     @Test

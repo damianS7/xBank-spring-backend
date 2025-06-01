@@ -1,10 +1,10 @@
 package com.damian.xBank.customer.profile;
 
-import com.damian.xBank.auth.exception.AuthorizationException;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRole;
+import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
 import com.damian.xBank.customer.profile.exception.ProfileException;
 import com.damian.xBank.customer.profile.exception.ProfileNotFoundException;
 import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
@@ -158,12 +158,16 @@ public class ProfileService {
         if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
             // before making any changes we check that the user sent the current password.
             if (!bCryptPasswordEncoder.matches(request.currentPassword(), customerLogged.getPassword())) {
-                throw new PasswordMismatchException();
+                throw new PasswordMismatchException(
+                        PasswordMismatchException.PASSWORD_MISMATCH
+                );
             }
 
             // we make sure that this profile belongs to the customer logged
             if (!profile.getCustomerId().equals(customerLogged.getId())) {
-                throw new AuthorizationException("You are not the owner of this profile.");
+                throw new ProfileAuthorizationException(
+                        ProfileAuthorizationException.PROFILE_NOT_BELONG_TO_CUSTOMER
+                );
             }
         }
 

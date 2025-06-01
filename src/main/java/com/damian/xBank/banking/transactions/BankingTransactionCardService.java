@@ -28,10 +28,30 @@ public class BankingTransactionCardService {
         this.bankingTransactionService = bankingTransactionService;
     }
 
+    // handle request BankingTransactionType and determine what to do.
+    public BankingTransaction processCardTransactionRequest(
+            Long cardId,
+            BankingCardTransactionRequest request
+    ) {
+        // BankingCard to operate
+        BankingCard bankingCard = bankingCardRepository.findById(cardId).orElseThrow(
+                () -> new BankingCardNotFoundException(
+                        BankingCardNotFoundException.CARD_NOT_FOUND
+                )
+        );
+
+        return switch (request.transactionType()) {
+            case CARD_CHARGE -> this.spend(bankingCard, request.cardPin(), request.amount(), request.description());
+            case WITHDRAWAL -> this.withdrawal(bankingCard, request.cardPin(), request.amount());
+            default -> throw new BankingTransactionException(
+                    BankingTransactionException.INVALID_TRANSACTION_TYPE
+            );
+        };
+    }
+
     // security checks before card operations
-    public void cardSecurity(
-            BankingCard bankingCard,
-            String inputPin
+    public void validateCustomerAuthorization(
+            BankingCard bankingCard
     ) {
         // Customer logged
         final Customer customerLogged = AuthCustomer.getLoggedCustomer();
@@ -42,9 +62,15 @@ public class BankingTransactionCardService {
                     BankingCardAuthorizationException.CARD_DOES_NOT_BELONG_TO_CUSTOMER
             );
         }
+    }
 
+    // security checks before card operations
+    public void validateCardAuthorization(
+            BankingCard bankingCard,
+            String cardPIN
+    ) {
         // check card pin
-        if (!bankingCard.getCardPin().equals(inputPin)) {
+        if (!bankingCard.getCardPin().equals(cardPIN)) {
             throw new BankingCardAuthorizationException(
                     BankingCardAuthorizationException.INVALID_PIN
             );
@@ -67,9 +93,18 @@ public class BankingTransactionCardService {
         }
     }
 
+    public void validateCardFunds(BankingCard card, BigDecimal amount) {
+        if (!card.hasEnoughFundsToSpend(amount)) {
+            throw new BankingCardAuthorizationException(
+                    BankingCardAuthorizationException.INSUFFICIENT_FUNDS
+            );
+        }
+    }
+
     // validates card status and does the transaction
     public BankingTransaction spend(
             BankingCard card,
+            String cardPIN,
             BigDecimal amount,
             String description
     ) {
@@ -80,12 +115,14 @@ public class BankingTransactionCardService {
                 description
         );
 
+        // check customer authorization
+        this.validateCustomerAuthorization(card);
+
+        // check card authorization
+        this.validateCardAuthorization(card, cardPIN);
+
         // check balance
-        if (!card.hasEnoughFundsToSpend(amount)) {
-            throw new BankingCardAuthorizationException(
-                    BankingCardAuthorizationException.INSUFFICIENT_FUNDS
-            );
-        }
+        this.validateCardFunds(card, amount);
 
         // if the transaction is created, deduce the amount from balance
         card.chargeAmount(amount);
@@ -100,6 +137,7 @@ public class BankingTransactionCardService {
     // withdraws money
     public BankingTransaction withdrawal(
             BankingCard card,
+            String cardPIN,
             BigDecimal amount
     ) {
         BankingTransaction transaction = this.bankingTransactionService.createTransaction(
@@ -109,12 +147,14 @@ public class BankingTransactionCardService {
                 "ATM withdrawal."
         );
 
+        // check customer authorization
+        this.validateCustomerAuthorization(card);
+
+        // check card authorization
+        this.validateCardAuthorization(card, cardPIN);
+
         // check balance
-        if (!card.hasEnoughFundsToSpend(amount)) {
-            throw new BankingCardAuthorizationException(
-                    BankingCardAuthorizationException.INSUFFICIENT_FUNDS
-            );
-        }
+        this.validateCardFunds(card, amount);
 
         // if the transaction is created, deduce the amount from balance
         card.chargeAmount(amount);
@@ -124,29 +164,5 @@ public class BankingTransactionCardService {
 
         // save the transaction
         return bankingTransactionService.persistTransaction(transaction);
-    }
-
-    // handle request and determine what to do.
-    public BankingTransaction processCardTransaction(
-            Long cardId,
-            BankingCardTransactionRequest request
-    ) {
-        // bankingCard to be used
-        BankingCard bankingCard = bankingCardRepository.findById(cardId).orElseThrow(
-                () -> new BankingCardNotFoundException(
-                        BankingCardNotFoundException.CARD_NOT_FOUND
-                )
-        );
-
-        // run security checks before use the card
-        cardSecurity(bankingCard, request.cardPin());
-
-        return switch (request.transactionType()) {
-            case CARD_CHARGE -> this.spend(bankingCard, request.amount(), request.description());
-            case WITHDRAWAL -> this.withdrawal(bankingCard, request.amount());
-            default -> throw new BankingTransactionException(
-                    BankingTransactionException.INVALID_TRANSACTION_TYPE
-            );
-        };
     }
 }

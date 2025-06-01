@@ -30,8 +30,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
@@ -147,7 +146,7 @@ public class BankingAccountCardManagerServiceTest {
         );
 
         // then
-        assertTrue(exception.getMessage().contains("account not found"));
+        assertEquals(BankingAccountNotFoundException.ACCOUNT_NOT_FOUND, exception.getMessage());
     }
 
     @Test
@@ -174,7 +173,7 @@ public class BankingAccountCardManagerServiceTest {
         );
 
         // then
-        assertTrue(exception.getMessage().contains("You are not the owner of this account"));
+        assertEquals(BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER, exception.getMessage());
     }
 
     @Test

@@ -350,7 +350,7 @@ public class BankingCardIntegrationTest {
         bankingAccountRepository.save(bankingAccount);
 
         BankingCardSetLockStatusRequest request = new BankingCardSetLockStatusRequest(
-                BankingCardLockStatus.LOCKED,
+                BankingCardLockStatus.UNLOCKED,
                 "123456"
         );
 

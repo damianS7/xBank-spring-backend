@@ -4,7 +4,7 @@ import com.damian.xBank.auth.http.PasswordConfirmationRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
-import com.damian.xBank.banking.transactions.BankingTransactionController;
+import com.damian.xBank.banking.transactions.BankingTransactionCardService;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,15 +19,15 @@ import java.util.Set;
 @RestController
 public class BankingCardController {
     private final BankingCardService bankingCardService;
-    private final BankingTransactionController.BankingCardUsageService bankingCardUsageService;
+    private final BankingTransactionCardService bankingTransactionCardService;
 
     @Autowired
     public BankingCardController(
             BankingCardService bankingCardService,
-            BankingTransactionController.BankingCardUsageService bankingCardUsageService
+            BankingTransactionCardService bankingCardUsageService
     ) {
         this.bankingCardService = bankingCardService;
-        this.bankingCardUsageService = bankingCardUsageService;
+        this.bankingTransactionCardService = bankingCardUsageService;
     }
 
     // endpoint to fetch all cards of logged customer

@@ -52,8 +52,8 @@ public class CustomerServiceTest {
     void setUpContext(Customer customer) {
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         Mockito.when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(customer);
     }
 
@@ -168,7 +168,7 @@ public class CustomerServiceTest {
 
     @Test
     @DisplayName("Should not create any customer when email is taken")
-    void shouldNotCreateAnyCustomerWhenEmailIsTaken() {
+    void shouldNotCreateCustomerWhenEmailIsTaken() {
         // given
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
                 "david@gmail.com",
@@ -194,9 +194,7 @@ public class CustomerServiceTest {
 
         // then
         verify(customerRepository, times(0)).save(any());
-        assertTrue(exception.getMessage().contains(
-                CustomerEmailTakenException.EMAIL_TAKEN
-        ));
+        assertEquals(CustomerEmailTakenException.EMAIL_TAKEN, exception.getMessage());
     }
 
     @Test

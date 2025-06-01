@@ -34,7 +34,9 @@ public class CustomerService {
 
         // check if the email is already taken
         if (emailExist(request.email())) {
-            throw new CustomerEmailTakenException(request.email());
+            throw new CustomerEmailTakenException(
+                    CustomerEmailTakenException.EMAIL_TAKEN
+            );
         }
 
         // we create the customer and assign the data

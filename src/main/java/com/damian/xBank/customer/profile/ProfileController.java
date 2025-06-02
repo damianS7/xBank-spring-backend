@@ -1,6 +1,6 @@
 package com.damian.xBank.customer.profile;
 
-pimport com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
+import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;

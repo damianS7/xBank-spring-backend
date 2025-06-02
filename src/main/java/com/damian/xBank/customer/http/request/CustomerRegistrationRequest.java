@@ -17,16 +17,18 @@ public record CustomerRegistrationRequest(
         String email,
 
         @NotBlank
-        @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+        @Pattern(
+                regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
                 message = "Password must be at least 8 characters long, contain at least one uppercase letter, " +
-                        "one number, and one special character.")
+                          "one number, and one special character."
+        )
         String password,
 
         @NotBlank(message = "Name must not be blank.")
-        String name,
+        String firstName,
 
         @NotBlank(message = "Surname must not be blank.")
-        String surname,
+        String lastName,
 
         @NotBlank(message = "Phone must not be blank.")
         String phone,

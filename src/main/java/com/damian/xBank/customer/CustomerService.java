@@ -44,8 +44,8 @@ public class CustomerService {
         customer.setEmail(request.email());
         customer.setPassword(bCryptPasswordEncoder.encode(request.password()));
         customer.getProfile().setNationalId(request.nationalId());
-        customer.getProfile().setFirstName(request.name());
-        customer.getProfile().setLastName(request.surname());
+        customer.getProfile().setFirstName(request.firstName());
+        customer.getProfile().setLastName(request.lastName());
         customer.getProfile().setPhone(request.phone());
         customer.getProfile().setGender(request.gender());
         customer.getProfile().setBirthdate(request.birthdate());

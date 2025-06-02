@@ -5,6 +5,7 @@ import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.common.exception.PasswordMismatchException;
+import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerService;
@@ -15,7 +16,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -89,6 +89,7 @@ public class AuthenticationService {
         // Get the authenticated user
         final Customer customer = (Customer) auth.getPrincipal();
 
+        // TODO test this
         // check if the account is disabled
         if (customer.getAuth().getAuthAccountStatus().equals(AuthAccountStatus.DISABLED)) {
             throw new AuthenticationAccountDisabledException("Account is disabled.");
@@ -100,44 +101,41 @@ public class AuthenticationService {
         );
     }
 
-    /**
-     * It updates the password of a customer
-     *
-     * @param request the request body that contains the current password and the new password
-     * @return the customer updated
-     * @throws CustomerNotFoundException if the customer does not exist
-     * @throws PasswordMismatchException if the password does not match
-     */
-    public void updatePassword(CustomerPasswordUpdateRequest request) {
-        // we extract the email from the Customer stored in the SecurityContext
-        final Customer loggedCustomer = (Customer) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
+    public void updatePassword(Long customerId, String password) {
 
-        // we get the Customer entity so we can save at the end
-        Auth customerAuth = authenticationRepository.findByCustomer_Id(loggedCustomer.getId()).orElseThrow(
+        // we get the CustomerAuth entity so we can save.
+        Auth customerAuth = authenticationRepository.findByCustomer_Id(customerId).orElseThrow(
                 () -> new CustomerNotFoundException(
                         CustomerNotFoundException.NOT_FOUND
                 )
         );
 
-        // Before making any changes we check that the password sent by the customer matches the one in the entity
-        if (!bCryptPasswordEncoder.matches(request.currentPassword(), customerAuth.getPassword())) {
-            throw new PasswordMismatchException("Password does not match.");
-        }
-
         // if a new password is specified we set in the customer entity
-        if (request.newPassword() != null) {
-            customerAuth.setPassword(
-                    bCryptPasswordEncoder.encode(request.newPassword())
-            );
-        }
+        customerAuth.setPassword(
+                bCryptPasswordEncoder.encode(password)
+        );
 
         // we change the updateAt timestamp field
         customerAuth.setUpdatedAt(Instant.now());
 
         // save the changes
         authenticationRepository.save(customerAuth);
+    }
+
+    /**
+     * It updates the password of the logged customer
+     *
+     * @param request the request body that contains the current password and the new password
+     * @throws CustomerNotFoundException if the customer does not exist
+     * @throws PasswordMismatchException if the password does not match
+     */
+    public void updatePassword(CustomerPasswordUpdateRequest request) {
+        // we extract the email from the Customer stored in the SecurityContext
+        final Customer loggedCustomer = AuthUtils.getLoggedCustomer();
+
+        // Before making any changes we check that the password sent by the customer matches the one in the entity
+        AuthUtils.validatePasswordOrElseThrow(request.currentPassword(), loggedCustomer);
+
+        this.updatePassword(loggedCustomer.getId(), request.newPassword());
     }
 }

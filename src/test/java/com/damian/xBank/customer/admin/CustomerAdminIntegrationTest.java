@@ -5,23 +5,35 @@ import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountCurrency;
 import com.damian.xBank.banking.account.BankingAccountType;
-import com.damian.xBank.customer.*;
+import com.damian.xBank.customer.Customer;
+import com.damian.xBank.customer.CustomerGender;
+import com.damian.xBank.customer.CustomerRepository;
+import com.damian.xBank.customer.CustomerRole;
+import com.damian.xBank.customer.dto.CustomerDTO;
+import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,9 +41,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 public class CustomerAdminIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private CustomerService customerService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -44,6 +53,7 @@ public class CustomerAdminIntegrationTest {
 
     private Customer customer;
     private Customer customerAdmin;
+    private String token;
 
     @BeforeAll
     void setUp() throws Exception {
@@ -86,7 +96,7 @@ public class CustomerAdminIntegrationTest {
         customerRepository.save(customerAdmin);
     }
 
-    String loginWithCustomer(Customer customer) throws Exception {
+    void loginWithCustomer(Customer customer) throws Exception {
         // given
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(
                 customer.getEmail(), "123456"
@@ -105,6 +115,95 @@ public class CustomerAdminIntegrationTest {
                 AuthenticationResponse.class
         );
 
-        return response.token();
+        token = response.token();
+    }
+
+    @Test
+    @DisplayName("Should get customer accounts")
+    void shouldGetCustomerAccounts() throws Exception {
+        // given
+        loginWithCustomer(customerAdmin);
+
+        // when
+        // then
+        mockMvc.perform(
+                       get("/api/v1/admin/customers/" + customer.getId() + "/banking/accounts")
+                               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().isOk())
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @DisplayName("Should delete customer")
+    void shouldDeleteCustomer() throws Exception {
+        // given
+        loginWithCustomer(customerAdmin);
+
+        // when
+        // then
+        mockMvc.perform(MockMvcRequestBuilders
+                       .delete("/api/v1/admin/customers/" + customer.getId())
+                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+               .andDo(print())
+               .andExpect(MockMvcResultMatchers.status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("Should update customer email")
+    void shouldUpdateCustomerEmail() throws Exception {
+        // given
+        loginWithCustomer(customerAdmin);
+
+        CustomerEmailUpdateRequest givenRequest = new CustomerEmailUpdateRequest(
+                "123456",
+                "customer2@test.com"
+        );
+
+        // when
+        MvcResult result = mockMvc
+                .perform(
+                        patch("/api/v1/admin/customers/{id}/email", customer.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(givenRequest)))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+
+        // then
+        CustomerDTO customerDTO = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                CustomerDTO.class
+        );
+
+        // then
+        assertThat(customerDTO).isNotNull();
+        assertThat(customerDTO.email()).isEqualTo(givenRequest.newEmail());
+    }
+
+    @Test
+    @DisplayName("Should not update customer email when not admin")
+    void shouldNotUpdateCustomerEmailWhenNotAdmin() throws Exception {
+        // given
+        loginWithCustomer(customer);
+
+        CustomerEmailUpdateRequest givenRequest = new CustomerEmailUpdateRequest(
+                "123456",
+                "customer2@test.com"
+        );
+
+        // when
+        MvcResult result = mockMvc
+                .perform(
+                        patch("/api/v1/admin/customers/{id}/email", customer.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(givenRequest)))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().is(403))
+                .andReturn();
+
+        // then
     }
 }

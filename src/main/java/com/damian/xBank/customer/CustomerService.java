@@ -1,12 +1,11 @@
 package com.damian.xBank.customer;
 
-import com.damian.xBank.common.exception.PasswordMismatchException;
+import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -79,8 +78,11 @@ public class CustomerService {
         return true;
     }
 
+
+    // TODO should be paged
+
     /**
-     * Returns all the customers transformed to DTO
+     * Returns all the customers
      *
      * @return a list of CustomerDTO
      * @throws CustomerException if the logged user is not ADMIN
@@ -107,23 +109,6 @@ public class CustomerService {
     }
 
     /**
-     * Returns the logged customer
-     *
-     * @return the customer
-     * @throws CustomerException if the customer does not exist or if the logged user is not ADMIN
-     */
-    public Customer getLoggedCustomer() {
-        final Customer loggedCustomer = (Customer) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        final Long customerId = loggedCustomer.getId();
-
-        return this.getCustomer(customerId);
-    }
-
-    /**
      * It checks if an email exist in the database
      *
      * @param email the email to be checked
@@ -137,38 +122,43 @@ public class CustomerService {
     /**
      * It updates the email of a customer
      *
-     * @param request the request body that contains the current password and the new email
+     * @param customerId the id of the customer
+     * @param email      the new email to set
      * @return the customer updated
      * @throws CustomerException if the password does not match, or if the customer does not exist
      */
-    public Customer updateEmail(CustomerEmailUpdateRequest request) {
-        // we extract the email from the Customer stored in the SecurityContext
-        final Customer loggedCustomer = (Customer) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
+    public Customer updateEmail(Long customerId, String email) {
         // we get the Customer entity so we can save at the end
-        Customer customer = customerRepository.findByEmail(loggedCustomer.getEmail()).orElseThrow(
-                () -> new CustomerNotFoundException(loggedCustomer.getEmail())
+        Customer customer = customerRepository.findById(customerId).orElseThrow(
+                () -> new CustomerNotFoundException(
+                        CustomerNotFoundException.NOT_FOUND
+                )
         );
 
-        // Before making any changes we check that the password sent by the customer matches the one in the entity
-        if (!bCryptPasswordEncoder.matches(request.currentPassword(), customer.getPassword())) {
-            throw new PasswordMismatchException(
-                    PasswordMismatchException.PASSWORD_MISMATCH
-            );
-        }
-
-        // if the email is not null we modify in the customer
-        if (request.newEmail() != null) {
-            customer.setEmail(request.newEmail());
-        }
+        // set the new email
+        customer.setEmail(email);
 
         // we change the updateAt timestamp field
         customer.setUpdatedAt(Instant.now());
 
         // save the changes
         return customerRepository.save(customer);
+    }
+
+    /**
+     * It updates the email from the logged customer
+     *
+     * @param request the request body that contains the current password and the new email
+     * @return the customer updated
+     * @throws PasswordMismatchException if the password does not match, or if the customer does not exist
+     */
+    public Customer updateEmail(CustomerEmailUpdateRequest request) {
+        // we extract the email from the Customer stored in the SecurityContext
+        final Customer loggedCustomer = AuthUtils.getLoggedCustomer();
+
+        // Before making any changes we check that the password sent by the customer matches the one in the entity
+        AuthUtils.validatePasswordOrElseThrow(request.currentPassword(), loggedCustomer);
+
+        return this.updateEmail(loggedCustomer.getId(), request.newEmail());
     }
 }

@@ -1,5 +1,6 @@
 package com.damian.xBank.customer;
 
+import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
@@ -35,12 +36,14 @@ public class CustomerServiceTest {
 
     @Mock
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @InjectMocks
     private CustomerService customerService;
 
     @BeforeEach
     void setUp() {
+        passwordEncoder = new BCryptPasswordEncoder();
         customerRepository.deleteAll();
     }
 
@@ -236,7 +239,7 @@ public class CustomerServiceTest {
     void shouldUpdateCustomerEmail() {
         // given
         String currentRawPassword = "123456";
-        String currentEncodedPassword = "encodedActualPassword";
+        String currentEncodedPassword = passwordEncoder.encode(currentRawPassword);
 
         Customer customer = new Customer(
                 10L,
@@ -253,8 +256,8 @@ public class CustomerServiceTest {
         );
 
         // when
-        when(bCryptPasswordEncoder.matches(currentRawPassword, currentEncodedPassword)).thenReturn(true);
-        when(customerRepository.findByEmail(customer.getEmail())).thenReturn(Optional.of(customer));
+        //        when(bCryptPasswordEncoder.matches(currentRawPassword, currentEncodedPassword)).thenReturn(true);
+        when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
 
         customerService.updateEmail(updateRequest);
 
@@ -262,5 +265,36 @@ public class CustomerServiceTest {
         verify(customerRepository, times(1)).save(customer);
         assertThat(customer.getEmail()).isEqualTo(updateRequest.newEmail());
         assertThat(customer.getPassword()).isEqualTo(currentEncodedPassword);
+    }
+
+    @Test
+    @DisplayName("Should not update customer email when password is wrong")
+    void shouldNotUpdateCustomerEmailWhenPasswordIsWrong() {
+        // given
+        String currentRawPassword = "123456";
+        String currentEncodedPassword = passwordEncoder.encode(currentRawPassword);
+
+        Customer customer = new Customer(
+                10L,
+                "customer@test.com",
+                currentEncodedPassword
+        );
+
+        // set the customer on the context
+        setUpContext(customer);
+
+        CustomerEmailUpdateRequest updateRequest = new CustomerEmailUpdateRequest(
+                "wrong password",
+                "david@test.com"
+        );
+
+        // when
+        PasswordMismatchException exception = assertThrows(
+                PasswordMismatchException.class,
+                () -> customerService.updateEmail(updateRequest)
+        );
+
+        // then
+        assertEquals(PasswordMismatchException.PASSWORD_MISMATCH, exception.getMessage());
     }
 }

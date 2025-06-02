@@ -1,6 +1,7 @@
 package com.damian.xBank.customer;
 
 import com.damian.xBank.banking.account.BankingAccountService;
+import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.dto.CustomerDTO;
 import com.damian.xBank.customer.dto.CustomerDTOMapper;
 import com.damian.xBank.customer.dto.CustomerWithProfileDTO;
@@ -15,18 +16,17 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class CustomerController {
     private final CustomerService customerService;
-    private final BankingAccountService bankingAccountService;
 
     @Autowired
     public CustomerController(CustomerService customerService, BankingAccountService bankingAccountService) {
         this.customerService = customerService;
-        this.bankingAccountService = bankingAccountService;
     }
 
     // endpoint to receive logged customer
     @GetMapping("/customers/me")
     public ResponseEntity<?> getLoggedCustomerData() {
-        Customer customer = customerService.getLoggedCustomer();
+        // TODO check if this works. If not, try to change to customerService.getCustomer(id)
+        Customer customer = AuthUtils.getLoggedCustomer();
         CustomerWithProfileDTO dto = CustomerDTOMapper.toCustomerWithProfileDTO(customer);
 
         return ResponseEntity
@@ -34,6 +34,7 @@ public class CustomerController {
                 .body(dto);
     }
 
+    // TODO should really return CustomerDTO?
     // endpoint to modify logged customer email
     @PatchMapping("/customers/me/email")
     public ResponseEntity<?> updateLoggedCustomerEmail(

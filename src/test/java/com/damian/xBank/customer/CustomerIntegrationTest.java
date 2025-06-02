@@ -5,6 +5,8 @@ import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountCurrency;
 import com.damian.xBank.banking.account.BankingAccountType;
+import com.damian.xBank.customer.dto.CustomerDTO;
+import com.damian.xBank.customer.dto.CustomerWithProfileDTO;
 import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
@@ -19,27 +21,22 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-// TODO check why this test is faster than the others
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CustomerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private CustomerService customerService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -51,10 +48,10 @@ public class CustomerIntegrationTest {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private Customer customer;
-    private Customer customerAdmin;
+    private String token;
 
     @BeforeAll
-    void setUp() throws Exception {
+    void setUp() {
         customerRepository.deleteAll();
 
         customer = new Customer();
@@ -86,15 +83,9 @@ public class CustomerIntegrationTest {
         bankingAccounts.add(bankingAccountB);
         customer.setBankingAccounts(bankingAccounts);
         customerRepository.save(customer);
-
-        customerAdmin = new Customer();
-        customerAdmin.setPassword(bCryptPasswordEncoder.encode("123456"));
-        customerAdmin.setEmail("admin@test.com");
-        customerAdmin.setRole(CustomerRole.ADMIN);
-        customerRepository.save(customerAdmin);
     }
 
-    String loginWithCustomer(Customer customer) throws Exception {
+    void loginWithCustomer(Customer customer) throws Exception {
         // given
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(
                 customer.getEmail(), "123456"
@@ -113,73 +104,66 @@ public class CustomerIntegrationTest {
                 AuthenticationResponse.class
         );
 
-        return response.token();
+        token = response.token();
     }
 
     @Test
-    @DisplayName("Should get customer")
+    @DisplayName("Should get logged customer")
     void shouldGetCustomer() throws Exception {
         // given
-        final String token = loginWithCustomer(customerAdmin);
+        loginWithCustomer(customer);
 
         // when
-        // then
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/customers/" + customer.getId())
-                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-               .andDo(print())
-               .andExpect(MockMvcResultMatchers.status().isOk())
-               .andExpect(jsonPath("$.email").value(customer.getEmail()))
-               //               .andExpect(jsonPath("$.profile.address").value(customer.getProfile().getAddress()))
-               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
-    }
+        MvcResult result = mockMvc
+                .perform(
+                        get("/api/v1/customers/me")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
 
-    @Test
-    @DisplayName("Should get customer accounts")
-    void shouldGetCustomerAccounts() throws Exception {
-        // given
-        final String token = loginWithCustomer(customerAdmin);
-        // when
         // then
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/customers/" + customer.getId() + "/banking/accounts")
-                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-               .andDo(print())
-               .andExpect(MockMvcResultMatchers.status().isOk())
-               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
-    }
+        CustomerWithProfileDTO customerWithProfileDTO = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                CustomerWithProfileDTO.class
+        );
 
-    @Test
-    @DisplayName("Should delete customer")
-    void shouldDeleteCustomer() throws Exception {
-        // given
-        final String token = loginWithCustomer(customerAdmin);
-
-        // when
         // then
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/admin/customers/" + customer.getId())
-                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-               .andDo(print())
-               .andExpect(MockMvcResultMatchers.status().isNoContent());
+        assertThat(customerWithProfileDTO).isNotNull();
+        assertThat(customerWithProfileDTO.email()).isEqualTo(customer.getEmail());
     }
 
     @Test
     @DisplayName("Should update email")
     void shouldUpdateEmail() throws Exception {
         // given
-        final String token = loginWithCustomer(customer);
+        loginWithCustomer(customer);
 
-        CustomerEmailUpdateRequest customerEmailUpdateRequest = new CustomerEmailUpdateRequest(
+        CustomerEmailUpdateRequest givenRequest = new CustomerEmailUpdateRequest(
                 "123456",
                 "customer2@test.com"
         );
 
         // when
+        MvcResult result = mockMvc
+                .perform(
+                        patch("/api/v1/customers/me/email")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(givenRequest)))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+
         // then
-        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/customers/me/email")
-                                              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                                              .contentType(MediaType.APPLICATION_JSON)
-                                              .content(objectMapper.writeValueAsString(customerEmailUpdateRequest)))
-               .andDo(print())
-               .andExpect(jsonPath("$.email").value("customer2@test.com"))
-               .andExpect(MockMvcResultMatchers.status().isOk());
+        CustomerDTO customerDTO = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                CustomerDTO.class
+        );
+
+        // then
+        assertThat(customerDTO).isNotNull();
+        assertThat(customerDTO.email()).isEqualTo(givenRequest.newEmail());
     }
 }

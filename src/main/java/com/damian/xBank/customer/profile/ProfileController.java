@@ -1,6 +1,7 @@
 package com.damian.xBank.customer.profile;
 
-import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
+pimport com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -25,11 +26,11 @@ public class ProfileController {
 
     // endpoint to modify the logged customer profile
     @PatchMapping("/customers/me/profile")
-    public ResponseEntity<?> patchLoggedCustomerProfile(
+    public ResponseEntity<?> updateLoggedCustomerProfile(
             @Validated @RequestBody
-            ProfilePatchRequest request
+            ProfileUpdateRequest request
     ) {
-        Profile profile = profileService.patchCustomerProfile(request);
+        Profile profile = profileService.updateProfile(request);
         ProfileDTO profileDTO = ProfileDTOMapper.toProfileDTO(profile);
 
         return ResponseEntity
@@ -37,9 +38,12 @@ public class ProfileController {
                 .body(profileDTO);
     }
 
+    // TODO move logic to service
+    // endpoint to get the logged customer profile photo
     @GetMapping("/customers/me/profile/photo/{filename:.+}")
     public ResponseEntity<?> getLoggedCustomerPhoto(
-            @PathVariable String filename
+            @PathVariable @NotBlank
+            String filename
     ) {
         Resource resource = profileService.getPhoto(filename);
 
@@ -53,7 +57,6 @@ public class ProfileController {
             contentType = "application/octet-stream";
         }
 
-
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .contentType(MediaType.parseMediaType(contentType))
@@ -62,8 +65,8 @@ public class ProfileController {
 
     // endpoint to upload profile photo
     @PostMapping("/customers/me/profile/photo")
-    public ResponseEntity<?> postLoggedCustomerPhoto(
-            @RequestParam("currentPassword") String currentPassword,
+    public ResponseEntity<?> uploadLoggedCustomerPhoto(
+            @RequestParam("currentPassword") @NotBlank String currentPassword,
             @RequestParam("file") MultipartFile file
     ) {
         Profile profile = profileService.uploadPhoto(currentPassword, file);

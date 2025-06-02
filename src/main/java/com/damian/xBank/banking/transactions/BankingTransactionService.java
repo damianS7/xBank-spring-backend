@@ -5,7 +5,7 @@ import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionAuthorizationException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionNotFoundException;
 import com.damian.xBank.banking.transactions.http.BankingTransactionUpdateStatusRequest;
-import com.damian.xBank.common.utils.AuthCustomer;
+import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRole;
 import org.springframework.data.domain.Page;
@@ -86,7 +86,7 @@ public class BankingTransactionService {
             BankingTransactionUpdateStatusRequest request
     ) {
         // Customer logged
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         // if the logged customer is not admin
         if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {

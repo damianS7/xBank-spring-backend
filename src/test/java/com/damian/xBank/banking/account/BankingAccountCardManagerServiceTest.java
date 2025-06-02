@@ -11,8 +11,6 @@ import com.damian.xBank.banking.card.http.BankingCardRequest;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
-import net.datafaker.Faker;
-import net.datafaker.providers.base.Finance;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,12 +44,6 @@ public class BankingAccountCardManagerServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
-
-    @Mock
-    private Faker faker;
-
-    @Mock
-    private Finance finance;
 
     @Mock
     private BCryptPasswordEncoder bCryptPasswordEncoder;

@@ -22,7 +22,10 @@ public class CustomerDetailsService implements UserDetailsService {
     public CustomerDetails loadCustomerByEmail(String email) throws UsernameNotFoundException {
         return customerRepository
                 .findByEmail(email)
-                .orElseThrow(AuthenticationBadCredentialsException::new
+                .orElseThrow(
+                        () -> new AuthenticationBadCredentialsException(
+                                AuthenticationBadCredentialsException.BAD_CREDENTIALS
+                        )
                 );
     }
 }

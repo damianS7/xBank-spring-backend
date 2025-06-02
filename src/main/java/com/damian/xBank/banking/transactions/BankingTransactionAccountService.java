@@ -7,36 +7,23 @@ import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationExc
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionException;
 import com.damian.xBank.banking.transactions.http.BankingAccountTransactionRequest;
-import com.damian.xBank.common.exception.PasswordMismatchException;
-import com.damian.xBank.common.utils.AuthCustomer;
+import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.Customer;
-import com.damian.xBank.customer.CustomerRepository;
-import net.datafaker.Faker;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
 @Service
 public class BankingTransactionAccountService {
-    private final CustomerRepository customerRepository;
     private final BankingAccountRepository bankingAccountRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final BankingTransactionService bankingTransactionService;
-    private final Faker faker;
 
     public BankingTransactionAccountService(
             BankingAccountRepository bankingAccountRepository,
-            CustomerRepository customerRepository,
-            BCryptPasswordEncoder bCryptPasswordEncoder,
-            BankingTransactionService bankingTransactionService,
-            Faker faker
+            BankingTransactionService bankingTransactionService
     ) {
         this.bankingAccountRepository = bankingAccountRepository;
-        this.customerRepository = customerRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.bankingTransactionService = bankingTransactionService;
-        this.faker = faker;
     }
 
     // handle request BankingTransactionType and determine what to do.
@@ -72,7 +59,7 @@ public class BankingTransactionAccountService {
             String password
     ) {
         // Customer logged
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         // if the owner of the card is not the current logged customer.
         if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
@@ -82,11 +69,7 @@ public class BankingTransactionAccountService {
         }
 
         // check password
-        if (!AuthCustomer.isPasswordCorrect(password, customerLogged.getPassword())) {
-            throw new PasswordMismatchException(
-                    PasswordMismatchException.PASSWORD_MISMATCH
-            );
-        }
+        AuthUtils.validatePasswordOrElseThrow(password, customerLogged);
     }
 
     // security checks before account operations
@@ -141,6 +124,8 @@ public class BankingTransactionAccountService {
                     BankingAccountAuthorizationException.TRANSFER_TO_SAME_ACCOUNT
             );
         }
+
+        // TODO check currency are the same between accounts
 
         // check customer authorization
         this.validateCustomerAuthorization(fromBankingAccount, password);

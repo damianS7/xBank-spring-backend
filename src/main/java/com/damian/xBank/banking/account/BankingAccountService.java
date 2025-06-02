@@ -6,7 +6,7 @@ import com.damian.xBank.banking.account.http.request.BankingAccountAliasUpdateRe
 import com.damian.xBank.banking.account.http.request.BankingAccountCloseRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountCreateRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
-import com.damian.xBank.common.utils.AuthCustomer;
+import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -37,7 +37,7 @@ public class BankingAccountService {
     // return all the BankingAccounts that belongs to the logged customer.
     public Set<BankingAccount> getLoggedCustomerBankingAccounts() {
         // we extract the customer logged from the SecurityContext
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         return this.getCustomerBankingAccounts(customerLogged.getId());
     }
@@ -76,7 +76,7 @@ public class BankingAccountService {
     // create a BankingAccount for the logged customer
     public BankingAccount createBankingAccountForLoggedCustomer(BankingAccountCreateRequest request) {
         // we extract the customer logged from the SecurityContext
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         return this.createBankingAccountForCustomer(customerLogged.getId(), request);
     }
@@ -113,7 +113,7 @@ public class BankingAccountService {
             BankingAccountOpenRequest request
     ) {
         // Customer logged
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         // Banking account to be open
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
@@ -133,9 +133,7 @@ public class BankingAccountService {
             }
 
             // check password
-            if (!AuthCustomer.isPasswordCorrect(request.password(), customerLogged.getPassword())) {
-                throw new BankingAccountAuthorizationException("Wrong password");
-            }
+            AuthUtils.validatePasswordOrElseThrow(request.password(), customerLogged);
         }
 
         // suspended accounts can only change status by admin
@@ -164,7 +162,7 @@ public class BankingAccountService {
             BankingAccountCloseRequest request
     ) {
         // Customer logged
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         // Banking account to be closed
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
@@ -184,9 +182,7 @@ public class BankingAccountService {
             }
 
             // check password
-            if (!AuthCustomer.isPasswordCorrect(request.password(), customerLogged.getPassword())) {
-                throw new BankingAccountAuthorizationException("Wrong password");
-            }
+            AuthUtils.validatePasswordOrElseThrow(request.password(), customerLogged);
         }
 
         // suspended accounts can only change status by admin
@@ -225,13 +221,15 @@ public class BankingAccountService {
         return this.setBankingAccountAlias(bankingAccount, request.alias());
     }
 
+    // TODO test this method. Set exception messages with constants
+    // TODO create methods to validate security requests. too much repeated code
     // Logged customer set an alias for an account
     public BankingAccount setBankingAccountAliasForLoggedCustomer(
             Long bankingAccountId,
             BankingAccountAliasUpdateRequest request
     ) {
         // Customer logged
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         // Banking account to set alias
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
@@ -249,9 +247,7 @@ public class BankingAccountService {
             }
 
             // check password
-            if (!AuthCustomer.isPasswordCorrect(request.password(), customerLogged.getPassword())) {
-                throw new BankingAccountAuthorizationException("Wrong password");
-            }
+            AuthUtils.validatePasswordOrElseThrow(request.password(), customerLogged);
         }
 
         return this.setBankingAccountAlias(bankingAccount, request.alias());

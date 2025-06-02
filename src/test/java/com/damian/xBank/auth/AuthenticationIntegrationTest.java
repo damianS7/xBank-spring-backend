@@ -256,8 +256,8 @@ public class AuthenticationIntegrationTest {
                .andDo(print())
                .andExpect(MockMvcResultMatchers.status().is(201))
                .andExpect(jsonPath("$.email").value(request.email()))
-               .andExpect(jsonPath("$.profile.firstName").value(request.name()))
-               .andExpect(jsonPath("$.profile.lastName").value(request.surname()))
+               .andExpect(jsonPath("$.profile.firstName").value(request.firstName()))
+               .andExpect(jsonPath("$.profile.lastName").value(request.lastName()))
                .andExpect(jsonPath("$.profile.phone").value(request.phone()))
                .andExpect(jsonPath("$.profile.birthdate").value(request.birthdate().toString()))
                .andExpect(jsonPath("$.profile.gender").value(request.gender().toString()))
@@ -439,7 +439,7 @@ public class AuthenticationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should update password")
+    @DisplayName("Should not update password when password policy not satisfied")
     void shouldNotUpdatePasswordWhenPasswordPolicyNotSatisfied() throws Exception {
         // given
         String token = loginWithCustomer(customer);
@@ -462,7 +462,7 @@ public class AuthenticationIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should update password")
+    @DisplayName("Should not update password when password is null")
     void shouldNotUpdatePasswordWhenPasswordIsNull() throws Exception {
         // given
         String token = loginWithCustomer(customer);

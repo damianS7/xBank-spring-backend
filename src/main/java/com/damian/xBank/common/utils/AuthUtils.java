@@ -7,15 +7,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class AuthUtils {
+    private static final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+
     public static void validatePasswordOrElseThrow(String rawPassword, Customer customer) {
-        if (!AuthUtils.isPasswordCorrect(rawPassword, customer.getAuth().getPassword())) {
+        if (!bCryptPasswordEncoder.matches(rawPassword, customer.getAuth().getPassword())) {
             throw new PasswordMismatchException(PasswordMismatchException.PASSWORD_MISMATCH);
         }
-    }
-
-    public static boolean isPasswordCorrect(String rawPassword, String hashedPassword) {
-        final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        return bCryptPasswordEncoder.matches(rawPassword, hashedPassword);
     }
 
     public static Customer getLoggedCustomer() {

@@ -1,6 +1,6 @@
 package com.damian.xBank.auth;
 
-import com.damian.xBank.auth.exception.AuthenticationAccountDisabledException;
+import com.damian.xBank.auth.exception.AccountDisabledException;
 import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
@@ -32,8 +32,8 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -57,13 +57,16 @@ public class AuthenticationServiceTest {
 
     @Mock
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Mock
     private JWTUtil jwtUtil;
-    private String hashedPassword = "3hri2rhid;/!";
+
+    private final String RAW_PASSWORD = "123456";
 
     @BeforeEach
     void setUp() {
+        passwordEncoder = new BCryptPasswordEncoder();
         customerRepository.deleteAll();
     }
 
@@ -75,13 +78,13 @@ public class AuthenticationServiceTest {
     void setUpContext(Customer customer) {
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         Mockito.when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(customer);
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("should register a new customer")
     void shouldRegisterCustomer() {
         // given
         Customer givenCustomer = new Customer();
@@ -137,6 +140,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("should login when valid credentials")
     void shouldLoginWhenValidCredentials() {
         // given
         Authentication authentication = mock(Authentication.class);
@@ -162,6 +166,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
+    @DisplayName("should not login when invalid credentials")
     void shouldNotLoginWhenInvalidCredentials() {
         // given
         Customer customer = new Customer(
@@ -181,10 +186,11 @@ public class AuthenticationServiceTest {
         );
 
         // Then
-        assertTrue(exception.getMessage().contains("Bad credentials."));
+        assertEquals(AuthenticationBadCredentialsException.BAD_CREDENTIALS, exception.getMessage());
     }
 
     @Test
+    @DisplayName("should not login when account is disabled")
     void shouldNotLoginWhenAccountIsDisabled() {
         // given
         Authentication authentication = mock(Authentication.class);
@@ -204,13 +210,13 @@ public class AuthenticationServiceTest {
         when(jwtUtil.generateToken(request.email())).thenReturn(token);
         when(authentication.getPrincipal()).thenReturn(customer);
 
-        AuthenticationAccountDisabledException exception = assertThrows(
-                AuthenticationAccountDisabledException.class,
+        AccountDisabledException exception = assertThrows(
+                AccountDisabledException.class,
                 () -> authenticationService.login(request)
         );
 
         // Then
-        assertTrue(exception.getMessage().contains("Account is disabled."));
+        assertEquals(AccountDisabledException.ACCOUNT_DISABLED, exception.getMessage());
     }
 
     @Test
@@ -218,9 +224,9 @@ public class AuthenticationServiceTest {
     void shouldUpdateCustomerPassword() {
         // given
         final String currentRawPassword = "123456";
-        final String currentEncodedPassword = this.hashedPassword;
+        final String currentEncodedPassword = passwordEncoder.encode(currentRawPassword);
         final String rawNewPassword = "1234";
-        final String encodedNewPassword = "encodedNewPassword";
+        final String encodedNewPassword = passwordEncoder.encode(rawNewPassword);
 
         Customer customer = new Customer(
                 10L,
@@ -238,7 +244,6 @@ public class AuthenticationServiceTest {
 
         // when
         when(bCryptPasswordEncoder.encode(rawNewPassword)).thenReturn(encodedNewPassword);
-        when(bCryptPasswordEncoder.matches(currentRawPassword, currentEncodedPassword)).thenReturn(true);
         when(authenticationRepository.findByCustomer_Id(customer.getId())).thenReturn(Optional.of(customer.getAuth()));
         authenticationService.updatePassword(updateRequest);
 
@@ -254,7 +259,7 @@ public class AuthenticationServiceTest {
         Customer customer = new Customer(
                 10L,
                 "customer@test.com",
-                "currentEncodedPassword"
+                bCryptPasswordEncoder.encode("1234")
         );
 
         // set the customer on the context
@@ -266,16 +271,14 @@ public class AuthenticationServiceTest {
         );
 
         // when
-        when(authenticationRepository.findByCustomer_Id(customer.getId())).thenReturn(Optional.of(customer.getAuth()));
-        when(bCryptPasswordEncoder.matches(updateRequest.currentPassword(), customer.getPassword())).thenReturn(false);
         PasswordMismatchException exception = assertThrows(
                 PasswordMismatchException.class,
                 () -> authenticationService.updatePassword(
                         updateRequest
                 )
         );
-        // Then
-        assertTrue(exception.getMessage().contains("Password does not match."));
+        // then
+        assertEquals(PasswordMismatchException.PASSWORD_MISMATCH, exception.getMessage());
     }
 
     @Test
@@ -285,7 +288,7 @@ public class AuthenticationServiceTest {
         Customer customer = new Customer(
                 10L,
                 "customer@test.com",
-                "encodedNewPassword"
+                passwordEncoder.encode("1234")
         );
 
         // set the customer on the context
@@ -293,13 +296,11 @@ public class AuthenticationServiceTest {
 
         CustomerPasswordUpdateRequest updateRequest = new CustomerPasswordUpdateRequest(
                 "1234",
-                "1234"
+                "1234678Ax$"
         );
 
-        // when
         when(authenticationRepository.findByCustomer_Id(customer.getId()))
                 .thenReturn(Optional.empty());
-
 
         CustomerNotFoundException exception = assertThrows(
                 CustomerNotFoundException.class,
@@ -308,7 +309,7 @@ public class AuthenticationServiceTest {
                 )
         );
 
-        // Then
-        assertTrue(exception.getMessage().contains("Customer not found"));
+        // then
+        assertEquals(CustomerNotFoundException.NOT_FOUND, exception.getMessage());
     }
 }

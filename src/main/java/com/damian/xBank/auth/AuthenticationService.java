@@ -1,6 +1,6 @@
 package com.damian.xBank.auth;
 
-import com.damian.xBank.auth.exception.AuthenticationAccountDisabledException;
+import com.damian.xBank.auth.exception.AccountDisabledException;
 import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
@@ -65,8 +65,8 @@ public class AuthenticationService {
      *
      * @param request Contains the fields needed to login into the service
      * @return Contains the data (Customer, Profile) and the token
-     * @throws AuthenticationBadCredentialsException  if credentials are invalid
-     * @throws AuthenticationAccountDisabledException if the account is not enabled
+     * @throws AuthenticationBadCredentialsException if credentials are invalid
+     * @throws AccountDisabledException              if the account is not enabled
      */
     public AuthenticationResponse login(AuthenticationRequest request) {
         final String email = request.email();
@@ -80,7 +80,9 @@ public class AuthenticationService {
                             email, password)
             );
         } catch (BadCredentialsException e) {
-            throw new AuthenticationBadCredentialsException();
+            throw new AuthenticationBadCredentialsException(
+                    AuthenticationBadCredentialsException.BAD_CREDENTIALS
+            );
         }
 
         // Generate a token for the authenticated user
@@ -92,7 +94,9 @@ public class AuthenticationService {
         // TODO test this
         // check if the account is disabled
         if (customer.getAuth().getAuthAccountStatus().equals(AuthAccountStatus.DISABLED)) {
-            throw new AuthenticationAccountDisabledException("Account is disabled.");
+            throw new AccountDisabledException(
+                    AccountDisabledException.ACCOUNT_DISABLED
+            );
         }
 
         // Return the customer data and the token
@@ -101,6 +105,14 @@ public class AuthenticationService {
         );
     }
 
+    /**
+     * It updates the password of given customerId.
+     *
+     * @param customerId the id of the customer to be updated
+     * @param password   the new password to be set
+     * @throws CustomerNotFoundException if the customer does not exist
+     * @throws PasswordMismatchException if the password does not match
+     */
     public void updatePassword(Long customerId, String password) {
 
         // we get the CustomerAuth entity so we can save.
@@ -110,7 +122,7 @@ public class AuthenticationService {
                 )
         );
 
-        // if a new password is specified we set in the customer entity
+        // set the new password
         customerAuth.setPassword(
                 bCryptPasswordEncoder.encode(password)
         );
@@ -136,6 +148,7 @@ public class AuthenticationService {
         // Before making any changes we check that the password sent by the customer matches the one in the entity
         AuthUtils.validatePasswordOrElseThrow(request.currentPassword(), loggedCustomer);
 
+        // update the password
         this.updatePassword(loggedCustomer.getId(), request.newPassword());
     }
 }

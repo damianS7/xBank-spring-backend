@@ -7,8 +7,7 @@ import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
-import com.damian.xBank.common.exception.PasswordMismatchException;
-import com.damian.xBank.common.utils.AuthCustomer;
+import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.Customer;
 import net.datafaker.Faker;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,7 @@ public class BankingCardService {
     // return the cards of the logged customer
     public Set<BankingCard> getLoggedCustomerBankingCards() {
         // Customer logged
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         return this.getCustomerBankingCards(customerLogged.getId());
     }
@@ -101,7 +100,7 @@ public class BankingCardService {
             BankingCardSetLockStatusRequest request
     ) {
         // Customer logged
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         // Banking account to be closed
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
@@ -111,7 +110,7 @@ public class BankingCardService {
                 ));
 
         // if the logged customer is admin just set the lock status and skip checks
-        if (!AuthCustomer.isAdmin(customerLogged)) {
+        if (!AuthUtils.isAdmin(customerLogged)) {
             // check if the card to be closed belongs to this customer.
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
@@ -121,9 +120,7 @@ public class BankingCardService {
             }
 
             // password validation
-            if (!AuthCustomer.isPasswordCorrect(request.password(), customerLogged.getPassword())) {
-                throw new PasswordMismatchException("Password does not match.");
-            }
+            AuthUtils.validatePasswordOrElseThrow(request.password(), customerLogged);
         }
 
         return this.setCardLockStatus(bankingCard, request.lockStatus());
@@ -165,7 +162,7 @@ public class BankingCardService {
             BankingCardSetDailyLimitRequest request
     ) {
         // Customer logged
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         // Banking card to be closed
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
@@ -175,7 +172,7 @@ public class BankingCardService {
                 ));
 
         // if the logged customer is not admin
-        if (!AuthCustomer.isAdmin(customerLogged)) {
+        if (!AuthUtils.isAdmin(customerLogged)) {
             // check if the card to be closed belongs to this customer.
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
@@ -185,11 +182,7 @@ public class BankingCardService {
             }
 
             // password validation
-            if (!AuthCustomer.isPasswordCorrect(request.password(), customerLogged.getPassword())) {
-                throw new PasswordMismatchException(
-                        PasswordMismatchException.PASSWORD_MISMATCH
-                );
-            }
+            AuthUtils.validatePasswordOrElseThrow(request.password(), customerLogged);
         }
 
         return this.setDailyLimit(bankingCard, request.dailyLimit());
@@ -225,7 +218,7 @@ public class BankingCardService {
             PasswordConfirmationRequest request
     ) {
         // Customer logged
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         // Banking card to be cancel
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
@@ -235,7 +228,7 @@ public class BankingCardService {
                 ));
 
         // if the logged customer is not admin
-        if (!AuthCustomer.isAdmin(customerLogged)) {
+        if (!AuthUtils.isAdmin(customerLogged)) {
             // check if the card to be closed belongs to this customer.
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
@@ -245,9 +238,7 @@ public class BankingCardService {
             }
 
             // password validation
-            if (!AuthCustomer.isPasswordCorrect(request.password(), customerLogged.getPassword())) {
-                throw new PasswordMismatchException("Password does not match.");
-            }
+            AuthUtils.validatePasswordOrElseThrow(request.password(), customerLogged);
         }
 
         return this.cancelCard(bankingCard);
@@ -280,7 +271,7 @@ public class BankingCardService {
     // set the pin for customers logged
     public BankingCard setBankingCardPin(Long bankingCardId, BankingCardSetPinRequest request) {
         // Customer logged
-        final Customer customerLogged = AuthCustomer.getLoggedCustomer();
+        final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         // Banking card to set pin on
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
@@ -290,7 +281,7 @@ public class BankingCardService {
                 ));
 
         // if the logged customer is not admin
-        if (!AuthCustomer.isAdmin(customerLogged)) {
+        if (!AuthUtils.isAdmin(customerLogged)) {
             // check if the card to be closed belongs to this customer.
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
@@ -300,11 +291,7 @@ public class BankingCardService {
             }
 
             // password validation
-            if (!AuthCustomer.isPasswordCorrect(request.password(), customerLogged.getPassword())) {
-                System.out.println(request.password());
-                System.out.println(customerLogged.getPassword());
-                throw new PasswordMismatchException("Password does not match.");
-            }
+            AuthUtils.validatePasswordOrElseThrow(request.password(), customerLogged);
         }
 
         return this.setBankingCardPin(bankingCard, request.pin());

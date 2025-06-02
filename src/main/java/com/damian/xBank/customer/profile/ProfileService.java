@@ -164,7 +164,6 @@ public class ProfileService {
         return resource;
     }
 
-
     /**
      * It sets the customer profile photo
      */

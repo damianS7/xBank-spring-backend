@@ -7,7 +7,6 @@ import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
-import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
@@ -23,16 +22,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -60,6 +59,7 @@ public class ProfileIntegrationTest {
     private Customer customerA;
     private Customer customerB;
     private Customer customerAdmin;
+    private String token;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -92,7 +92,7 @@ public class ProfileIntegrationTest {
         customerRepository.save(customerAdmin);
     }
 
-    String loginWithCustomer(Customer customer) throws Exception {
+    void loginWithCustomer(Customer customer) throws Exception {
         // given
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(
                 customer.getEmail(), "123456"
@@ -111,141 +111,88 @@ public class ProfileIntegrationTest {
                 AuthenticationResponse.class
         );
 
-        return response.token();
+        token = response.token();
     }
 
     @Test
-    @DisplayName("Should update own profile")
-    void shouldUpdateOwnProfile() throws Exception {
+    @DisplayName("Should update profile")
+    void shouldUpdateProfile() throws Exception {
         // given
-        final String token = loginWithCustomer(customerA);
+        loginWithCustomer(customerA);
 
         Map<String, Object> fields = new HashMap<>();
         fields.put("firstName", "alice");
         fields.put("lastName", "white");
         fields.put("phone", "999 999 999");
-        fields.put("birthdate", "1983-03-13");
-        fields.put("gender", "FEMALE");
+        fields.put("birthdate", LocalDate.of(1989, 1, 1));
+        fields.put("gender", CustomerGender.FEMALE);
 
-        ProfilePatchRequest patchProfileRequest = new ProfilePatchRequest(
+        ProfileUpdateRequest givenRequest = new ProfileUpdateRequest(
                 this.rawPassword,
                 fields
         );
 
-        String jsonRequest = objectMapper.writeValueAsString(patchProfileRequest);
+        String jsonRequest = objectMapper.writeValueAsString(givenRequest);
 
         // when
-        mockMvc.perform(MockMvcRequestBuilders
-                       .patch("/api/v1/customers/me/profile")
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .content(jsonRequest))
-               .andDo(print())
-               .andExpect(MockMvcResultMatchers.status().is(200))
-               .andExpect(jsonPath("$.firstName").value(fields.get("firstName")))
-               .andExpect(jsonPath("$.lastName").value(fields.get("lastName")))
-               .andExpect(jsonPath("$.phone").value(fields.get("phone")))
-               .andExpect(jsonPath("$.birthdate").value(fields.get("birthdate")))
-               .andExpect(jsonPath("$.gender").value(fields.get("gender")))
-               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+        MvcResult result = mockMvc
+                .perform(
+                        patch("/api/v1/customers/me/profile")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .content(jsonRequest))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().is(200))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        // then
+        ProfileDTO profileDTO = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                ProfileDTO.class
+        );
+
+        assertThat(profileDTO).isNotNull();
+        assertThat(profileDTO.firstName()).isEqualTo(givenRequest.fieldsToUpdate().get("firstName"));
+        assertThat(profileDTO.lastName()).isEqualTo(givenRequest.fieldsToUpdate().get("lastName"));
+        assertThat(profileDTO.phone()).isEqualTo(givenRequest.fieldsToUpdate().get("phone"));
+        assertThat(profileDTO.birthdate()).isEqualTo(givenRequest.fieldsToUpdate().get("birthdate"));
+        assertThat(profileDTO.gender()).isEqualTo(givenRequest.fieldsToUpdate().get("gender"));
     }
 
     @Test
-    @DisplayName("Should update any profile when logged as admin")
-    void shouldUpdateAnyProfileWhenLoggedAsAdmin() throws Exception {
+    @DisplayName("Should not update profile when is not yours")
+    void shouldNotUpdateProfileWhenIsNotYours() throws Exception {
         // given
-        final String token = loginWithCustomer(customerAdmin);
+        loginWithCustomer(customerB);
 
         Map<String, Object> fields = new HashMap<>();
         fields.put("firstName", "alice");
         fields.put("lastName", "white");
-        fields.put("phone", "999 999 999");
-        fields.put("birthdate", "1983-03-13");
-        fields.put("gender", "FEMALE");
 
-        ProfilePatchRequest patchProfileRequest = new ProfilePatchRequest(
+        ProfileUpdateRequest givenRequest = new ProfileUpdateRequest(
                 this.rawPassword,
                 fields
         );
 
-        String jsonRequest = objectMapper.writeValueAsString(patchProfileRequest);
+        String jsonRequest = objectMapper.writeValueAsString(givenRequest);
 
         // when
-        mockMvc.perform(MockMvcRequestBuilders
-                       .patch("/api/v1/admin/profiles/" + customerA.getProfile().getId())
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .content(jsonRequest))
-               .andDo(print())
-               .andExpect(MockMvcResultMatchers.status().is(200))
-               .andExpect(jsonPath("$.firstName").value(fields.get("firstName")))
-               .andExpect(jsonPath("$.lastName").value(fields.get("lastName")))
-               .andExpect(jsonPath("$.phone").value(fields.get("phone")))
-               .andExpect(jsonPath("$.birthdate").value(fields.get("birthdate")))
-               .andExpect(jsonPath("$.gender").value(fields.get("gender")))
-               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+        MvcResult result = mockMvc
+                .perform(
+                        patch("/api/v1/admin/profiles/{id}", customerA.getProfile().getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .content(jsonRequest))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().is(403))
+                .andReturn();
+
+        // then
+
+
     }
 
-    @Test
-    void shouldNotUpdateProfileWhenAnyFieldIsEmpty() throws Exception {
-        // given
-        final String token = loginWithCustomer(customerAdmin);
-        ProfileUpdateRequest request = new ProfileUpdateRequest(
-                "david",
-                "",
-                "123 123 123",
-                LocalDate.of(1989, 1, 1),
-                CustomerGender.MALE,
-                "-",
-                "Fake AV 51",
-                "50120",
-                "USA",
-                "123123123Z",
-                this.rawPassword
-        );
-
-        String jsonRequest = objectMapper.writeValueAsString(request);
-
-        // when
-        mockMvc.perform(MockMvcRequestBuilders
-                       .put("/api/v1/admin/profiles/" + customerA.getProfile().getId())
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .content(jsonRequest))
-               .andDo(print())
-               .andExpect(MockMvcResultMatchers.status().is(400))
-               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
-    void shouldNotUpdateProfileWhenAnyFieldIsNull() throws Exception {
-        // given
-        final String token = loginWithCustomer(customerAdmin);
-
-        ProfileUpdateRequest request = new ProfileUpdateRequest(
-                "david",
-                null,
-                "123 123 123",
-                LocalDate.of(1989, 1, 1),
-                CustomerGender.MALE,
-                "-",
-                "Fake AV 51",
-                "50120",
-                "USA",
-                "123123123Z",
-                this.rawPassword
-        );
-
-        String jsonRequest = objectMapper.writeValueAsString(request);
-
-        // when
-        mockMvc.perform(MockMvcRequestBuilders
-                       .put("/api/v1/admin/profiles/" + customerA.getProfile().getId())
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .content(jsonRequest))
-               .andDo(print())
-               .andExpect(MockMvcResultMatchers.status().is(400))
-               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
-    }
+    // TODO shouldGetProfilePhoto
+    // TODO shouldUploadProfilePhoto
 }

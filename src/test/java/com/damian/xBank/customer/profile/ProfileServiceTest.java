@@ -5,10 +5,11 @@ import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
 import com.damian.xBank.customer.profile.exception.ProfileException;
-import com.damian.xBank.customer.profile.http.request.ProfilePatchRequest;
+import com.damian.xBank.customer.profile.exception.ProfileNotFoundException;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,9 +26,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,22 +40,23 @@ public class ProfileServiceTest {
 
     @Mock
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @InjectMocks
     private ProfileService profileService;
 
     private Customer customer;
-    private final String rawPassword = "123456";
+    private final String RAW_PASSWORD = "123456";
 
     @BeforeEach
     void setUp() {
+        passwordEncoder = new BCryptPasswordEncoder();
         profileRepository.deleteAll();
-        profileService = new ProfileService(profileRepository, bCryptPasswordEncoder);
 
         customer = new Customer();
         customer.setId(2L);
         customer.setEmail("customer@test.com");
-        customer.setPassword("encryptedPassword");
+        customer.setPassword(passwordEncoder.encode(RAW_PASSWORD));
         customer.getProfile().setId(5L);
         customer.getProfile().setNationalId("123456789Z");
         customer.getProfile().setFirstName("John");
@@ -74,171 +77,149 @@ public class ProfileServiceTest {
     void setUpContext(Customer customer) {
         Authentication authentication = Mockito.mock(Authentication.class);
         SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        Mockito.when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(customer);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(SecurityContextHolder.getContext().getAuthentication().getPrincipal()).thenReturn(customer);
     }
 
     @Test
+    @DisplayName("Should update profile")
     void shouldUpdateProfile() {
         // given
         setUpContext(customer);
-        ProfileUpdateRequest updateRequest = new ProfileUpdateRequest(
-                "david",
-                "white",
-                "123 123 123",
-                LocalDate.of(1989, 1, 1),
-                CustomerGender.MALE,
-                "-",
-                "Fake AV 51",
-                "50120",
-                "USA",
-                "123123123Z",
-                this.rawPassword
-        );
 
-        // when
-        when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(true);
-        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
-        when(profileRepository.save(any(Profile.class))).thenReturn(customer.getProfile());
-
-        Profile result = profileService.updateProfile(customer.getProfile().getId(), updateRequest);
-
-        // Then
-        verify(profileRepository, times(1)).save(customer.getProfile());
-        assertThat(result).isNotNull();
-        assertThat(result.getFirstName()).isEqualTo(updateRequest.name());
-        assertThat(result.getLastName()).isEqualTo(updateRequest.surname());
-        assertThat(result.getPhone()).isEqualTo(updateRequest.phone());
-        assertThat(result.getCountry()).isEqualTo(updateRequest.country());
-        assertThat(result.getNationalId()).isEqualTo(updateRequest.nationalId());
-        assertThat(result.getBirthdate()).isEqualTo(updateRequest.birthdate());
-        assertThat(result.getPhotoPath()).isEqualTo(updateRequest.photoPath());
-    }
-
-    @Test
-    void shouldPatchProfile() {
-        // given
-        setUpContext(customer);
         Map<String, Object> fields = new HashMap<>();
-        fields.put("firstName", "alice");
-        fields.put("lastName", "white");
-        fields.put("phone", "999 999 999");
-        fields.put("birthdate", "1983-03-13");
-        fields.put("gender", "FEMALE");
-
-        ProfilePatchRequest patchProfile = new ProfilePatchRequest(
-                this.rawPassword,
+        fields.put("firstName", "David");
+        fields.put("lastName", "David");
+        fields.put("birthdate", "1904-01-02");
+        fields.put("gender", "MALE");
+        fields.put("phone", "9199191919");
+        fields.put("country", "Spain");
+        fields.put("photoPath", "image.jpg");
+        fields.put("nationalId", "234234234");
+        ProfileUpdateRequest givenRequest = new ProfileUpdateRequest(
+                RAW_PASSWORD,
                 fields
         );
 
         // when
-        when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(true);
         when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
         when(profileRepository.save(any(Profile.class))).thenReturn(customer.getProfile());
 
-        Profile result = profileService.patchProfile(customer.getProfile().getId(), patchProfile);
+        Profile result = profileService.updateProfile(givenRequest);
 
         // Then
-        verify(profileRepository, times(1)).save(customer.getProfile());
         assertThat(result).isNotNull();
-        assertThat(result.getFirstName()).isEqualTo(patchProfile.fieldsToUpdate().get("firstName"));
-        assertThat(result.getLastName()).isEqualTo(patchProfile.fieldsToUpdate().get("lastName"));
-        assertThat(result.getPhone()).isEqualTo(patchProfile.fieldsToUpdate().get("phone"));
-        assertThat(result.getBirthdate().toString()).isEqualTo(patchProfile.fieldsToUpdate().get("birthdate"));
-        assertThat(result.getGender().toString()).isEqualTo(patchProfile.fieldsToUpdate().get("gender"));
+        assertThat(result.getFirstName()).isEqualTo(givenRequest.fieldsToUpdate().get("firstName"));
+        assertThat(result.getLastName()).isEqualTo(givenRequest.fieldsToUpdate().get("lastName"));
+        assertThat(result.getPhone()).isEqualTo(givenRequest.fieldsToUpdate().get("phone"));
+        assertThat(result.getCountry()).isEqualTo(givenRequest.fieldsToUpdate().get("country"));
+        assertThat(result.getBirthdate().toString()).isEqualTo(givenRequest.fieldsToUpdate().get("birthdate"));
+        assertThat(result.getGender().toString()).isEqualTo(givenRequest.fieldsToUpdate().get("gender"));
+        assertThat(result.getPhotoPath()).isEqualTo(givenRequest.fieldsToUpdate().get("photoPath"));
+        assertThat(result.getNationalId()).isEqualTo(givenRequest.fieldsToUpdate().get("nationalId"));
+        verify(profileRepository, times(1)).save(customer.getProfile());
     }
 
     @Test
-    void shouldNotPatchProfileWhenInvalidFields() {
+    @DisplayName("Should not update profile when password is wrong")
+    void shouldNotUpdateProfileWhenPasswordIsWrong() {
         // given
         setUpContext(customer);
-        Map<String, Object> fields = new HashMap<>();
-        fields.put("firstName", "alice");
-        fields.put("lastName", "white");
-        fields.put("FAKE FIELD", "999 999 999");
 
-        ProfilePatchRequest patchProfile = new ProfilePatchRequest(
-                this.rawPassword,
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("firstName", "David");
+        ProfileUpdateRequest givenRequest = new ProfileUpdateRequest(
+                "wrongPassword1",
                 fields
         );
 
         // when
-        when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(true);
-        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
-
-        // Then
-        ProfileException exception = assertThrows(
-                ProfileException.class,
-                () -> profileService.patchProfile(customer.getProfile().getId(), patchProfile)
-        );
-    }
-
-    @Test
-    void shouldNotUpdateProfileWhenPasswordDoesNotMatch() {
-        // given
-        setUpContext(customer);
-        ProfileUpdateRequest updateRequest = new ProfileUpdateRequest(
-                "david",
-                "white",
-                "123 123 123",
-                LocalDate.of(1989, 1, 1),
-                CustomerGender.MALE,
-                "-",
-                "Fake AV 51",
-                "50120",
-                "USA",
-                "123123123Z",
-                this.rawPassword
-        );
-
-        // when
-        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
-        when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(false);
-
         PasswordMismatchException exception = assertThrows(
                 PasswordMismatchException.class,
-                () -> profileService.updateProfile(customer.getProfile().getId(), updateRequest)
+                () -> profileService.updateProfile(givenRequest)
         );
 
         // Then
-        verify(profileRepository, times(0)).save(customer.getProfile());
-        assertTrue(exception.getMessage().contains("Password does not match."));
+        assertEquals(PasswordMismatchException.PASSWORD_MISMATCH, exception.getMessage());
     }
 
     @Test
-    void shouldNotUpdateProfileWhenProfileDoesNotBelongToCustomer() {
+    @DisplayName("Should not update profile when profile not found")
+    void shouldNotUpdateProfileWhenProfileNotFound() {
         // given
         setUpContext(customer);
-        ProfileUpdateRequest updateRequest = new ProfileUpdateRequest(
-                "david",
-                "white",
-                "123 123 123",
-                LocalDate.of(1989, 1, 1),
-                CustomerGender.MALE,
-                "-",
-                "Fake AV 51",
-                "50120",
-                "USA",
-                "123123123Z",
-                this.rawPassword
+
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("firstName", "David");
+        ProfileUpdateRequest givenRequest = new ProfileUpdateRequest(
+                RAW_PASSWORD,
+                fields
         );
 
-        Profile profileFromOtherUser = new Profile();
-        profileFromOtherUser.setCustomer(new Customer(4L, "ronald@test.com", "1234"));
-
         // when
-        when(bCryptPasswordEncoder.matches(this.rawPassword, customer.getPassword())).thenReturn(true);
-        when(profileRepository.findById(anyLong())).thenReturn(Optional.of(profileFromOtherUser));
-        ProfileAuthorizationException exception = assertThrows(
-                ProfileAuthorizationException.class,
-                () -> profileService.updateProfile(customer.getProfile().getId(), updateRequest)
+        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.empty());
+        ProfileNotFoundException exception = assertThrows(
+                ProfileNotFoundException.class,
+                () -> profileService.updateProfile(givenRequest)
         );
 
         // Then
-        verify(profileRepository, times(0)).save(customer.getProfile());
-        assertTrue(exception.getMessage().contains(
-                ProfileAuthorizationException.PROFILE_NOT_BELONG_TO_CUSTOMER
-        ));
+        assertEquals(ProfileException.NOT_FOUND, exception.getMessage());
     }
+
+    @Test
+    @DisplayName("Should not update profile when profile not found")
+    void shouldNotUpdateProfileWhenProfileNotYours() {
+        // given
+        setUpContext(customer);
+
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("firstName", "David");
+        ProfileUpdateRequest givenRequest = new ProfileUpdateRequest(
+                RAW_PASSWORD,
+                fields
+        );
+
+        Profile givenProfile = new Profile();
+        givenProfile.setCustomer(new Customer(5L, "customer@test.com", "12345"));
+
+        // when
+        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(givenProfile));
+        ProfileAuthorizationException exception = assertThrows(
+                ProfileAuthorizationException.class,
+                () -> profileService.updateProfile(givenRequest)
+        );
+
+        // Then
+        assertEquals(ProfileException.AUTHORIZATION.ACCESS_FORBIDDEN, exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should not update profile when profile not found")
+    void shouldNotUpdateProfileWhenInvalidField() {
+        // given
+        setUpContext(customer);
+
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("firstName", "David");
+        fields.put("fakeField", "1234");
+        ProfileUpdateRequest givenRequest = new ProfileUpdateRequest(
+                RAW_PASSWORD,
+                fields
+        );
+
+        // when
+        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
+        ProfileAuthorizationException exception = assertThrows(
+                ProfileAuthorizationException.class,
+                () -> profileService.updateProfile(givenRequest)
+        );
+
+        // Then
+        assertEquals(ProfileException.INVALID_FIELD, exception.getMessage());
+    }
+
+    // TODO test upload profile photo
+    // TODO test get profile photo
 }

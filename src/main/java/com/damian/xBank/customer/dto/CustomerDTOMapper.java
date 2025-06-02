@@ -37,7 +37,8 @@ public class CustomerDTOMapper {
 
     public static CustomerWithAllDataDTO toCustomerWithAllDataDTO(Customer customer) {
         ProfileDTO profileDTO = Optional.ofNullable(ProfileDTOMapper.toProfileDTO(customer.getProfile()))
-                                        .orElseThrow(ProfileNotFoundException::new);
+                                        .orElseThrow(() -> new ProfileNotFoundException(
+                                                ProfileNotFoundException.NOT_FOUND));
 
         Set<BankingAccountDTO> bankingAccountsDTO = Optional.ofNullable(customer.getBankingAccounts())
                                                             .orElseGet(Collections::emptySet)

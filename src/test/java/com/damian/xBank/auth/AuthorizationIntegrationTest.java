@@ -26,6 +26,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -142,18 +144,16 @@ public class AuthorizationIntegrationTest {
         );
 
         // given
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("firstName", "alice");
+        fields.put("lastName", "white");
+        fields.put("phone", "999 999 999");
+        fields.put("birthdate", LocalDate.of(1989, 1, 1));
+        fields.put("gender", CustomerGender.FEMALE);
+        
         ProfileUpdateRequest request = new ProfileUpdateRequest(
-                "david",
-                "white",
-                "123 123 123",
-                LocalDate.of(1989, 1, 1),
-                CustomerGender.MALE,
-                "-",
-                "Fake AV 51",
-                "50120",
-                "USA",
-                "123123123Z",
-                this.rawPassword
+                this.rawPassword,
+                fields
         );
 
         String jsonRequest = objectMapper.writeValueAsString(request);

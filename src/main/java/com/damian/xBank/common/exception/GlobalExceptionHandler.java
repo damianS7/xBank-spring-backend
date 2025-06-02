@@ -1,6 +1,6 @@
 package com.damian.xBank.common.exception;
 
-import com.damian.xBank.auth.exception.AuthenticationAccountDisabledException;
+import com.damian.xBank.auth.exception.AccountDisabledException;
 import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
 import com.damian.xBank.auth.exception.AuthenticationException;
 import com.damian.xBank.auth.exception.AuthorizationException;
@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
             {
                     AuthenticationException.class,
                     AuthenticationBadCredentialsException.class,
-                    AuthenticationAccountDisabledException.class
+                    AccountDisabledException.class
             }
     )
     public ResponseEntity<ApiResponse<String>> handleUnauthorizedException(RuntimeException ex) {

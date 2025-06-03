@@ -37,6 +37,22 @@ public class ProfileImageUploaderService {
         this.profileService = profileService;
     }
 
+    public String getContentType(Resource resource) {
+
+        String contentType = null;
+        try {
+            contentType = Files.probeContentType(resource.getFile().toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
+        
+        return contentType;
+    }
+
     // validations for file uploaded photos
     private void validatePhotoOrElseThrow(MultipartFile file) {
         if (file.isEmpty()) {

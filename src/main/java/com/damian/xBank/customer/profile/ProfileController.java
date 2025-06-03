@@ -12,9 +12,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-
 @RequestMapping("/api/v1")
 @RestController
 public class ProfileController {
@@ -56,7 +53,6 @@ public class ProfileController {
                 .body(profileDTO);
     }
 
-    // TODO move logic to service
     // endpoint to get the logged customer profile photo
     @GetMapping("/customers/me/profile/photo/{filename:.+}")
     public ResponseEntity<?> getLoggedCustomerPhoto(
@@ -64,16 +60,7 @@ public class ProfileController {
             String filename
     ) {
         Resource resource = profileImageUploaderService.getImage(filename);
-
-        String contentType = null;
-        try {
-            contentType = Files.probeContentType(resource.getFile().toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        if (contentType == null) {
-            contentType = "application/octet-stream";
-        }
+        String contentType = profileImageUploaderService.getContentType(resource);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -89,15 +76,7 @@ public class ProfileController {
             @RequestParam("file") MultipartFile file
     ) {
         Resource resource = profileImageUploaderService.uploadImage(currentPassword, file);
-        String contentType = null;
-        try {
-            contentType = Files.probeContentType(resource.getFile().toPath());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        if (contentType == null) {
-            contentType = "application/octet-stream";
-        }
+        String contentType = profileImageUploaderService.getContentType(resource);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

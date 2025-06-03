@@ -1,6 +1,5 @@
 package com.damian.xBank.customer.profile;
 
-import com.damian.xBank.auth.AuthenticationService;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.customer.Customer;
@@ -9,15 +8,17 @@ import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,9 +30,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -44,11 +46,6 @@ public class ProfileIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    private Faker faker;
-
-    @Autowired
-    private AuthenticationService authenticationService;
 
     @Autowired
     private CustomerRepository customerRepository;
@@ -77,7 +74,7 @@ public class ProfileIntegrationTest {
         customerA.getProfile().setCountry("USA");
         customerA.getProfile().setAddress("fake ave");
         customerA.getProfile().setPostalCode("050012");
-        customerA.getProfile().setPhotoPath("no photoPath");
+        customerA.getProfile().setPhotoPath("image.jpg");
         customerRepository.save(customerA);
 
         customerB = new Customer();
@@ -115,6 +112,34 @@ public class ProfileIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should get customer profile")
+    void shouldGetCustomerProfile() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+
+        // when
+        MvcResult result = mockMvc
+                .perform(
+                        get("/api/v1/customers/me/profile")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        // then
+        ProfileDTO profileDTO = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                ProfileDTO.class
+        );
+
+        assertThat(profileDTO).isNotNull();
+        assertEquals(profileDTO.firstName(), customerA.getProfile().getFirstName());
+        assertEquals(profileDTO.lastName(), customerA.getProfile().getLastName());
+    }
+
+    @Test
     @DisplayName("Should update profile")
     void shouldUpdateProfile() throws Exception {
         // given
@@ -142,7 +167,7 @@ public class ProfileIntegrationTest {
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                 .content(jsonRequest))
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(200))
+                .andExpect(status().is(200))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
@@ -185,7 +210,7 @@ public class ProfileIntegrationTest {
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                 .content(jsonRequest))
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.status().is(403))
+                .andExpect(status().is(403))
                 .andReturn();
 
         // then
@@ -193,6 +218,55 @@ public class ProfileIntegrationTest {
 
     }
 
-    // TODO shouldGetProfilePhoto
-    // TODO shouldUploadProfilePhoto
+    @Test
+    @DisplayName("Should upload customer profile image")
+    void shouldUploadCustomerProfileImage() throws Exception {
+        // given
+        loginWithCustomer(customerA);
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                customerA.getProfile().getPhotoPath(),
+                "image/jpeg",
+                new byte[5]
+        );
+
+        // when
+        MvcResult result = mockMvc
+                .perform(
+                        multipart("/api/v1/customers/me/profile/photo")
+                                .file(file)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .param("currentPassword", this.rawPassword)
+                                .with(request -> {
+                                    request.setMethod("POST");
+                                    return request;
+                                }))
+
+                .andDo(print())
+                .andExpect(status().is(201))
+                .andReturn();
+
+        byte[] content = result.getResponse().getContentAsByteArray();
+        Resource resource = new ByteArrayResource(content);
+        System.out.println("//////");
+        System.out.println("//////");
+        System.out.println("//////");
+        System.out.println("//////");
+        System.out.println("//////");
+        System.out.println("//////");
+        System.out.println(resource.getFilename());
+        System.out.println("//////");
+        System.out.println("//////");
+        System.out.println("//////");
+        System.out.println("//////");
+        System.out.println("//////");
+        System.out.println("//////");
+
+
+        // then
+        assertThat(resource).isNotNull();
+        assertEquals(resource.contentLength(), file.getBytes().length);
+        assertEquals(result.getResponse().getContentType(), file.getContentType());
+    }
 }

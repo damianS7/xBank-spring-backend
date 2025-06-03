@@ -5,7 +5,6 @@ import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
-import com.damian.xBank.customer.profile.exception.ProfileException;
 import com.damian.xBank.customer.profile.exception.ProfileNotFoundException;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -17,24 +16,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.io.Resource;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -224,132 +218,5 @@ public class ProfileServiceTest {
 
         // Then
         assertEquals(Exceptions.PROFILE.INVALID_FIELD, exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should get profile image")
-    void shouldGetProfileImage() {
-        // given
-        String givenFilename = "photo.jpg";
-        Path mockPath = Paths.get("some/path/photo.jpg").resolve(givenFilename).normalize();
-        Resource mockResource = mock(Resource.class);
-
-        ProfileService profileService = Mockito.spy(new ProfileService(profileRepository, bCryptPasswordEncoder));
-        doReturn(mockResource).when(profileService).getPhoto(givenFilename);
-
-        // when
-        Resource result = profileService.getPhoto(givenFilename);
-
-        // then
-        assertNotNull(result);
-        //        verify(profileService).getPhoto(any(Path.class));
-    }
-
-    @Test
-    @DisplayName("Should not get profile image when not exists")
-    void shouldNotGetProfileImageWhenNotExists() {
-        // given
-        String givenFilename = "photo.jpg";
-        Resource mockResource = mock(Resource.class);
-        when(mockResource.exists()).thenReturn(false);
-
-        ProfileService profileService = Mockito.spy(new ProfileService(profileRepository, bCryptPasswordEncoder));
-        doReturn(mockResource).when(profileService).createResource(any(Path.class));
-
-        // when
-        ProfileException exception = assertThrows(
-                ProfileException.class,
-                () -> profileService.getPhoto(givenFilename)
-        );
-
-        // then
-        assertEquals(Exceptions.PROFILE.IMAGE.NOT_FOUND, exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should upload profile image")
-    void shouldUploadProfileImage() throws IOException {
-        // given
-        setUpContext(customer);
-        MultipartFile givenFile = new MockMultipartFile(
-                "file",
-                "photo.jpg",
-                "image/jpeg",
-                new byte[5]
-        );
-
-        // when
-        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
-        Resource result = profileService.uploadPhoto(RAW_PASSWORD, givenFile);
-
-        // then
-        assertNotNull(result);
-        assertThat(result.getFile().length()).isEqualTo(givenFile.getSize());
-    }
-
-    @Test
-    @DisplayName("Should not upload profile image when file is empty")
-    void shouldNotUploadProfileImageWhenFileIsEmpty() {
-        // given
-        setUpContext(customer);
-        MultipartFile givenFile = new MockMultipartFile(
-                "file",
-                "photo.jpg",
-                "image/jpeg",
-                new byte[0]
-        );
-
-        // when
-        ProfileAuthorizationException exception = assertThrows(
-                ProfileAuthorizationException.class,
-                () -> profileService.uploadPhoto(RAW_PASSWORD, givenFile)
-        );
-
-        // then
-        assertEquals(Exceptions.PROFILE.IMAGE.EMPTY_FILE, exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should not upload profile image when file is not image")
-    void shouldNotUploadProfileImageWhenFileIsNotImage() {
-        // given
-        setUpContext(customer);
-        MultipartFile givenFile = new MockMultipartFile(
-                "file",
-                "photo.jpg",
-                "not-image/jpeg",
-                new byte[5]
-        );
-
-        // when
-        ProfileAuthorizationException exception = assertThrows(
-                ProfileAuthorizationException.class,
-                () -> profileService.uploadPhoto(RAW_PASSWORD, givenFile)
-        );
-
-        // then
-        assertEquals(Exceptions.PROFILE.IMAGE.ONLY_IMAGES_ALLOWED, exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should not upload profile image when size exceeds limit")
-    void shouldNotUploadProfileImageWhenSizeExceedsLimit() {
-        // given
-        setUpContext(customer);
-        MultipartFile givenFile = new MockMultipartFile(
-                "file",
-                "photo.jpg",
-                "image/jpeg",
-                new byte[5 * 1024 * 1024 + 1]
-        );
-
-        // when
-        ProfileAuthorizationException exception = assertThrows(
-                ProfileAuthorizationException.class,
-                () -> profileService.uploadPhoto(RAW_PASSWORD, givenFile)
-        );
-
-        // then
-        assertEquals(Exceptions.PROFILE.IMAGE.FILE_SIZE_LIMIT, exception.getMessage());
     }
 }

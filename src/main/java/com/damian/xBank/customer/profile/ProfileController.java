@@ -19,10 +19,15 @@ import java.nio.file.Files;
 @RestController
 public class ProfileController {
     private final ProfileService profileService;
+    private final ProfileImageUploaderService profileImageUploaderService;
 
     @Autowired
-    public ProfileController(ProfileService profileService) {
+    public ProfileController(
+            ProfileService profileService,
+            ProfileImageUploaderService profileImageUploaderService
+    ) {
         this.profileService = profileService;
+        this.profileImageUploaderService = profileImageUploaderService;
     }
 
     @GetMapping("/customers/me/profile")
@@ -58,7 +63,7 @@ public class ProfileController {
             @PathVariable @NotBlank
             String filename
     ) {
-        Resource resource = profileService.getPhoto(filename);
+        Resource resource = profileImageUploaderService.getImage(filename);
 
         String contentType = null;
         try {
@@ -83,7 +88,7 @@ public class ProfileController {
             String currentPassword,
             @RequestParam("file") MultipartFile file
     ) {
-        Resource resource = profileService.uploadPhoto(currentPassword, file);
+        Resource resource = profileImageUploaderService.uploadImage(currentPassword, file);
         String contentType = null;
         try {
             contentType = Files.probeContentType(resource.getFile().toPath());

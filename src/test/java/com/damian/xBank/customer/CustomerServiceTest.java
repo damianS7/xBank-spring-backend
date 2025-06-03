@@ -16,6 +16,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -65,37 +69,23 @@ public class CustomerServiceTest {
     @DisplayName("Should get all customers")
     void shouldGetAllCustomers() {
         // given
-
-        List<Customer> customers = List.of(
-                new Customer(1L, "customer1@test.com", "123455"),
-                new Customer(2L, "customer2@test.com", "123456")
+        List<Customer> customerList = List.of(
+                new Customer(1L, "customer1@test.com", "password1"),
+                new Customer(2L, "customer2@test.com", "password2")
         );
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Customer> customerPage = new PageImpl<>(customerList, pageable, customerList.size());
 
         // when
-        when(customerRepository.findAll()).thenReturn(customers);
-
-        List<Customer> result = customerService.getCustomers();
-
-        // then
-        verify(customerRepository, times(1)).findAll();
-        assertThat(result.get(0).getEmail()).isEqualTo("customer1@test.com");
-        assertThat(result.get(1).getEmail()).isEqualTo("customer2@test.com");
-    }
-
-    @Test
-    @DisplayName("Should not get any customers")
-    void shouldNotGetAnyCustomers() {
-        // given
-
-        List<Customer> customers = List.of();
-
-        // when
-        when(customerRepository.findAll()).thenReturn(customers);
-        List<Customer> result = customerService.getCustomers();
+        when(customerRepository.findAll(pageable)).thenReturn(customerPage);
+        Page<Customer> result = customerService.getCustomers(pageable);
 
         // then
-        verify(customerRepository, times(1)).findAll();
-        assertThat(result.size()).isEqualTo(0);
+        assertNotNull(result);
+        assertEquals(2, result.getTotalElements());
+        assertEquals("customer1@test.com", result.getContent().get(0).getEmail());
+        assertEquals("customer2@test.com", result.getContent().get(1).getEmail());
+        verify(customerRepository, times(1)).findAll(pageable);
     }
 
     @Test

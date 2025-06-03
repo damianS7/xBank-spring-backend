@@ -1,5 +1,6 @@
 package com.damian.xBank.customer.profile;
 
+import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,18 @@ public class ProfileController {
     @Autowired
     public ProfileController(ProfileService profileService) {
         this.profileService = profileService;
+    }
+
+    @GetMapping("/customers/me/profile")
+    public ResponseEntity<?> getLoggedCustomerProfile() {
+        long profileId = AuthUtils.getLoggedCustomer().getProfile().getId();
+
+        Profile profile = profileService.getProfile(profileId);
+        ProfileDTO profileDTO = ProfileDTOMapper.toProfileDTO(profile);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(profileDTO);
     }
 
     // endpoint to modify the logged customer profile
@@ -66,15 +79,25 @@ public class ProfileController {
     // endpoint to upload profile photo
     @PostMapping("/customers/me/profile/photo")
     public ResponseEntity<?> uploadLoggedCustomerPhoto(
-            @RequestParam("currentPassword") @NotBlank String currentPassword,
+            @RequestParam("currentPassword") @NotBlank
+            String currentPassword,
             @RequestParam("file") MultipartFile file
     ) {
-        Profile profile = profileService.uploadPhoto(currentPassword, file);
-        ProfileDTO profileDTO = ProfileDTOMapper.toProfileDTO(profile);
+        Resource resource = profileService.uploadPhoto(currentPassword, file);
+        String contentType = null;
+        try {
+            contentType = Files.probeContentType(resource.getFile().toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
 
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(profileDTO);
+                .status(HttpStatus.CREATED)
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(resource);
     }
 }
 

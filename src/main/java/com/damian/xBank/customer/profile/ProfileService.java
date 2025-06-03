@@ -6,6 +6,7 @@ import com.damian.xBank.common.utils.ProfileUtils;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
+import com.damian.xBank.customer.profile.exception.ProfileException;
 import com.damian.xBank.customer.profile.exception.ProfileNotFoundException;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import org.springframework.core.io.Resource;
@@ -146,18 +147,26 @@ public class ProfileService {
         return profileRepository.save(profile);
     }
 
+    public Resource createResource(Path path) {
+        Resource resource;
+        try {
+            resource = new UrlResource(path.toUri());
+        } catch (MalformedURLException e) {
+            throw new ProfileException(Exceptions.PROFILE.IMAGE.NOT_FOUND);
+        } catch (IOException e) {
+            throw new ProfileException(Exceptions.PROFILE.IMAGE.NOT_FOUND);
+        }
+
+        return resource;
+    }
+
     // returns the profile photo as Resource
     public Resource getPhoto(String filename) {
         Path filePath = Paths.get(PROFILE_IMAGE_PATH).resolve(filename).normalize();
-        Resource resource = null;
-        try {
-            resource = new UrlResource(filePath.toUri());
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
+        Resource resource = this.createResource(filePath);
 
         if (!resource.exists()) {
-            throw new ProfileAuthorizationException(
+            throw new ProfileException(
                     Exceptions.PROFILE.IMAGE.NOT_FOUND
             );
         }
@@ -167,7 +176,7 @@ public class ProfileService {
     /**
      * It sets the customer profile photo
      */
-    public Profile uploadPhoto(String currentPassword, MultipartFile file) {
+    public Resource uploadPhoto(String currentPassword, MultipartFile file) {
         final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
         // validate password
@@ -190,7 +199,7 @@ public class ProfileService {
         );
 
         final Long profileId = customerLogged.getProfile().getId();
-
-        return updateProfile(profileId, patchRequest);
+        updateProfile(profileId, patchRequest);
+        return this.getPhoto(filename);
     }
 }

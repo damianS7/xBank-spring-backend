@@ -92,7 +92,6 @@ public class AuthenticationService {
         // Get the authenticated user
         final Customer customer = (Customer) auth.getPrincipal();
 
-        // TODO test this
         // check if the account is disabled
         if (customer.getAuth().getAuthAccountStatus().equals(AuthAccountStatus.DISABLED)) {
             throw new AccountDisabledException(

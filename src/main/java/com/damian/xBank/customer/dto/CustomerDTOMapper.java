@@ -7,6 +7,7 @@ import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.profile.ProfileDTO;
 import com.damian.xBank.customer.profile.ProfileDTOMapper;
 import com.damian.xBank.customer.profile.exception.ProfileNotFoundException;
+import org.springframework.data.domain.Page;
 
 import java.util.Collections;
 import java.util.List;
@@ -64,5 +65,11 @@ public class CustomerDTOMapper {
                 .map(
                         CustomerDTOMapper::toCustomerDTO
                 ).toList();
+    }
+
+    public static Page<CustomerDTO> toCustomerDTOPage(Page<Customer> customers) {
+        return customers.map(
+                CustomerDTOMapper::toCustomerDTO
+        );
     }
 }

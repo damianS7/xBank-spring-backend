@@ -9,12 +9,14 @@ import com.damian.xBank.customer.dto.CustomerWithAllDataDTO;
 import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RequestMapping("/api/v1")
 @RestController
@@ -28,13 +30,14 @@ public class CustomerAdminController {
         this.bankingAccountService = bankingAccountService;
     }
 
-    // TODO must be paged !!!
     // endpoint to receive all customers
     @GetMapping("/admin/customers")
     public ResponseEntity<?> getCustomers(
+            @PageableDefault(size = 2, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable
     ) {
-        List<Customer> customers = customerService.getCustomers();
-        List<CustomerDTO> customerDTO = CustomerDTOMapper.toCustomerDTOList(customers);
+        Page<Customer> customers = customerService.getCustomers(pageable);
+        Page<CustomerDTO> customerDTO = CustomerDTOMapper.toCustomerDTOPage(customers);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(customerDTO);

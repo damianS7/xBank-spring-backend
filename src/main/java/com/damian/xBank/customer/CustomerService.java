@@ -7,11 +7,12 @@ import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import com.damian.xBank.customer.http.request.CustomerEmailUpdateRequest;
 import com.damian.xBank.customer.http.request.CustomerRegistrationRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
 
 @Service
 public class CustomerService {
@@ -79,18 +80,15 @@ public class CustomerService {
         return true;
     }
 
-
-    // TODO should be paged
-
     /**
      * Returns all the customers
      *
      * @return a list of CustomerDTO
      * @throws CustomerException if the logged user is not ADMIN
      */
-    public List<Customer> getCustomers() {
+    public Page<Customer> getCustomers(Pageable pageable) {
         // we return all the customers
-        return customerRepository.findAll();
+        return customerRepository.findAll(pageable);
     }
 
     /**

@@ -34,7 +34,6 @@ public class CustomerController {
                 .body(dto);
     }
 
-    // TODO should really return CustomerDTO?
     // endpoint to modify logged customer email
     @PatchMapping("/customers/me/email")
     public ResponseEntity<?> updateLoggedCustomerEmail(

@@ -2,6 +2,7 @@ package com.damian.xBank.auth;
 
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
@@ -177,7 +178,7 @@ public class AuthenticationIntegrationTest {
                        .content(jsonRequest))
                .andDo(print())
                .andExpect(MockMvcResultMatchers.status().is(401))
-               .andExpect(jsonPath("$.message").value("Account is disabled."))
+               .andExpect(jsonPath("$.message").value(Exceptions.CUSTOMER.DISABLED))
                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
@@ -410,7 +411,7 @@ public class AuthenticationIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/password")
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/me/password")
                                               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                               .contentType(MediaType.APPLICATION_JSON)
                                               .content(objectMapper.writeValueAsString(updatePasswordRequest)))
@@ -430,7 +431,7 @@ public class AuthenticationIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/password")
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/me/password")
                                               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                               .contentType(MediaType.APPLICATION_JSON)
                                               .content(objectMapper.writeValueAsString(updatePasswordRequest)))
@@ -450,7 +451,7 @@ public class AuthenticationIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/password")
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/me/password")
                                               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                               .contentType(MediaType.APPLICATION_JSON)
                                               .content(objectMapper.writeValueAsString(updatePasswordRequest)))
@@ -473,7 +474,7 @@ public class AuthenticationIntegrationTest {
 
         // when
         // then
-        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/password")
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/auth/customers/me/password")
                                               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                               .contentType(MediaType.APPLICATION_JSON)
                                               .content(objectMapper.writeValueAsString(updatePasswordRequest)))

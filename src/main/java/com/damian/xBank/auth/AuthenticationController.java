@@ -61,9 +61,8 @@ public class AuthenticationController {
     }
 
     // endpoint to modify customer password
-    // FIXME /auth/customers/me/password
-    @PatchMapping("/auth/customers/password")
-    public ResponseEntity<?> updateCustomerPassword(
+    @PatchMapping("/auth/customers/me/password")
+    public ResponseEntity<?> updateLoggedCustomerPassword(
             @Validated @RequestBody
             CustomerPasswordUpdateRequest request
     ) {

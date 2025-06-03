@@ -107,6 +107,12 @@ public class CustomerService {
         );
     }
 
+    // returns the logged customer
+    public Customer getCustomer() {
+        Customer loggedCustomer = AuthUtils.getLoggedCustomer();
+        return this.getCustomer(loggedCustomer.getId());
+    }
+
     /**
      * It checks if an email exist in the database
      *

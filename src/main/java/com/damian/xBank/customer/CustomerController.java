@@ -1,7 +1,6 @@
 package com.damian.xBank.customer;
 
 import com.damian.xBank.banking.account.BankingAccountService;
-import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.dto.CustomerDTO;
 import com.damian.xBank.customer.dto.CustomerDTOMapper;
 import com.damian.xBank.customer.dto.CustomerWithProfileDTO;
@@ -25,8 +24,7 @@ public class CustomerController {
     // endpoint to receive logged customer
     @GetMapping("/customers/me")
     public ResponseEntity<?> getLoggedCustomerData() {
-        // TODO check if this works. If not, try to change to customerService.getCustomer(id)
-        Customer customer = AuthUtils.getLoggedCustomer();
+        Customer customer = customerService.getCustomer();
         CustomerWithProfileDTO dto = CustomerDTOMapper.toCustomerWithProfileDTO(customer);
 
         return ResponseEntity

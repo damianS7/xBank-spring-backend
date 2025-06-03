@@ -1,11 +1,11 @@
 package com.damian.xBank.customer.profile;
 
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.common.utils.ProfileUtils;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
-import com.damian.xBank.customer.profile.exception.ProfileException;
 import com.damian.xBank.customer.profile.exception.ProfileNotFoundException;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import org.springframework.core.io.Resource;
@@ -53,7 +53,7 @@ public class ProfileService {
         return profileRepository
                 .findById(profileId)
                 .orElseThrow(
-                        () -> new ProfileNotFoundException(ProfileNotFoundException.NOT_FOUND)
+                        () -> new ProfileNotFoundException(Exceptions.PROFILE.NOT_FOUND)
                 );
     }
 
@@ -61,19 +61,19 @@ public class ProfileService {
     private void validatePhotoOrElseThrow(MultipartFile file) {
         if (file.isEmpty()) {
             throw new ProfileAuthorizationException(
-                    ProfileException.PROFILE_IMAGE.EMPTY_FILE
+                    Exceptions.PROFILE.IMAGE.EMPTY_FILE
             );
         }
 
         if (!file.getContentType().startsWith("image/")) {
             throw new ProfileAuthorizationException(
-                    ProfileException.PROFILE_IMAGE.ONLY_IMAGES_ALLOWED
+                    Exceptions.PROFILE.IMAGE.ONLY_IMAGES_ALLOWED
             );
         }
 
         if (file.getSize() > MAX_FILE_SIZE) { // 5 MB
             throw new ProfileAuthorizationException(
-                    ProfileException.PROFILE_IMAGE.FILE_SIZE_LIMIT
+                    Exceptions.PROFILE.IMAGE.FILE_SIZE_LIMIT
             );
         }
     }
@@ -87,7 +87,7 @@ public class ProfileService {
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new ProfileAuthorizationException(
-                    ProfileException.PROFILE_IMAGE.UPLOAD_FAILED
+                    Exceptions.PROFILE.IMAGE.UPLOAD_FAILED
             );
         }
     }
@@ -109,7 +109,7 @@ public class ProfileService {
                 .findById(profileId)
                 .orElseThrow(
                         () -> new ProfileNotFoundException(
-                                ProfileException.NOT_FOUND
+                                Exceptions.PROFILE.NOT_FOUND
                         )
                 );
 
@@ -135,7 +135,7 @@ public class ProfileService {
                 case "gender" -> profile.setGender(CustomerGender.valueOf((String) value));
                 case "birthdate" -> profile.setBirthdate(LocalDate.parse((String) value));
                 default -> throw new ProfileAuthorizationException(
-                        ProfileException.INVALID_FIELD
+                        Exceptions.PROFILE.INVALID_FIELD
                 );
             }
         });
@@ -158,7 +158,7 @@ public class ProfileService {
 
         if (!resource.exists()) {
             throw new ProfileAuthorizationException(
-                    ProfileException.PROFILE_IMAGE.NOT_FOUND
+                    Exceptions.PROFILE.IMAGE.NOT_FOUND
             );
         }
         return resource;

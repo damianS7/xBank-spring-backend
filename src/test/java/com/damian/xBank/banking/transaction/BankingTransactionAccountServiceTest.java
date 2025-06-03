@@ -7,6 +7,7 @@ import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationExc
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
 import com.damian.xBank.banking.transactions.*;
 import com.damian.xBank.banking.transactions.http.BankingAccountTransactionRequest;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
@@ -245,7 +246,7 @@ public class BankingTransactionAccountServiceTest {
         );
 
         // then
-        assertEquals(BankingAccountAuthorizationException.INSUFFICIENT_FUNDS, exception.getMessage());
+        assertEquals(Exceptions.ACCOUNT.INSUFFICIENT_FUNDS, exception.getMessage());
     }
 
     @Test
@@ -293,7 +294,7 @@ public class BankingTransactionAccountServiceTest {
         );
 
         // then
-        assertEquals(BankingAccountNotFoundException.ACCOUNT_NOT_FOUND, exception.getMessage());
+        assertEquals(Exceptions.ACCOUNT.NOT_FOUND, exception.getMessage());
     }
 
     @Test
@@ -342,7 +343,7 @@ public class BankingTransactionAccountServiceTest {
         );
 
         // then
-        assertEquals(BankingAccountAuthorizationException.ACCOUNT_CLOSED, exception.getMessage());
+        assertEquals(Exceptions.ACCOUNT.CLOSED, exception.getMessage());
     }
 
     @Test
@@ -391,7 +392,7 @@ public class BankingTransactionAccountServiceTest {
         );
 
         // then
-        assertEquals(BankingAccountAuthorizationException.ACCOUNT_SUSPENDED, exception.getMessage());
+        assertEquals(Exceptions.ACCOUNT.SUSPENDED, exception.getMessage());
     }
 
     @Test
@@ -440,7 +441,7 @@ public class BankingTransactionAccountServiceTest {
         );
 
         // then
-        assertEquals(BankingAccountAuthorizationException.ACCOUNT_CLOSED, exception.getMessage());
+        assertEquals(Exceptions.ACCOUNT.CLOSED, exception.getMessage());
     }
 
     @Test
@@ -489,7 +490,7 @@ public class BankingTransactionAccountServiceTest {
         );
 
         // then
-        assertEquals(BankingAccountAuthorizationException.ACCOUNT_SUSPENDED, exception.getMessage());
+        assertEquals(Exceptions.ACCOUNT.SUSPENDED, exception.getMessage());
     }
 
     @Test
@@ -532,7 +533,7 @@ public class BankingTransactionAccountServiceTest {
         );
 
         // then
-        assertEquals(BankingAccountAuthorizationException.TRANSFER_TO_SAME_ACCOUNT, exception.getMessage());
+        assertEquals(Exceptions.ACCOUNT.SAME_DESTINATION, exception.getMessage());
     }
 
     @Test
@@ -580,7 +581,7 @@ public class BankingTransactionAccountServiceTest {
         );
 
         // then
-        assertEquals(BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER, exception.getMessage());
+        assertEquals(Exceptions.ACCOUNT.ACCESS_FORBIDDEN, exception.getMessage());
     }
 
     @Test

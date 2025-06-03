@@ -1,5 +1,6 @@
 package com.damian.xBank.customer;
 
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
@@ -197,7 +198,7 @@ public class CustomerServiceTest {
 
         // then
         verify(customerRepository, times(0)).save(any());
-        assertEquals(CustomerEmailTakenException.EMAIL_TAKEN, exception.getMessage());
+        assertEquals(Exceptions.CUSTOMER.EMAIL_TAKEN, exception.getMessage());
     }
 
     @Test

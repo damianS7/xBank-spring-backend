@@ -5,6 +5,7 @@ import com.damian.xBank.banking.account.BankingAccountRepository;
 import com.damian.xBank.banking.transactions.*;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionAuthorizationException;
 import com.damian.xBank.banking.transactions.http.BankingTransactionUpdateStatusRequest;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -205,7 +206,7 @@ public class BankingTransactionServiceTest {
 
         // then
         assertTrue(exception.getMessage().contains(
-                BankingTransactionAuthorizationException.TRANSACTION_NOT_BELONG_TO_CUSTOMER
+                Exceptions.TRANSACTION.ACCESS_FORBIDDEN
         ));
     }
 }

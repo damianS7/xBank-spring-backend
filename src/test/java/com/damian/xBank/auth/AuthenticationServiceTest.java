@@ -4,6 +4,7 @@ import com.damian.xBank.auth.exception.AccountDisabledException;
 import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
@@ -186,7 +187,7 @@ public class AuthenticationServiceTest {
         );
 
         // Then
-        assertEquals(AuthenticationBadCredentialsException.BAD_CREDENTIALS, exception.getMessage());
+        assertEquals(Exceptions.AUTH.BAD_CREDENTIALS, exception.getMessage());
     }
 
     @Test
@@ -216,7 +217,7 @@ public class AuthenticationServiceTest {
         );
 
         // Then
-        assertEquals(AccountDisabledException.ACCOUNT_DISABLED, exception.getMessage());
+        assertEquals(Exceptions.CUSTOMER.DISABLED, exception.getMessage());
     }
 
     @Test
@@ -310,6 +311,6 @@ public class AuthenticationServiceTest {
         );
 
         // then
-        assertEquals(CustomerNotFoundException.NOT_FOUND, exception.getMessage());
+        assertEquals(Exceptions.CUSTOMER.NOT_FOUND, exception.getMessage());
     }
 }

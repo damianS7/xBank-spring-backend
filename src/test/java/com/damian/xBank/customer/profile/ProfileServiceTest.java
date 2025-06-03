@@ -1,10 +1,10 @@
 package com.damian.xBank.customer.profile;
 
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
-import com.damian.xBank.customer.profile.exception.ProfileException;
 import com.damian.xBank.customer.profile.exception.ProfileNotFoundException;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -165,7 +165,7 @@ public class ProfileServiceTest {
         );
 
         // Then
-        assertEquals(ProfileException.NOT_FOUND, exception.getMessage());
+        assertEquals(Exceptions.PROFILE.NOT_FOUND, exception.getMessage());
     }
 
     @Test
@@ -192,7 +192,7 @@ public class ProfileServiceTest {
         );
 
         // Then
-        assertEquals(ProfileException.AUTHORIZATION.ACCESS_FORBIDDEN, exception.getMessage());
+        assertEquals(Exceptions.PROFILE.ACCESS_FORBIDDEN, exception.getMessage());
     }
 
     @Test
@@ -217,7 +217,7 @@ public class ProfileServiceTest {
         );
 
         // Then
-        assertEquals(ProfileException.INVALID_FIELD, exception.getMessage());
+        assertEquals(Exceptions.PROFILE.INVALID_FIELD, exception.getMessage());
     }
 
     // TODO test upload profile photo

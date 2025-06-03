@@ -7,6 +7,7 @@ import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.Customer;
 import net.datafaker.Faker;
@@ -88,7 +89,7 @@ public class BankingCardService {
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
                 () -> new BankingCardNotFoundException(
-                        BankingCardNotFoundException.CARD_NOT_FOUND
+                        Exceptions.CARD.NOT_FOUND
                 ));
 
         return this.setCardLockStatus(bankingCard, cardLockStatus);
@@ -106,7 +107,7 @@ public class BankingCardService {
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
                 () -> new BankingCardNotFoundException(
-                        BankingCardNotFoundException.CARD_NOT_FOUND
+                        Exceptions.CARD.NOT_FOUND
                 ));
 
         // if the logged customer is admin just set the lock status and skip checks
@@ -115,7 +116,7 @@ public class BankingCardService {
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
                 throw new BankingCardAuthorizationException(
-                        BankingCardAuthorizationException.CARD_DOES_NOT_BELONG_TO_CUSTOMER
+                        Exceptions.CARD.ACCESS_FORBIDDEN
                 );
             }
 
@@ -150,7 +151,7 @@ public class BankingCardService {
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
                 () -> new BankingCardNotFoundException(
-                        BankingCardNotFoundException.CARD_NOT_FOUND
+                        Exceptions.CARD.NOT_FOUND
                 ));
 
         return this.setDailyLimit(bankingCard, dailyLimit);
@@ -168,7 +169,7 @@ public class BankingCardService {
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
                 () -> new BankingCardNotFoundException(
-                        BankingCardNotFoundException.CARD_NOT_FOUND
+                        Exceptions.CARD.NOT_FOUND
                 ));
 
         // if the logged customer is not admin
@@ -177,7 +178,7 @@ public class BankingCardService {
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
                 throw new BankingCardAuthorizationException(
-                        BankingCardAuthorizationException.CARD_DOES_NOT_BELONG_TO_CUSTOMER
+                        Exceptions.CARD.ACCESS_FORBIDDEN
                 );
             }
 
@@ -206,7 +207,7 @@ public class BankingCardService {
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
                 () -> new BankingCardNotFoundException(
-                        BankingCardNotFoundException.CARD_NOT_FOUND
+                        Exceptions.CARD.NOT_FOUND
                 ));
 
         return this.cancelCard(bankingCard);
@@ -224,7 +225,7 @@ public class BankingCardService {
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
                 () -> new BankingCardNotFoundException(
-                        BankingCardNotFoundException.CARD_NOT_FOUND
+                        Exceptions.CARD.NOT_FOUND
                 ));
 
         // if the logged customer is not admin
@@ -233,7 +234,7 @@ public class BankingCardService {
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
                 throw new BankingCardAuthorizationException(
-                        BankingCardAuthorizationException.CARD_DOES_NOT_BELONG_TO_CUSTOMER
+                        Exceptions.CARD.ACCESS_FORBIDDEN
                 );
             }
 
@@ -262,7 +263,7 @@ public class BankingCardService {
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
                 () -> new BankingCardNotFoundException(
-                        BankingCardNotFoundException.CARD_NOT_FOUND
+                        Exceptions.CARD.NOT_FOUND
                 ));
 
         return this.setBankingCardPin(bankingCard, pin);
@@ -277,7 +278,7 @@ public class BankingCardService {
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
                 () -> new BankingCardNotFoundException(
-                        BankingCardNotFoundException.CARD_NOT_FOUND
+                        Exceptions.CARD.NOT_FOUND
                 ));
 
         // if the logged customer is not admin
@@ -286,7 +287,7 @@ public class BankingCardService {
             if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
                 // banking card does not belong to this customer
                 throw new BankingCardAuthorizationException(
-                        BankingCardAuthorizationException.CARD_DOES_NOT_BELONG_TO_CUSTOMER
+                        Exceptions.CARD.ACCESS_FORBIDDEN
                 );
             }
 

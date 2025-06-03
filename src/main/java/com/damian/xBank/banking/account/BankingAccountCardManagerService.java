@@ -7,6 +7,7 @@ import com.damian.xBank.banking.card.BankingCardService;
 import com.damian.xBank.banking.card.BankingCardStatus;
 import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccountLimitReached;
 import com.damian.xBank.banking.card.http.BankingCardRequest;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class BankingAccountCardManagerService {
                 .findById(bankingAccountId)
                 .orElseThrow(
                         () -> new BankingAccountNotFoundException(
-                                BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                                Exceptions.ACCOUNT.NOT_FOUND
                         )
                 );
 
@@ -43,7 +44,7 @@ public class BankingAccountCardManagerService {
             // check if the account belongs to this customer.
             if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
                 throw new BankingAccountAuthorizationException(
-                        BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER
+                        Exceptions.ACCOUNT.ACCESS_FORBIDDEN
                 );
             }
 
@@ -53,7 +54,7 @@ public class BankingAccountCardManagerService {
         // if customer has reached the maximum amount of cards per account.
         if (countActiveCards(bankingAccount) >= MAX_CARDS_PER_ACCOUNT) {
             throw new BankingCardMaximumCardsPerAccountLimitReached(
-                    BankingCardMaximumCardsPerAccountLimitReached.LIMIT_REACHED
+                    Exceptions.ACCOUNT.CARD_LIMIT
             );
         }
 

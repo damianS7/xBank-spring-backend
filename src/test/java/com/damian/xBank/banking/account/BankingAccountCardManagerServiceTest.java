@@ -8,6 +8,7 @@ import com.damian.xBank.banking.card.BankingCardService;
 import com.damian.xBank.banking.card.BankingCardType;
 import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccountLimitReached;
 import com.damian.xBank.banking.card.http.BankingCardRequest;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -138,7 +139,7 @@ public class BankingAccountCardManagerServiceTest {
         );
 
         // then
-        assertEquals(BankingAccountNotFoundException.ACCOUNT_NOT_FOUND, exception.getMessage());
+        assertEquals(Exceptions.ACCOUNT.NOT_FOUND, exception.getMessage());
     }
 
     @Test
@@ -165,7 +166,7 @@ public class BankingAccountCardManagerServiceTest {
         );
 
         // then
-        assertEquals(BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER, exception.getMessage());
+        assertEquals(Exceptions.ACCOUNT.ACCESS_FORBIDDEN, exception.getMessage());
     }
 
     @Test

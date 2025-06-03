@@ -5,6 +5,7 @@ import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionAuthorizationException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionNotFoundException;
 import com.damian.xBank.banking.transactions.http.BankingTransactionUpdateStatusRequest;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRole;
@@ -92,7 +93,7 @@ public class BankingTransactionService {
         if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
             // banking transaction does not belong to this customer
             throw new BankingTransactionAuthorizationException(
-                    BankingTransactionAuthorizationException.TRANSACTION_NOT_BELONG_TO_CUSTOMER
+                    Exceptions.TRANSACTION.ACCESS_FORBIDDEN
             );
         }
 
@@ -101,7 +102,7 @@ public class BankingTransactionService {
                 .findById(bankingTransactionId)
                 .orElseThrow(
                         () -> new BankingTransactionNotFoundException(
-                                BankingTransactionNotFoundException.TRANSACTION_NOT_FOUND
+                                Exceptions.TRANSACTION.NOT_FOUND
                         )
                 );
 

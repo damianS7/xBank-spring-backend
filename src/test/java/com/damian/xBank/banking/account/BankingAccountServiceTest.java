@@ -6,6 +6,7 @@ import com.damian.xBank.banking.account.http.request.BankingAccountAliasUpdateRe
 import com.damian.xBank.banking.account.http.request.BankingAccountCloseRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountCreateRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -237,7 +238,7 @@ public class BankingAccountServiceTest {
 
         // then
         assertTrue(exception.getMessage().contains(
-                BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                Exceptions.ACCOUNT.NOT_FOUND
         ));
     }
 
@@ -268,7 +269,7 @@ public class BankingAccountServiceTest {
 
         // then
         assertTrue(exception.getMessage().contains(
-                BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER
+                Exceptions.ACCOUNT.ACCESS_FORBIDDEN
         ));
     }
 

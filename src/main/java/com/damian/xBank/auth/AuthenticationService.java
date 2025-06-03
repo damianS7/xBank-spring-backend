@@ -4,6 +4,7 @@ import com.damian.xBank.auth.exception.AccountDisabledException;
 import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.exception.PasswordMismatchException;
 import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.common.utils.JWTUtil;
@@ -81,7 +82,7 @@ public class AuthenticationService {
             );
         } catch (BadCredentialsException e) {
             throw new AuthenticationBadCredentialsException(
-                    AuthenticationBadCredentialsException.BAD_CREDENTIALS
+                    Exceptions.AUTH.BAD_CREDENTIALS
             );
         }
 
@@ -95,7 +96,7 @@ public class AuthenticationService {
         // check if the account is disabled
         if (customer.getAuth().getAuthAccountStatus().equals(AuthAccountStatus.DISABLED)) {
             throw new AccountDisabledException(
-                    AccountDisabledException.ACCOUNT_DISABLED
+                    Exceptions.CUSTOMER.DISABLED
             );
         }
 
@@ -118,7 +119,7 @@ public class AuthenticationService {
         // we get the CustomerAuth entity so we can save.
         Auth customerAuth = authenticationRepository.findByCustomer_Id(customerId).orElseThrow(
                 () -> new CustomerNotFoundException(
-                        CustomerNotFoundException.NOT_FOUND
+                        Exceptions.CUSTOMER.NOT_FOUND
                 )
         );
 

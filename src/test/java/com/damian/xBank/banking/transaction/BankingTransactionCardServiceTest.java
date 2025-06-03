@@ -9,6 +9,7 @@ import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.transactions.*;
 import com.damian.xBank.banking.transactions.http.BankingCardTransactionRequest;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.CustomerRole;
@@ -163,7 +164,7 @@ public class BankingTransactionCardServiceTest {
         );
 
         // then
-        assertTrue(exception.getMessage().contains(BankingCardNotFoundException.CARD_NOT_FOUND));
+        assertTrue(exception.getMessage().contains(Exceptions.CARD.NOT_FOUND));
     }
 
     @Test
@@ -210,7 +211,7 @@ public class BankingTransactionCardServiceTest {
         );
 
         // then
-        assertTrue(exception.getMessage().contains(BankingCardAuthorizationException.CARD_DOES_NOT_BELONG_TO_CUSTOMER));
+        assertTrue(exception.getMessage().contains(Exceptions.CARD.ACCESS_FORBIDDEN));
     }
 
     @Test
@@ -257,7 +258,7 @@ public class BankingTransactionCardServiceTest {
         );
 
         // then
-        assertTrue(exception.getMessage().contains(BankingCardAuthorizationException.CARD_DISABLED));
+        assertTrue(exception.getMessage().contains(Exceptions.CARD.DISABLED));
     }
 
     @Test
@@ -305,7 +306,7 @@ public class BankingTransactionCardServiceTest {
         );
 
         // then
-        assertTrue(exception.getMessage().contains(BankingCardAuthorizationException.CARD_LOCKED));
+        assertTrue(exception.getMessage().contains(Exceptions.CARD.LOCKED));
     }
 
     @Test
@@ -352,7 +353,7 @@ public class BankingTransactionCardServiceTest {
         );
 
         // then
-        assertTrue(exception.getMessage().contains(BankingCardAuthorizationException.INSUFFICIENT_FUNDS));
+        assertTrue(exception.getMessage().contains(Exceptions.CARD.INSUFFICIENT_FUNDS));
     }
 
 }

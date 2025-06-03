@@ -1,5 +1,6 @@
 package com.damian.xBank.customer;
 
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerException;
@@ -34,7 +35,7 @@ public class CustomerService {
         // check if the email is already taken
         if (emailExist(request.email())) {
             throw new CustomerEmailTakenException(
-                    CustomerEmailTakenException.EMAIL_TAKEN
+                    Exceptions.CUSTOMER.EMAIL_TAKEN
             );
         }
 
@@ -67,7 +68,7 @@ public class CustomerService {
         // if the customer does not exist we throw an exception
         if (!customerRepository.existsById(customerId)) {
             throw new CustomerNotFoundException(
-                    CustomerNotFoundException.NOT_FOUND
+                    Exceptions.CUSTOMER.NOT_FOUND
             );
         }
 
@@ -103,7 +104,7 @@ public class CustomerService {
         // if the customer does not exist we throw an exception
         return customerRepository.findById(customerId).orElseThrow(
                 () -> new CustomerNotFoundException(
-                        CustomerNotFoundException.NOT_FOUND
+                        Exceptions.CUSTOMER.NOT_FOUND
                 )
         );
     }
@@ -131,7 +132,7 @@ public class CustomerService {
         // we get the Customer entity so we can save at the end
         Customer customer = customerRepository.findById(customerId).orElseThrow(
                 () -> new CustomerNotFoundException(
-                        CustomerNotFoundException.NOT_FOUND
+                        Exceptions.CUSTOMER.NOT_FOUND
                 )
         );
 

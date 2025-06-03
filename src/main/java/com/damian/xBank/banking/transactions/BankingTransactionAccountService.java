@@ -7,6 +7,7 @@ import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationExc
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionException;
 import com.damian.xBank.banking.transactions.http.BankingAccountTransactionRequest;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class BankingTransactionAccountService {
         // BankingAccount to operate
         BankingAccount bankingAccount = bankingAccountRepository.findById(fromAccountId).orElseThrow(
                 () -> new BankingAccountNotFoundException(
-                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                        Exceptions.ACCOUNT.NOT_FOUND
                 )
         );
 
@@ -48,7 +49,7 @@ public class BankingTransactionAccountService {
             );
             case DEPOSIT -> this.deposit(bankingAccount, request.password(), request.amount());
             default -> throw new BankingTransactionException(
-                    BankingTransactionException.INVALID_TRANSACTION_TYPE
+                    Exceptions.TRANSACTION.INVALID_TYPE
             );
         };
     }
@@ -64,7 +65,7 @@ public class BankingTransactionAccountService {
         // if the owner of the card is not the current logged customer.
         if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
             throw new BankingAccountAuthorizationException(
-                    BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER
+                    Exceptions.ACCOUNT.ACCESS_FORBIDDEN
             );
         }
 
@@ -82,13 +83,13 @@ public class BankingTransactionAccountService {
 
         if (isAccountClosed) {
             throw new BankingAccountAuthorizationException(
-                    BankingAccountAuthorizationException.ACCOUNT_CLOSED
+                    Exceptions.ACCOUNT.CLOSED
             );
         }
 
         if (isAccountSuspended) {
             throw new BankingAccountAuthorizationException(
-                    BankingAccountAuthorizationException.ACCOUNT_SUSPENDED
+                    Exceptions.ACCOUNT.SUSPENDED
             );
         }
     }
@@ -96,7 +97,7 @@ public class BankingTransactionAccountService {
     public void validateAccountFunds(BankingAccount account, BigDecimal amount) {
         if (!account.hasEnoughFunds(amount)) {
             throw new BankingAccountAuthorizationException(
-                    BankingAccountAuthorizationException.INSUFFICIENT_FUNDS
+                    Exceptions.ACCOUNT.INSUFFICIENT_FUNDS
             );
         }
     }
@@ -114,14 +115,14 @@ public class BankingTransactionAccountService {
                 .findByAccountNumber(toBankingAccountNumber)
                 .orElseThrow(
                         () -> new BankingAccountNotFoundException(
-                                BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                                Exceptions.ACCOUNT.NOT_FOUND
                         )
                 );
 
         // check bankingAccount and toBankingAccount are not the same
         if (fromBankingAccount.getId().equals(toBankingAccount.getId())) {
             throw new BankingAccountAuthorizationException(
-                    BankingAccountAuthorizationException.TRANSFER_TO_SAME_ACCOUNT
+                    Exceptions.ACCOUNT.SAME_DESTINATION
             );
         }
 

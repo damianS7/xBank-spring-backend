@@ -2,6 +2,7 @@ package com.damian.xBank.customer.dto;
 
 import com.damian.xBank.banking.account.BankingAccountDTO;
 import com.damian.xBank.banking.account.BankingAccountDTOMapper;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.profile.ProfileDTO;
 import com.damian.xBank.customer.profile.ProfileDTOMapper;
@@ -38,7 +39,7 @@ public class CustomerDTOMapper {
     public static CustomerWithAllDataDTO toCustomerWithAllDataDTO(Customer customer) {
         ProfileDTO profileDTO = Optional.ofNullable(ProfileDTOMapper.toProfileDTO(customer.getProfile()))
                                         .orElseThrow(() -> new ProfileNotFoundException(
-                                                ProfileNotFoundException.NOT_FOUND));
+                                                Exceptions.PROFILE.NOT_FOUND));
 
         Set<BankingAccountDTO> bankingAccountsDTO = Optional.ofNullable(customer.getBankingAccounts())
                                                             .orElseGet(Collections::emptySet)

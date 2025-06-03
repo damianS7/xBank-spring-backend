@@ -8,6 +8,7 @@ import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionException;
 import com.damian.xBank.banking.transactions.http.BankingCardTransactionRequest;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ public class BankingTransactionCardService {
         // BankingCard to operate
         BankingCard bankingCard = bankingCardRepository.findById(cardId).orElseThrow(
                 () -> new BankingCardNotFoundException(
-                        BankingCardNotFoundException.CARD_NOT_FOUND
+                        Exceptions.CARD.NOT_FOUND
                 )
         );
 
@@ -44,7 +45,7 @@ public class BankingTransactionCardService {
             case CARD_CHARGE -> this.spend(bankingCard, request.cardPin(), request.amount(), request.description());
             case WITHDRAWAL -> this.withdrawal(bankingCard, request.cardPin(), request.amount());
             default -> throw new BankingTransactionException(
-                    BankingTransactionException.INVALID_TRANSACTION_TYPE
+                    Exceptions.TRANSACTION.INVALID_TYPE
             );
         };
     }
@@ -59,7 +60,7 @@ public class BankingTransactionCardService {
         // if the owner of the card is not the current logged customer.
         if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
             throw new BankingCardAuthorizationException(
-                    BankingCardAuthorizationException.CARD_DOES_NOT_BELONG_TO_CUSTOMER
+                    Exceptions.CARD.ACCESS_FORBIDDEN
             );
         }
     }
@@ -72,7 +73,7 @@ public class BankingTransactionCardService {
         // check card pin
         if (!bankingCard.getCardPin().equals(cardPIN)) {
             throw new BankingCardAuthorizationException(
-                    BankingCardAuthorizationException.INVALID_PIN
+                    Exceptions.CARD.INVALID_PIN
             );
         }
 
@@ -82,13 +83,13 @@ public class BankingTransactionCardService {
 
         if (isCardDisabled) {
             throw new BankingCardAuthorizationException(
-                    BankingCardAuthorizationException.CARD_DISABLED
+                    Exceptions.CARD.DISABLED
             );
         }
 
         if (isCardLocked) {
             throw new BankingCardAuthorizationException(
-                    BankingCardAuthorizationException.CARD_LOCKED
+                    Exceptions.CARD.LOCKED
             );
         }
     }
@@ -96,7 +97,7 @@ public class BankingTransactionCardService {
     public void validateCardFunds(BankingCard card, BigDecimal amount) {
         if (!card.hasEnoughFundsToSpend(amount)) {
             throw new BankingCardAuthorizationException(
-                    BankingCardAuthorizationException.INSUFFICIENT_FUNDS
+                    Exceptions.CARD.INSUFFICIENT_FUNDS
             );
         }
     }

@@ -6,6 +6,7 @@ import com.damian.xBank.banking.account.http.request.BankingAccountAliasUpdateRe
 import com.damian.xBank.banking.account.http.request.BankingAccountCloseRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountCreateRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
+import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthUtils;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
@@ -66,7 +67,7 @@ public class BankingAccountService {
         // we get the Customer entity so we can save at the end
         final Customer customer = customerRepository.findById(customerId).orElseThrow(
                 () -> new CustomerNotFoundException(
-                        CustomerNotFoundException.NOT_FOUND
+                        Exceptions.CUSTOMER.NOT_FOUND
                 )
         );
 
@@ -100,7 +101,7 @@ public class BankingAccountService {
         // Banking account to to open
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
                 () -> new BankingAccountNotFoundException(
-                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                        Exceptions.ACCOUNT.NOT_FOUND
                 ) // Banking account not found
         );
 
@@ -118,7 +119,7 @@ public class BankingAccountService {
         // Banking account to be open
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
                 () -> new BankingAccountNotFoundException(
-                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                        Exceptions.ACCOUNT.NOT_FOUND
                 ) // Banking account not found
         );
 
@@ -128,7 +129,7 @@ public class BankingAccountService {
             if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
                 // banking account does not belong to this customer
                 throw new BankingAccountAuthorizationException(
-                        BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER
+                        Exceptions.ACCOUNT.ACCESS_FORBIDDEN
                 );
             }
 
@@ -149,7 +150,7 @@ public class BankingAccountService {
         // Banking account to to close
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
                 () -> new BankingAccountNotFoundException(
-                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                        Exceptions.ACCOUNT.NOT_FOUND
                 ) // Banking account not found
         );
 
@@ -167,7 +168,7 @@ public class BankingAccountService {
         // Banking account to be closed
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
                 () -> new BankingAccountNotFoundException(
-                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                        Exceptions.ACCOUNT.NOT_FOUND
                 ) // Banking account not found
         );
 
@@ -177,7 +178,7 @@ public class BankingAccountService {
             if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
                 // banking account does not belong to this customer
                 throw new BankingAccountAuthorizationException(
-                        BankingAccountAuthorizationException.ACCOUNT_NOT_BELONG_TO_CUSTOMER
+                        Exceptions.ACCOUNT.ACCESS_FORBIDDEN
                 );
             }
 
@@ -187,7 +188,9 @@ public class BankingAccountService {
 
         // suspended accounts can only change status by admin
         if (bankingAccount.getAccountStatus().equals(BankingAccountStatus.SUSPENDED)) {
-            throw new BankingAccountAuthorizationException("Only admin can close a suspended account");
+            throw new BankingAccountAuthorizationException(
+                    Exceptions.ACCOUNT.SUSPENDED
+            );
         }
 
         return this.updateBankingAccountStatus(bankingAccount, BankingAccountStatus.CLOSED);
@@ -214,7 +217,7 @@ public class BankingAccountService {
         // Banking account to set an alias
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
                 () -> new BankingAccountNotFoundException(
-                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                        Exceptions.ACCOUNT.NOT_FOUND
                 ) // Banking account not found
         );
 
@@ -234,7 +237,7 @@ public class BankingAccountService {
         // Banking account to set alias
         final BankingAccount bankingAccount = bankingAccountRepository.findById(bankingAccountId).orElseThrow(
                 () -> new BankingAccountNotFoundException(
-                        BankingAccountNotFoundException.ACCOUNT_NOT_FOUND
+                        Exceptions.ACCOUNT.NOT_FOUND
                 ) // Banking account not found
         );
 

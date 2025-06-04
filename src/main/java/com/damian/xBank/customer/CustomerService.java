@@ -1,7 +1,8 @@
 package com.damian.xBank.customer;
 
 import com.damian.xBank.common.exception.Exceptions;
-import com.damian.xBank.common.utils.AuthUtils;
+import com.damian.xBank.common.exception.PasswordMismatchException;
+import com.damian.xBank.common.utils.AuthHelper;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
@@ -19,7 +20,10 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public CustomerService(CustomerRepository customerRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public CustomerService(
+            CustomerRepository customerRepository,
+            BCryptPasswordEncoder bCryptPasswordEncoder
+    ) {
         this.customerRepository = customerRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
@@ -109,7 +113,7 @@ public class CustomerService {
 
     // returns the logged customer
     public Customer getCustomer() {
-        Customer loggedCustomer = AuthUtils.getLoggedCustomer();
+        Customer loggedCustomer = AuthHelper.getLoggedCustomer();
         return this.getCustomer(loggedCustomer.getId());
     }
 
@@ -153,16 +157,16 @@ public class CustomerService {
     /**
      * It updates the email from the logged customer
      *
-     * @param request the request body that contains the current password and the new email
+     * @param request that contains the current password and the new email.
      * @return the customer updated
-     * @throws PasswordMismatchException if the password does not match, or if the customer does not exist
+     * @throws PasswordMismatchException if the password does not match
      */
     public Customer updateEmail(CustomerEmailUpdateRequest request) {
         // we extract the email from the Customer stored in the SecurityContext
-        final Customer loggedCustomer = AuthUtils.getLoggedCustomer();
+        final Customer loggedCustomer = AuthHelper.getLoggedCustomer();
 
         // Before making any changes we check that the password sent by the customer matches the one in the entity
-        AuthUtils.validatePasswordOrElseThrow(request.currentPassword(), loggedCustomer);
+        AuthHelper.validatePasswordOrElseThrow(request.currentPassword(), loggedCustomer);
 
         return this.updateEmail(loggedCustomer.getId(), request.newEmail());
     }

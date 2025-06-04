@@ -1,6 +1,6 @@
 package com.damian.xBank.customer.profile;
 
-import com.damian.xBank.common.utils.AuthUtils;
+import com.damian.xBank.common.utils.AuthHelper;
 import com.damian.xBank.customer.profile.http.request.ProfileUpdateRequest;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ public class ProfileController {
 
     @GetMapping("/customers/me/profile")
     public ResponseEntity<?> getLoggedCustomerProfile() {
-        long profileId = AuthUtils.getLoggedCustomer().getProfile().getId();
+        long profileId = AuthHelper.getLoggedCustomer().getProfile().getId();
 
         Profile profile = profileService.getProfile(profileId);
         ProfileDTO profileDTO = ProfileDTOMapper.toProfileDTO(profile);

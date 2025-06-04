@@ -1,7 +1,7 @@
 package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.common.exception.Exceptions;
-import com.damian.xBank.common.utils.AuthUtils;
+import com.damian.xBank.common.utils.AuthHelper;
 import com.damian.xBank.common.utils.ProfileUtils;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
@@ -39,10 +39,10 @@ public class ProfileService {
 
     // it updates the logged customer profile
     public Profile updateProfile(ProfileUpdateRequest request) {
-        final Customer customerLogged = AuthUtils.getLoggedCustomer();
+        final Customer customerLogged = AuthHelper.getLoggedCustomer();
 
         // validate password
-        AuthUtils.validatePasswordOrElseThrow(request.currentPassword(), customerLogged);
+        AuthHelper.validatePasswordOrElseThrow(request.currentPassword(), customerLogged);
 
         return this.updateProfile(customerLogged.getProfile().getId(), request);
     }
@@ -58,10 +58,10 @@ public class ProfileService {
                         )
                 );
 
-        final Customer customerLogged = AuthUtils.getLoggedCustomer();
+        final Customer customerLogged = AuthHelper.getLoggedCustomer();
 
         // if the logged user is not admin
-        if (!AuthUtils.isAdmin(customerLogged)) {
+        if (!AuthHelper.isAdmin(customerLogged)) {
             // we make sure that this profile belongs to the customer logged
             ProfileUtils.hasAuthorizationOrElseThrow(profile, customerLogged);
         }

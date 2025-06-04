@@ -6,7 +6,7 @@ import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.exception.PasswordMismatchException;
-import com.damian.xBank.common.utils.AuthUtils;
+import com.damian.xBank.common.utils.AuthHelper;
 import com.damian.xBank.common.utils.JWTUtil;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerService;
@@ -52,13 +52,13 @@ public class AuthenticationService {
      */
     public Customer register(CustomerRegistrationRequest request) {
         // It uses the customer service to create a new customer
-        Customer registeredCustomer = customerService.createCustomer(request);
+        // Customer registeredCustomer = customerService.createCustomer(request);
 
         // send welcome email
         // Generate token for email validation
         // send email to confirm registration
 
-        return registeredCustomer;
+        return customerService.createCustomer(request);
     }
 
     /**
@@ -143,10 +143,10 @@ public class AuthenticationService {
      */
     public void updatePassword(CustomerPasswordUpdateRequest request) {
         // we extract the email from the Customer stored in the SecurityContext
-        final Customer loggedCustomer = AuthUtils.getLoggedCustomer();
+        final Customer loggedCustomer = AuthHelper.getLoggedCustomer();
 
         // Before making any changes we check that the password sent by the customer matches the one in the entity
-        AuthUtils.validatePasswordOrElseThrow(request.currentPassword(), loggedCustomer);
+        AuthHelper.validatePasswordOrElseThrow(request.currentPassword(), loggedCustomer);
 
         // update the password
         this.updatePassword(loggedCustomer.getId(), request.newPassword());

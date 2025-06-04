@@ -9,7 +9,7 @@ import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionException;
 import com.damian.xBank.banking.transactions.http.BankingCardTransactionRequest;
 import com.damian.xBank.common.exception.Exceptions;
-import com.damian.xBank.common.utils.AuthUtils;
+import com.damian.xBank.common.utils.AuthHelper;
 import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
 
@@ -55,7 +55,7 @@ public class BankingTransactionCardService {
             BankingCard bankingCard
     ) {
         // Customer logged
-        final Customer customerLogged = AuthUtils.getLoggedCustomer();
+        final Customer customerLogged = AuthHelper.getLoggedCustomer();
 
         // if the owner of the card is not the current logged customer.
         if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {

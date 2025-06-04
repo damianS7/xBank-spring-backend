@@ -8,7 +8,7 @@ import com.damian.xBank.banking.account.exception.BankingAccountNotFoundExceptio
 import com.damian.xBank.banking.transactions.exception.BankingTransactionException;
 import com.damian.xBank.banking.transactions.http.BankingAccountTransactionRequest;
 import com.damian.xBank.common.exception.Exceptions;
-import com.damian.xBank.common.utils.AuthUtils;
+import com.damian.xBank.common.utils.AuthHelper;
 import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
 
@@ -60,7 +60,7 @@ public class BankingTransactionAccountService {
             String password
     ) {
         // Customer logged
-        final Customer customerLogged = AuthUtils.getLoggedCustomer();
+        final Customer customerLogged = AuthHelper.getLoggedCustomer();
 
         // if the owner of the card is not the current logged customer.
         if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
@@ -70,7 +70,7 @@ public class BankingTransactionAccountService {
         }
 
         // check password
-        AuthUtils.validatePasswordOrElseThrow(password, customerLogged);
+        AuthHelper.validatePasswordOrElseThrow(password, customerLogged);
     }
 
     // validates all security checks before transfer
@@ -85,7 +85,7 @@ public class BankingTransactionAccountService {
                     Exceptions.ACCOUNT.SAME_DESTINATION
             );
         }
-        
+
         // check currency are the same
         this.checkCurrency(fromBankingAccount, toBankingAccount);
 

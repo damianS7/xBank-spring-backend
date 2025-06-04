@@ -1,7 +1,7 @@
 package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.common.exception.Exceptions;
-import com.damian.xBank.common.utils.AuthUtils;
+import com.damian.xBank.common.utils.AuthHelper;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
 import com.damian.xBank.customer.profile.exception.ProfileException;
@@ -49,7 +49,7 @@ public class ProfileImageUploaderService {
         if (contentType == null) {
             contentType = "application/octet-stream";
         }
-        
+
         return contentType;
     }
 
@@ -118,10 +118,10 @@ public class ProfileImageUploaderService {
      * It sets the customer profile photo
      */
     public Resource uploadImage(String currentPassword, MultipartFile file) {
-        final Customer customerLogged = AuthUtils.getLoggedCustomer();
+        final Customer customerLogged = AuthHelper.getLoggedCustomer();
 
         // validate password
-        AuthUtils.validatePasswordOrElseThrow(currentPassword, AuthUtils.getLoggedCustomer());
+        AuthHelper.validatePasswordOrElseThrow(currentPassword, AuthHelper.getLoggedCustomer());
 
         // run file validations
         this.validatePhotoOrElseThrow(file);

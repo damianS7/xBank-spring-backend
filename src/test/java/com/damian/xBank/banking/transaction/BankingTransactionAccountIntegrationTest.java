@@ -65,6 +65,7 @@ public class BankingTransactionAccountIntegrationTest {
     @BeforeEach
     void setUp() throws Exception {
         customerRepository.deleteAll();
+        bankingAccountRepository.deleteAll();
 
         customerA = new Customer();
         customerA.setEmail("customerA@test.com");
@@ -278,8 +279,8 @@ public class BankingTransactionAccountIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should not transfer when account is not closed")
-    void shouldNotTransferWhenAccountIsNotClosed() throws Exception {
+    @DisplayName("Should not transfer when account is closed")
+    void shouldNotTransferWhenAccountIsClosed() throws Exception {
         // given
         loginWithCustomer(customerA);
         BigDecimal givenTransferAmount = BigDecimal.valueOf(100);

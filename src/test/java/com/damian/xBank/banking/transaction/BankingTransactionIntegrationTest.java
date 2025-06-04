@@ -64,6 +64,7 @@ public class BankingTransactionIntegrationTest {
     @BeforeEach
     void setUp() throws Exception {
         customerRepository.deleteAll();
+        bankingAccountRepository.deleteAll();
 
         customerA = new Customer();
         customerA.setEmail("customerA@test.com");

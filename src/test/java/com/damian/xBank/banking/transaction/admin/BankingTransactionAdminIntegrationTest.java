@@ -64,6 +64,8 @@ public class BankingTransactionAdminIntegrationTest {
     @BeforeEach
     void setUp() throws Exception {
         customerRepository.deleteAll();
+        bankingAccountRepository.deleteAll();
+        bankingTransactionRepository.deleteAll();
 
         customerA = new Customer();
         customerA.setEmail("customerA@test.com");
@@ -135,7 +137,6 @@ public class BankingTransactionAdminIntegrationTest {
         transaction.setAmount(BigDecimal.valueOf(100));
         transaction.setDescription("Deposit");
         transaction.setTransactionStatus(BankingTransactionStatus.PENDING);
-
         bankingTransactionRepository.save(transaction);
 
         BankingTransactionUpdateStatusRequest request = new BankingTransactionUpdateStatusRequest(
@@ -144,7 +145,7 @@ public class BankingTransactionAdminIntegrationTest {
 
         // when
         MvcResult result = mockMvc
-                .perform(patch("/api/v1/admin/banking/transactions/{id}", bankingAccount.getId())
+                .perform(patch("/api/v1/admin/banking/transactions/{id}", transaction.getId())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -160,10 +161,7 @@ public class BankingTransactionAdminIntegrationTest {
 
         // then
         assertThat(responseTransaction).isNotNull();
-        assertEquals(
-                responseTransaction.transactionStatus(),
-                BankingTransactionStatus.COMPLETED
-        );
+        assertEquals(responseTransaction.transactionStatus(), BankingTransactionStatus.COMPLETED);
     }
 
     @Test

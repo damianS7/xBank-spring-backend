@@ -1,6 +1,7 @@
 package com.damian.xBank.banking.transaction;
 
 import com.damian.xBank.banking.account.BankingAccount;
+import com.damian.xBank.banking.account.BankingAccountCurrency;
 import com.damian.xBank.banking.account.BankingAccountRepository;
 import com.damian.xBank.banking.account.BankingAccountStatus;
 import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationException;
@@ -250,6 +251,55 @@ public class BankingTransactionAccountServiceTest {
     }
 
     @Test
+    @DisplayName("Should process transaction and fail to transfer when insufficient funds")
+    void shouldProcessTransactionRequestAndFailToTransferWhenDifferentCurrencies() {
+        // given
+        setUpContext(customerA);
+        BigDecimal givenBalanceAccountA = BigDecimal.valueOf(1000);
+        BigDecimal givenBalanceAccountB = BigDecimal.valueOf(0);
+        BigDecimal givenTransferAmount = BigDecimal.valueOf(500);
+
+        BankingAccount givenBankingAccountA = new BankingAccount(customerA);
+        givenBankingAccountA.setId(2L);
+        givenBankingAccountA.setBalance(givenBalanceAccountA);
+        givenBankingAccountA.setAccountNumber("US9900001111112233334444");
+
+        BankingAccount givenBankingAccountB = new BankingAccount(customerB);
+        givenBankingAccountB.setId(5L);
+        givenBankingAccountB.setAccountCurrency(BankingAccountCurrency.USD);
+        givenBankingAccountB.setBalance(givenBalanceAccountB);
+        givenBankingAccountB.setAccountNumber("ES0400003110112293532124");
+
+        BankingTransaction givenBankingTransactionA = new BankingTransaction(givenBankingAccountA);
+        givenBankingTransactionA.setAmount(givenTransferAmount);
+
+        BankingAccountTransactionRequest givenRequest = new BankingAccountTransactionRequest(
+                givenBankingAccountB.getAccountNumber(),
+                BankingTransactionType.TRANSFER_TO,
+                "a gift!",
+                BigDecimal.valueOf(500),
+                RAW_PASSWORD
+        );
+
+        when(bankingAccountRepository.findById(givenBankingAccountA.getId())).thenReturn(Optional.of(
+                givenBankingAccountA));
+        when(bankingAccountRepository.findByAccountNumber(givenBankingAccountB.getAccountNumber()))
+                .thenReturn(Optional.of(givenBankingAccountB));
+
+        // then
+        BankingAccountAuthorizationException exception = assertThrows(
+                BankingAccountAuthorizationException.class,
+                () -> bankingTransactionAccountService.processTransactionRequest(
+                        givenBankingAccountA.getId(),
+                        givenRequest
+                )
+        );
+
+        // then
+        assertEquals(Exceptions.TRANSACTION.DIFFERENT_CURRENCY, exception.getMessage());
+    }
+
+    @Test
     @DisplayName("Should process transaction and fail to transfer when account number is null")
     void shouldProcessTransactionRequestAndFailToTransferWhenAccountNumberIsNull() {
         // given
@@ -302,7 +352,7 @@ public class BankingTransactionAccountServiceTest {
     void shouldProcessTransactionRequestAndFailToTransferWhenAccountIsClosed() {
         // given
         setUpContext(customerA);
-        BigDecimal givenBalanceAccountA = BigDecimal.valueOf(0);
+        BigDecimal givenBalanceAccountA = BigDecimal.valueOf(1000);
         BigDecimal givenBalanceAccountB = BigDecimal.valueOf(0);
         BigDecimal givenTransferAmount = BigDecimal.valueOf(500);
 
@@ -351,7 +401,7 @@ public class BankingTransactionAccountServiceTest {
     void shouldProcessTransactionRequestAndFailToTransferWhenAccountIsSuspended() {
         // given
         setUpContext(customerA);
-        BigDecimal givenBalanceAccountA = BigDecimal.valueOf(0);
+        BigDecimal givenBalanceAccountA = BigDecimal.valueOf(1000);
         BigDecimal givenBalanceAccountB = BigDecimal.valueOf(0);
         BigDecimal givenTransferAmount = BigDecimal.valueOf(500);
 
@@ -400,7 +450,7 @@ public class BankingTransactionAccountServiceTest {
     void shouldProcessTransactionRequestAndFailToTransferWhenDestinyAccountIsClosed() {
         // given
         setUpContext(customerA);
-        BigDecimal givenBalanceAccountA = BigDecimal.valueOf(0);
+        BigDecimal givenBalanceAccountA = BigDecimal.valueOf(1000);
         BigDecimal givenBalanceAccountB = BigDecimal.valueOf(0);
         BigDecimal givenTransferAmount = BigDecimal.valueOf(500);
 
@@ -449,7 +499,7 @@ public class BankingTransactionAccountServiceTest {
     void shouldProcessTransactionRequestAndFailToTransferWhenDestinyAccountIsSuspended() {
         // given
         setUpContext(customerA);
-        BigDecimal givenBalanceAccountA = BigDecimal.valueOf(0);
+        BigDecimal givenBalanceAccountA = BigDecimal.valueOf(1000);
         BigDecimal givenBalanceAccountB = BigDecimal.valueOf(0);
         BigDecimal givenTransferAmount = BigDecimal.valueOf(500);
 

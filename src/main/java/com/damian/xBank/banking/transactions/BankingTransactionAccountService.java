@@ -73,8 +73,27 @@ public class BankingTransactionAccountService {
         AuthUtils.validatePasswordOrElseThrow(password, customerLogged);
     }
 
+    // validates all security checks before transfer
+    public void validateTransferOrElseThrow(
+            BankingAccount fromBankingAccount,
+            BankingAccount toBankingAccount,
+            BigDecimal amount
+    ) {
+        // check currency are the same
+        this.checkCurrency(fromBankingAccount, toBankingAccount);
+
+        // check the funds from the sender account
+        this.checkFunds(fromBankingAccount, amount);
+
+        // check account authorization
+        this.checkAccountStatus(fromBankingAccount);
+
+        // check destination account authorization
+        this.checkAccountStatus(toBankingAccount);
+    }
+
     // security checks before account operations
-    public void validateAccountAuthorization(
+    private void checkAccountStatus(
             BankingAccount bankingAccount
     ) {
         // check account status
@@ -94,10 +113,22 @@ public class BankingTransactionAccountService {
         }
     }
 
-    public void validateAccountFunds(BankingAccount account, BigDecimal amount) {
-        if (!account.hasEnoughFunds(amount)) {
+    // check the funds from the account
+    private void checkFunds(BankingAccount bankingAccount, BigDecimal amount) {
+        if (!bankingAccount.hasEnoughFunds(amount)) {
             throw new BankingAccountAuthorizationException(
                     Exceptions.ACCOUNT.INSUFFICIENT_FUNDS
+            );
+        }
+    }
+
+    // check currency are the same
+    private void checkCurrency(BankingAccount fromBankingAccount, BankingAccount toBankingAccount) {
+        if (!fromBankingAccount.getAccountCurrency()
+                               .equals(toBankingAccount.getAccountCurrency())
+        ) {
+            throw new BankingAccountAuthorizationException(
+                    Exceptions.TRANSACTION.DIFFERENT_CURRENCY
             );
         }
     }
@@ -126,19 +157,11 @@ public class BankingTransactionAccountService {
             );
         }
 
-        // TODO check currency are the same between accounts
-
         // check customer authorization
         this.validateCustomerAuthorization(fromBankingAccount, password);
 
-        // check account authorization
-        this.validateAccountAuthorization(fromBankingAccount);
-
-        // check destination account authorization
-        this.validateAccountAuthorization(toBankingAccount);
-
-        // check balance
-        this.validateAccountFunds(fromBankingAccount, amount);
+        // check transfer is valid
+        this.validateTransferOrElseThrow(fromBankingAccount, toBankingAccount, amount);
 
         return this.transferTo(fromBankingAccount, toBankingAccount, amount, description);
     }
@@ -192,7 +215,7 @@ public class BankingTransactionAccountService {
         this.validateCustomerAuthorization(account, password);
 
         // check account authorization
-        this.validateAccountAuthorization(account);
+        this.checkAccountStatus(account);
 
         // if the transaction is created, deduce the amount from balance
         account.deposit(amount);

@@ -206,7 +206,7 @@ public class BankingTransactionServiceTest {
 
         // then
         assertTrue(exception.getMessage().contains(
-                Exceptions.TRANSACTION.ACCESS_FORBIDDEN
+                Exceptions.AUTH.NOT_ADMIN
         ));
     }
 }

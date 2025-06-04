@@ -50,7 +50,7 @@ public class BankingAccountController {
             @Validated @RequestBody
             BankingAccountCreateRequest request
     ) {
-        BankingAccount bankingAccount = bankingAccountService.createBankingAccountForLoggedCustomer(request);
+        BankingAccount bankingAccount = bankingAccountService.createBankingAccount(request);
         BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
 
         return ResponseEntity
@@ -66,7 +66,7 @@ public class BankingAccountController {
             @Validated @RequestBody
             BankingAccountOpenRequest request
     ) {
-        BankingAccount bankingAccount = bankingAccountService.openBankingAccountForLoggedCustomer(id, request);
+        BankingAccount bankingAccount = bankingAccountService.openBankingAccount(id, request);
         BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
 
         return ResponseEntity
@@ -82,7 +82,7 @@ public class BankingAccountController {
             @Validated @RequestBody
             BankingAccountCloseRequest request
     ) {
-        BankingAccount bankingAccount = bankingAccountService.closeBankingAccountForLoggedCustomer(id, request);
+        BankingAccount bankingAccount = bankingAccountService.closeBankingAccount(id, request);
         BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
 
         return ResponseEntity
@@ -98,7 +98,7 @@ public class BankingAccountController {
             @Validated @RequestBody
             BankingAccountAliasUpdateRequest request
     ) {
-        BankingAccount bankingAccount = bankingAccountService.setBankingAccountAliasForLoggedCustomer(id, request);
+        BankingAccount bankingAccount = bankingAccountService.setBankingAccountAlias(id, request);
         BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
 
         return ResponseEntity

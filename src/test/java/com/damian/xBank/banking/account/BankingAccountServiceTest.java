@@ -92,7 +92,7 @@ public class BankingAccountServiceTest {
 
     @Test
     @DisplayName("Should create a BankingAccount for logged customer")
-    void shouldCreateBankingAccountForLoggedCustomer() {
+    void shouldCreateBankingAccount() {
         // given
         Country country = Mockito.mock(Country.class);
         Number number = Mockito.mock(Number.class);
@@ -115,7 +115,7 @@ public class BankingAccountServiceTest {
         when(customerRepository.findById(customerA.getId())).thenReturn(Optional.of(customerA));
         when(bankingAccountRepository.save(any(BankingAccount.class))).thenReturn(givenBankingAccount);
 
-        BankingAccount savedAccount = bankingAccountService.createBankingAccountForLoggedCustomer(request);
+        BankingAccount savedAccount = bankingAccountService.createBankingAccount(request);
 
         // then
         assertThat(savedAccount).isNotNull();
@@ -147,7 +147,7 @@ public class BankingAccountServiceTest {
 
         CustomerNotFoundException exception = assertThrows(
                 CustomerNotFoundException.class,
-                () -> bankingAccountService.createBankingAccountForLoggedCustomer(request)
+                () -> bankingAccountService.createBankingAccount(request)
         );
 
         // then
@@ -173,7 +173,7 @@ public class BankingAccountServiceTest {
         when(bankingAccountRepository.findById(givenBankingAccount.getId())).thenReturn(Optional.of(givenBankingAccount));
         when(bankingAccountRepository.save(any(BankingAccount.class))).thenReturn(givenBankingAccount);
 
-        BankingAccount savedAccount = bankingAccountService.closeBankingAccountForLoggedCustomer(
+        BankingAccount savedAccount = bankingAccountService.closeBankingAccount(
                 givenBankingAccount.getId(),
                 request
         );
@@ -205,7 +205,7 @@ public class BankingAccountServiceTest {
 
         BankingAccountAuthorizationException exception = assertThrows(
                 BankingAccountAuthorizationException.class,
-                () -> bankingAccountService.closeBankingAccountForLoggedCustomer(givenBankingAccount.getId(), request)
+                () -> bankingAccountService.closeBankingAccount(givenBankingAccount.getId(), request)
         );
 
         // then
@@ -233,7 +233,7 @@ public class BankingAccountServiceTest {
 
         BankingAccountNotFoundException exception = assertThrows(
                 BankingAccountNotFoundException.class,
-                () -> bankingAccountService.closeBankingAccountForLoggedCustomer(givenBankingAccount.getId(), request)
+                () -> bankingAccountService.closeBankingAccount(givenBankingAccount.getId(), request)
         );
 
         // then
@@ -264,7 +264,7 @@ public class BankingAccountServiceTest {
 
         BankingAccountAuthorizationException exception = assertThrows(
                 BankingAccountAuthorizationException.class,
-                () -> bankingAccountService.closeBankingAccountForLoggedCustomer(givenBankingAccount.getId(), request)
+                () -> bankingAccountService.closeBankingAccount(givenBankingAccount.getId(), request)
         );
 
         // then
@@ -294,7 +294,7 @@ public class BankingAccountServiceTest {
         when(bankingAccountRepository.findById(givenBankingAccount.getId())).thenReturn(Optional.of(givenBankingAccount));
         when(bankingAccountRepository.save(any(BankingAccount.class))).thenReturn(givenBankingAccount);
 
-        BankingAccount savedAccount = bankingAccountService.closeBankingAccountForLoggedCustomer(
+        BankingAccount savedAccount = bankingAccountService.closeBankingAccount(
                 givenBankingAccount.getId(),
                 request
         );
@@ -351,7 +351,7 @@ public class BankingAccountServiceTest {
         when(bankingAccountRepository.findById(givenBankingAccount.getId())).thenReturn(Optional.of(givenBankingAccount));
         when(bankingAccountRepository.save(any(BankingAccount.class))).thenReturn(givenBankingAccount);
 
-        BankingAccount savedAccount = bankingAccountService.setBankingAccountAliasForLoggedCustomer(
+        BankingAccount savedAccount = bankingAccountService.setBankingAccountAlias(
                 givenBankingAccount.getId(),
                 request
         );
@@ -381,7 +381,7 @@ public class BankingAccountServiceTest {
         when(bankingAccountRepository.findById(givenBankingAccount.getId())).thenReturn(Optional.of(givenBankingAccount));
         when(bankingAccountRepository.save(any(BankingAccount.class))).thenReturn(givenBankingAccount);
 
-        BankingAccount savedAccount = bankingAccountService.openBankingAccountForLoggedCustomer(
+        BankingAccount savedAccount = bankingAccountService.openBankingAccount(
                 givenBankingAccount.getId(),
                 request
         );
@@ -413,7 +413,7 @@ public class BankingAccountServiceTest {
 
         BankingAccountAuthorizationException exception = assertThrows(
                 BankingAccountAuthorizationException.class,
-                () -> bankingAccountService.openBankingAccountForLoggedCustomer(givenBankingAccount.getId(), request)
+                () -> bankingAccountService.openBankingAccount(givenBankingAccount.getId(), request)
         );
 
         // then

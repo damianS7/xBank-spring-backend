@@ -3,6 +3,7 @@ package com.damian.xBank.banking.account.admin;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.banking.account.*;
+import com.damian.xBank.banking.account.http.request.BankingAccountAliasUpdateRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountCloseRequest;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
@@ -40,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 public class BankingAccountAdminIntegrationTest {
-    private final String rawPassword = "123456";
+    private final String RAW_PASSWORD = "123456";
 
     @Autowired
     private MockMvc mockMvc;
@@ -57,9 +58,6 @@ public class BankingAccountAdminIntegrationTest {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    @Autowired
-    private BankingAccountService bankingAccountService;
-
     private Customer customerA;
     private Customer customerB;
     private Customer customerAdmin;
@@ -71,7 +69,7 @@ public class BankingAccountAdminIntegrationTest {
 
         customerA = new Customer();
         customerA.setEmail("customerA@test.com");
-        customerA.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
+        customerA.setPassword(bCryptPasswordEncoder.encode(this.RAW_PASSWORD));
         customerA.getProfile().setFirstName("alice");
         customerA.getProfile().setLastName("wonderland");
         customerA.getProfile().setBirthdate(LocalDate.of(1989, 1, 1));
@@ -80,7 +78,7 @@ public class BankingAccountAdminIntegrationTest {
 
         customerB = new Customer();
         customerB.setEmail("customerB@test.com");
-        customerB.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
+        customerB.setPassword(bCryptPasswordEncoder.encode(this.RAW_PASSWORD));
         customerB.getProfile().setFirstName("alice");
         customerB.getProfile().setLastName("wonderland");
         customerB.getProfile().setBirthdate(LocalDate.of(1995, 11, 11));
@@ -90,7 +88,7 @@ public class BankingAccountAdminIntegrationTest {
         customerAdmin = new Customer();
         customerAdmin.setEmail("customerC@test.com");
         customerAdmin.setRole(CustomerRole.ADMIN);
-        customerAdmin.setPassword(bCryptPasswordEncoder.encode(this.rawPassword));
+        customerAdmin.setPassword(bCryptPasswordEncoder.encode(this.RAW_PASSWORD));
         customerAdmin.getProfile().setFirstName("alice");
         customerAdmin.getProfile().setLastName("wonderland");
         customerAdmin.getProfile().setBirthdate(LocalDate.of(1995, 11, 11));
@@ -101,7 +99,7 @@ public class BankingAccountAdminIntegrationTest {
     void loginWithCustomer(Customer customer) throws Exception {
         // given
         AuthenticationRequest authenticationRequest = new AuthenticationRequest(
-                customer.getEmail(), this.rawPassword
+                customer.getEmail(), this.RAW_PASSWORD
         );
 
         String jsonRequest = objectMapper.writeValueAsString(authenticationRequest);
@@ -120,14 +118,13 @@ public class BankingAccountAdminIntegrationTest {
         token = response.token();
     }
 
-
     @Test
-    @DisplayName("Should close an account even if its not yours when you are ADMIN")
-    void shouldCloseBankingAccountWhenItsNotYoursAndButYouAreAdmin() throws Exception {
+    @DisplayName("Should close an account")
+    void shouldCloseBankingAccount() throws Exception {
         // given
         loginWithCustomer(customerAdmin);
         BankingAccountCloseRequest request = new BankingAccountCloseRequest(
-                rawPassword
+                RAW_PASSWORD
         );
 
         BankingAccount givenBankingAccount = new BankingAccount(customerB);
@@ -199,5 +196,42 @@ public class BankingAccountAdminIntegrationTest {
                        "$.bankingAccounts.[?(@.id == " + bankingAccount2.getId() + ")].accountNumber").value(
                        bankingAccount2.getAccountNumber()))
                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @DisplayName("Should close an account even if its not yours when you are ADMIN")
+    void shouldUpdateBankingAccountAlias() throws Exception {
+        // given
+        loginWithCustomer(customerAdmin);
+        BankingAccountAliasUpdateRequest request = new BankingAccountAliasUpdateRequest(
+                "New Alias",
+                RAW_PASSWORD
+        );
+
+        BankingAccount givenBankingAccount = new BankingAccount(customerB);
+        givenBankingAccount.setAccountNumber("US0011111111222222223333");
+        givenBankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        givenBankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountRepository.save(givenBankingAccount);
+
+        // when
+        MvcResult result = mockMvc
+                .perform(
+                        patch("/api/v1/admin/banking/accounts/{id}/alias", givenBankingAccount.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andReturn();
+
+        BankingAccountDTO bankingAccountDTO = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BankingAccountDTO.class
+        );
+
+        // then
+        assertThat(bankingAccountDTO).isNotNull();
+        assertThat(bankingAccountDTO.alias()).isEqualTo(request.alias());
     }
 }

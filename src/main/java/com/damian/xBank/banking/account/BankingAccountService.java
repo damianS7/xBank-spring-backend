@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Set;
 
-// TODO rename methods AsAdmin ...
 @Service
 public class BankingAccountService {
     private final CustomerRepository customerRepository;
@@ -33,6 +32,40 @@ public class BankingAccountService {
         this.bankingAccountRepository = bankingAccountRepository;
         this.customerRepository = customerRepository;
         this.faker = faker;
+    }
+
+    private void validateAuthorizationOrThrow(BankingAccount account, Customer customer, String password) {
+        this.checkCustomerAuthorization(customer, account, password);
+    }
+
+    private void checkCustomerAuthorization(Customer customer, BankingAccount account, String password) {
+        // if the logged customer is not admin
+        if (!customer.getRole().equals(CustomerRole.ADMIN)) {
+            // check if the account to be closed belongs to this customer.
+            this.checkAccountOwnership(account, customer);
+
+            // check password
+            AuthUtils.validatePasswordOrElseThrow(password, customer);
+        }
+    }
+
+    // check ownership of a BankingAccount
+    private void checkAccountOwnership(BankingAccount bankingAccount, Customer customer) {
+        // check if the account to be closed belongs to this customer.
+        if (!bankingAccount.getOwner().getId().equals(customer.getId())) {
+            // banking account does not belong to this customer
+            throw new BankingAccountAuthorizationException(
+                    Exceptions.ACCOUNT.ACCESS_FORBIDDEN
+            );
+        }
+    }
+
+    // check account is not suspended
+    private void checkAccountNotSuspendedOrThrow(BankingAccount bankingAccount) {
+        // suspended accounts can only change status by admin
+        if (bankingAccount.getAccountStatus().equals(BankingAccountStatus.SUSPENDED)) {
+            throw new BankingAccountAuthorizationException(Exceptions.ACCOUNT.SUSPENDED);
+        }
     }
 
     // return all the BankingAccounts that belongs to the logged customer.
@@ -63,7 +96,7 @@ public class BankingAccountService {
     }
 
     // (admin) create a BankingAccount for a specific customer
-    public BankingAccount createBankingAccountForCustomer(Long customerId, BankingAccountCreateRequest request) {
+    public BankingAccount createBankingAccount(Long customerId, BankingAccountCreateRequest request) {
         // we get the Customer entity so we can save at the end
         final Customer customer = customerRepository.findById(customerId).orElseThrow(
                 () -> new CustomerNotFoundException(
@@ -75,11 +108,11 @@ public class BankingAccountService {
     }
 
     // create a BankingAccount for the logged customer
-    public BankingAccount createBankingAccountForLoggedCustomer(BankingAccountCreateRequest request) {
+    public BankingAccount createBankingAccount(BankingAccountCreateRequest request) {
         // we extract the customer logged from the SecurityContext
         final Customer customerLogged = AuthUtils.getLoggedCustomer();
 
-        return this.createBankingAccountForCustomer(customerLogged.getId(), request);
+        return this.createBankingAccount(customerLogged.getId(), request);
     }
 
     private BankingAccount updateBankingAccountStatus(
@@ -109,7 +142,7 @@ public class BankingAccountService {
     }
 
     // Logged customer open a BankingAccount
-    public BankingAccount openBankingAccountForLoggedCustomer(
+    public BankingAccount openBankingAccount(
             Long bankingAccountId,
             BankingAccountOpenRequest request
     ) {
@@ -123,24 +156,11 @@ public class BankingAccountService {
                 ) // Banking account not found
         );
 
-        // if the logged customer is not admin
-        if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
-            // check if the account to be closed belongs to this customer.
-            if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
-                // banking account does not belong to this customer
-                throw new BankingAccountAuthorizationException(
-                        Exceptions.ACCOUNT.ACCESS_FORBIDDEN
-                );
-            }
-
-            // check password
-            AuthUtils.validatePasswordOrElseThrow(request.password(), customerLogged);
-        }
+        // validate authorization
+        this.validateAuthorizationOrThrow(bankingAccount, customerLogged, request.password());
 
         // suspended accounts can only change status by admin
-        if (bankingAccount.getAccountStatus().equals(BankingAccountStatus.SUSPENDED)) {
-            throw new BankingAccountAuthorizationException("Only admin can open a suspended account");
-        }
+        this.checkAccountNotSuspendedOrThrow(bankingAccount);
 
         return this.updateBankingAccountStatus(bankingAccount, BankingAccountStatus.OPEN);
     }
@@ -158,7 +178,7 @@ public class BankingAccountService {
     }
 
     // Logged customer close a BankingAccount
-    public BankingAccount closeBankingAccountForLoggedCustomer(
+    public BankingAccount closeBankingAccount(
             Long bankingAccountId,
             BankingAccountCloseRequest request
     ) {
@@ -172,26 +192,11 @@ public class BankingAccountService {
                 ) // Banking account not found
         );
 
-        // if the logged customer is not admin
-        if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
-            // check if the account to be closed belongs to this customer.
-            if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
-                // banking account does not belong to this customer
-                throw new BankingAccountAuthorizationException(
-                        Exceptions.ACCOUNT.ACCESS_FORBIDDEN
-                );
-            }
-
-            // check password
-            AuthUtils.validatePasswordOrElseThrow(request.password(), customerLogged);
-        }
+        // validate authorization
+        this.validateAuthorizationOrThrow(bankingAccount, customerLogged, request.password());
 
         // suspended accounts can only change status by admin
-        if (bankingAccount.getAccountStatus().equals(BankingAccountStatus.SUSPENDED)) {
-            throw new BankingAccountAuthorizationException(
-                    Exceptions.ACCOUNT.SUSPENDED
-            );
-        }
+        this.checkAccountNotSuspendedOrThrow(bankingAccount);
 
         return this.updateBankingAccountStatus(bankingAccount, BankingAccountStatus.CLOSED);
     }
@@ -211,7 +216,7 @@ public class BankingAccountService {
     // (admin) set an alias for an account
     public BankingAccount setBankingAccountAlias(
             Long bankingAccountId,
-            BankingAccountAliasUpdateRequest request
+            String alias
     ) {
 
         // Banking account to set an alias
@@ -221,13 +226,11 @@ public class BankingAccountService {
                 ) // Banking account not found
         );
 
-        return this.setBankingAccountAlias(bankingAccount, request.alias());
+        return this.setBankingAccountAlias(bankingAccount, alias);
     }
 
-    // TODO test this method. Set exception messages with constants
-    // TODO create methods to validate security requests. too much repeated code
     // Logged customer set an alias for an account
-    public BankingAccount setBankingAccountAliasForLoggedCustomer(
+    public BankingAccount setBankingAccountAlias(
             Long bankingAccountId,
             BankingAccountAliasUpdateRequest request
     ) {
@@ -241,17 +244,8 @@ public class BankingAccountService {
                 ) // Banking account not found
         );
 
-        // if the logged customer is not admin
-        if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
-            // check if the account to be closed belongs to this customer.
-            if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
-                // banking account does not belong to this customer
-                throw new BankingAccountAuthorizationException("You are not the owner of this account.");
-            }
-
-            // check password
-            AuthUtils.validatePasswordOrElseThrow(request.password(), customerLogged);
-        }
+        // validate authorization
+        this.validateAuthorizationOrThrow(bankingAccount, customerLogged, request.password());
 
         return this.setBankingAccountAlias(bankingAccount, request.alias());
     }

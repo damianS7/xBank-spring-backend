@@ -57,6 +57,7 @@ public class BankingAccount {
         this.accountTransactions = new HashSet<>();
         this.bankingCards = new HashSet<>();
         this.balance = BigDecimal.valueOf(0);
+        this.accountCurrency = BankingAccountCurrency.EUR;
         this.accountType = BankingAccountType.SAVINGS;
         this.accountStatus = BankingAccountStatus.OPEN;
         this.createdAt = Instant.now();

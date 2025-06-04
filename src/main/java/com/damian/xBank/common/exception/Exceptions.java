@@ -2,6 +2,7 @@ package com.damian.xBank.common.exception;
 
 public class Exceptions {
     public static class AUTH {
+        public static final String NOT_ADMIN = "You are not an admin.";
         public static final String BAD_CREDENTIALS = "Bad credentials.";
     }
 

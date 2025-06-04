@@ -81,7 +81,7 @@ public class BankingTransactionService {
     }
 
 
-    // TODO only admin can do this
+    // it changes the status of the transaction
     public BankingTransaction updateTransactionStatus(
             Long bankingTransactionId,
             BankingTransactionUpdateStatusRequest request
@@ -93,11 +93,11 @@ public class BankingTransactionService {
         if (!customerLogged.getRole().equals(CustomerRole.ADMIN)) {
             // banking transaction does not belong to this customer
             throw new BankingTransactionAuthorizationException(
-                    Exceptions.TRANSACTION.ACCESS_FORBIDDEN
+                    Exceptions.AUTH.NOT_ADMIN
             );
         }
 
-        // Banking account to be closed
+        // transaction to update
         final BankingTransaction bankingTransaction = bankingTransactionRepository
                 .findById(bankingTransactionId)
                 .orElseThrow(
@@ -105,7 +105,6 @@ public class BankingTransactionService {
                                 Exceptions.TRANSACTION.NOT_FOUND
                         )
                 );
-
 
         // we mark the account as closed
         bankingTransaction.setTransactionStatus(request.transactionStatus());

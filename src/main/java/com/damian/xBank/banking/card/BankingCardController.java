@@ -4,8 +4,6 @@ import com.damian.xBank.auth.http.PasswordConfirmationRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetDailyLimitRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
-import com.damian.xBank.banking.transactions.BankingTransactionCardService;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,21 +17,18 @@ import java.util.Set;
 @RestController
 public class BankingCardController {
     private final BankingCardService bankingCardService;
-    private final BankingTransactionCardService bankingTransactionCardService;
 
     @Autowired
     public BankingCardController(
-            BankingCardService bankingCardService,
-            BankingTransactionCardService bankingCardUsageService
+            BankingCardService bankingCardService
     ) {
         this.bankingCardService = bankingCardService;
-        this.bankingTransactionCardService = bankingCardUsageService;
     }
 
     // endpoint to fetch all cards of logged customer
     @GetMapping("/customers/me/banking/cards")
     public ResponseEntity<?> getCustomerBankingCards() {
-        Set<BankingCard> bankingCards = bankingCardService.getLoggedCustomerBankingCards();
+        Set<BankingCard> bankingCards = bankingCardService.getCustomerBankingCards();
         Set<BankingCardDTO> bankingCardsDTO = BankingCardDTOMapper.toBankingCardSetDTO(bankingCards);
 
         return ResponseEntity
@@ -44,7 +39,7 @@ public class BankingCardController {
     // endpoint for logged customer to cancel a BankingCard
     @PatchMapping("/customers/me/banking/cards/{id}/cancel")
     public ResponseEntity<?> customerCancelBankingCard(
-            @PathVariable @NotNull @Positive
+            @PathVariable @Positive
             Long id,
             @Validated @RequestBody
             PasswordConfirmationRequest request
@@ -60,7 +55,7 @@ public class BankingCardController {
     // endpoint for logged customer to set PIN on a BankingCard
     @PatchMapping("/customers/me/banking/cards/{id}/pin")
     public ResponseEntity<?> customerSetPinBankingCard(
-            @PathVariable @NotNull @Positive
+            @PathVariable @Positive
             Long id,
             @Validated @RequestBody
             BankingCardSetPinRequest request
@@ -76,7 +71,7 @@ public class BankingCardController {
     // endpoint for logged customer to set a daily limit
     @PatchMapping("/customers/me/banking/cards/{id}/daily-limit")
     public ResponseEntity<?> customerSetDailyLimitBankingCard(
-            @PathVariable @NotNull @Positive
+            @PathVariable @Positive
             Long id,
             @Validated @RequestBody
             BankingCardSetDailyLimitRequest request
@@ -92,7 +87,7 @@ public class BankingCardController {
     // endpoint for logged customer to lock or unlock a BankingCard
     @PatchMapping("/customers/me/banking/cards/{id}/lock-status")
     public ResponseEntity<?> customerLockBankingCard(
-            @PathVariable @NotNull @Positive
+            @PathVariable @Positive
             Long id,
             @Validated @RequestBody
             BankingCardSetLockStatusRequest request

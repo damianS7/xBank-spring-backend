@@ -26,6 +26,7 @@ public class Exceptions {
         public static final String NOT_FOUND = "Transaction not found.";
         public static final String ACCESS_FORBIDDEN = "You are not the owner of this transaction.";
         public static final String INVALID_TYPE = "Invalid transaction type";
+        public static final String DIFFERENT_CURRENCY = "Transactions must be in the same currency.";
     }
 
     public static class ACCOUNT {

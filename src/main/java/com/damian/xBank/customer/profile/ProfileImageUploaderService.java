@@ -121,7 +121,7 @@ public class ProfileImageUploaderService {
         final Customer customerLogged = AuthHelper.getLoggedCustomer();
 
         // validate password
-        AuthHelper.validatePasswordOrElseThrow(currentPassword, AuthHelper.getLoggedCustomer());
+        AuthHelper.validatePasswordOrElseThrow(customerLogged, currentPassword);
 
         // run file validations
         this.validatePhotoOrElseThrow(file);

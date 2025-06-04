@@ -135,6 +135,7 @@ public class ProfileServiceTest {
         );
 
         // when
+        when(profileRepository.findById(customer.getProfile().getId())).thenReturn(Optional.of(customer.getProfile()));
         PasswordMismatchException exception = assertThrows(
                 PasswordMismatchException.class,
                 () -> profileService.updateProfile(givenRequest)

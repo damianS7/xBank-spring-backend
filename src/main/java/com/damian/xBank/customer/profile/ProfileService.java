@@ -2,7 +2,7 @@ package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthHelper;
-import com.damian.xBank.common.utils.ProfileUtils;
+import com.damian.xBank.common.utils.AuthorizationHelper;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
@@ -41,9 +41,6 @@ public class ProfileService {
     public Profile updateProfile(ProfileUpdateRequest request) {
         final Customer customerLogged = AuthHelper.getLoggedCustomer();
 
-        // validate password
-        AuthHelper.validatePasswordOrElseThrow(request.currentPassword(), customerLogged);
-
         return this.updateProfile(customerLogged.getProfile().getId(), request);
     }
 
@@ -52,18 +49,15 @@ public class ProfileService {
         // We get the profile we want to modify
         Profile profile = profileRepository
                 .findById(profileId)
-                .orElseThrow(
-                        () -> new ProfileNotFoundException(
-                                Exceptions.PROFILE.NOT_FOUND
-                        )
-                );
+                .orElseThrow(() -> new ProfileNotFoundException(
+                        Exceptions.PROFILE.NOT_FOUND));
 
         final Customer customerLogged = AuthHelper.getLoggedCustomer();
 
         // if the logged user is not admin
         if (!AuthHelper.isAdmin(customerLogged)) {
             // we make sure that this profile belongs to the customer logged
-            ProfileUtils.hasAuthorizationOrElseThrow(profile, customerLogged);
+            AuthorizationHelper.authorizedOrElseThrow(customerLogged, profile, request.currentPassword());
         }
 
         // we iterate over the fields (if any)

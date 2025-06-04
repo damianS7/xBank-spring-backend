@@ -79,20 +79,25 @@ public class BankingTransactionAccountService {
             BankingAccount toBankingAccount,
             BigDecimal amount
     ) {
+        // check bankingAccount and toBankingAccount are not the same
+        if (fromBankingAccount.getId().equals(toBankingAccount.getId())) {
+            throw new BankingAccountAuthorizationException(
+                    Exceptions.ACCOUNT.SAME_DESTINATION
+            );
+        }
+        
         // check currency are the same
         this.checkCurrency(fromBankingAccount, toBankingAccount);
 
         // check the funds from the sender account
         this.checkFunds(fromBankingAccount, amount);
 
-        // check account authorization
+        // check the account status and see if can be used to operate
         this.checkAccountStatus(fromBankingAccount);
-
-        // check destination account authorization
         this.checkAccountStatus(toBankingAccount);
     }
 
-    // security checks before account operations
+    // its check the status of the account and throws if closed or suspended
     private void checkAccountStatus(
             BankingAccount bankingAccount
     ) {
@@ -149,13 +154,6 @@ public class BankingTransactionAccountService {
                                 Exceptions.ACCOUNT.NOT_FOUND
                         )
                 );
-
-        // check bankingAccount and toBankingAccount are not the same
-        if (fromBankingAccount.getId().equals(toBankingAccount.getId())) {
-            throw new BankingAccountAuthorizationException(
-                    Exceptions.ACCOUNT.SAME_DESTINATION
-            );
-        }
 
         // check customer authorization
         this.validateCustomerAuthorization(fromBankingAccount, password);

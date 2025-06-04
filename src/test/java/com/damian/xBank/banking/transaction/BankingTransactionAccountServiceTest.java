@@ -547,7 +547,7 @@ public class BankingTransactionAccountServiceTest {
     @DisplayName("Should process transaction and fail to transfer to same account")
     void shouldProcessTransactionRequestAndFailToTransferWhenToSameAccount() {
         // given
-        //        setUpContext(customerA);
+        setUpContext(customerA);
         BigDecimal givenBalanceAccountA = BigDecimal.valueOf(0);
         BigDecimal givenBalanceAccountB = BigDecimal.valueOf(0);
         BigDecimal givenTransferAmount = BigDecimal.valueOf(500);

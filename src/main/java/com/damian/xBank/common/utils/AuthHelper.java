@@ -9,7 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public class AuthHelper {
     private static final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
-    public static void validatePasswordOrElseThrow(Customer customer, String rawPassword) {
+    public static void validatePassword(Customer customer, String rawPassword) {
         if (!bCryptPasswordEncoder.matches(rawPassword, customer.getAuth().getPassword())) {
             throw new PasswordMismatchException(PasswordMismatchException.PASSWORD_MISMATCH);
         }

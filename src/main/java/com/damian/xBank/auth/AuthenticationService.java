@@ -146,7 +146,7 @@ public class AuthenticationService {
         final Customer loggedCustomer = AuthHelper.getLoggedCustomer();
 
         // Before making any changes we check that the password sent by the customer matches the one in the entity
-        AuthHelper.validatePasswordOrElseThrow(loggedCustomer, request.currentPassword());
+        AuthHelper.validatePassword(loggedCustomer, request.currentPassword());
 
         // update the password
         this.updatePassword(loggedCustomer.getId(), request.newPassword());

@@ -7,7 +7,6 @@ import com.damian.xBank.banking.account.http.request.BankingAccountCreateRequest
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthHelper;
-import com.damian.xBank.common.utils.BankingAccountAuthorizationHelper;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;

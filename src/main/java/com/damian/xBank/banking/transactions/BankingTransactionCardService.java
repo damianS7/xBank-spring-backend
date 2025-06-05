@@ -1,6 +1,7 @@
 package com.damian.xBank.banking.transactions;
 
 import com.damian.xBank.banking.card.BankingCard;
+import com.damian.xBank.banking.card.BankingCardAuthorizationHelper;
 import com.damian.xBank.banking.card.BankingCardRepository;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
@@ -8,7 +9,6 @@ import com.damian.xBank.banking.transactions.exception.BankingTransactionExcepti
 import com.damian.xBank.banking.transactions.http.BankingCardTransactionRequest;
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthHelper;
-import com.damian.xBank.common.utils.BankingCardAuthorizationHelper;
 import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
 

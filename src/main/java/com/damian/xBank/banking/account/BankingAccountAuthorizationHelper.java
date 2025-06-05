@@ -1,7 +1,5 @@
-package com.damian.xBank.common.utils;
+package com.damian.xBank.banking.account;
 
-import com.damian.xBank.banking.account.BankingAccount;
-import com.damian.xBank.banking.account.BankingAccountStatus;
 import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationException;
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.customer.Customer;

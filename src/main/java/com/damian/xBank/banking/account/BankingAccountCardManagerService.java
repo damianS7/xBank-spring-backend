@@ -8,7 +8,6 @@ import com.damian.xBank.banking.card.exception.BankingCardMaximumCardsPerAccount
 import com.damian.xBank.banking.card.http.BankingCardRequest;
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthHelper;
-import com.damian.xBank.common.utils.BankingAccountAuthorizationHelper;
 import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
 

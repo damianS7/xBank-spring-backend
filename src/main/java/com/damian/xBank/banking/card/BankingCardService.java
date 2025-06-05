@@ -8,7 +8,6 @@ import com.damian.xBank.banking.card.http.BankingCardSetLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthHelper;
-import com.damian.xBank.common.utils.BankingCardAuthorizationHelper;
 import com.damian.xBank.customer.Customer;
 import net.datafaker.Faker;
 import org.springframework.stereotype.Service;

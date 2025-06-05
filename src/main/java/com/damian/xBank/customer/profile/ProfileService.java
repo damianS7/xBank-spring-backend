@@ -2,7 +2,7 @@ package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthHelper;
-import com.damian.xBank.common.utils.AuthorizationHelper;
+import com.damian.xBank.common.utils.ProfileAuthorizationHelper;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerGender;
 import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
@@ -57,7 +57,11 @@ public class ProfileService {
         // if the logged user is not admin
         if (!AuthHelper.isAdmin(customerLogged)) {
             // we make sure that this profile belongs to the customer logged
-            AuthorizationHelper.authorizedOrElseThrow(customerLogged, profile, request.currentPassword());
+            ProfileAuthorizationHelper
+                    .authorize(customerLogged, profile)
+                    .checkOwner();
+
+            AuthHelper.validatePassword(customerLogged, request.currentPassword());
         }
 
         // we iterate over the fields (if any)

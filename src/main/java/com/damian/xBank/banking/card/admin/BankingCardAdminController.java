@@ -81,7 +81,7 @@ public class BankingCardAdminController {
             @Validated @RequestBody
             BankingCardSetDailyLimitRequest request
     ) {
-        BankingCard bankingCard = bankingCardService.setDailyLimit(id, request);
+        BankingCard bankingCard = bankingCardService.setDailyLimit(id, request.dailyLimit());
         BankingCardDTO bankingCardDTO = BankingCardDTOMapper.toBankingCardDTO(bankingCard);
 
         return ResponseEntity

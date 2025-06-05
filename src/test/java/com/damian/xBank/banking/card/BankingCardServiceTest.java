@@ -147,7 +147,7 @@ public class BankingCardServiceTest {
     @DisplayName("Should cancel a BankingCard when you are admin")
     void shouldCancelRequestBankingCardWhenYouAreAdmin() {
         // given
-        setUpContext(customerAdmin);
+        //        setUpContext(customerAdmin);
         BankingAccount givenBankAccount = new BankingAccount(customerA);
         givenBankAccount.setId(5L);
         givenBankAccount.setAccountCurrency(BankingAccountCurrency.EUR);
@@ -168,7 +168,7 @@ public class BankingCardServiceTest {
         when(bankingCardRepository.save(any(BankingCard.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        BankingCard cancelledCard = bankingCardService.cancelCard(givenBankingCard.getId(), request);
+        BankingCard cancelledCard = bankingCardService.cancelCard(givenBankingCard.getId());
 
         // then
         assertThat(cancelledCard.getCardNumber()).isEqualTo(givenBankingCard.getCardNumber());

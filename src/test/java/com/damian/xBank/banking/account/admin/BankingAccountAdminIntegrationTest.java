@@ -136,7 +136,7 @@ public class BankingAccountAdminIntegrationTest {
         // when
         MvcResult result = mockMvc
                 .perform(
-                        patch("/api/v1/customers/me/banking/accounts/{id}/close", givenBankingAccount.getId())
+                        patch("/api/v1/admin/banking/accounts/{id}/close", givenBankingAccount.getId())
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))

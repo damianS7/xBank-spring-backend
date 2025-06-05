@@ -312,7 +312,7 @@ public class BankingTransactionAccountIntegrationTest {
         transaction.setAmount(request.amount());
 
         // when
-        mockMvc.perform(post("/api/v1/customers/me/banking/accounts/" + bankingAccountA.getId() + "/transactions")
+        mockMvc.perform(post("/api/v1/customers/me/banking/accounts/{id}/transactions", bankingAccountA.getId())
                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(request)))

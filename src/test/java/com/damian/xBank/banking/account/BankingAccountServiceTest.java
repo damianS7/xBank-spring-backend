@@ -35,8 +35,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -275,12 +274,9 @@ public class BankingAccountServiceTest {
 
     @Test
     @DisplayName("Should close an account even if its not yours when you are ADMIN")
-    void shouldCloseBankingAccountWhenItsNotYoursAndButYouAreAdmin() {
+    void shouldCloseBankingAccountWhenYouAreAdmin() {
         // given
-        setUpContext(customerAdmin);
-        BankingAccountCloseRequest request = new BankingAccountCloseRequest(
-                rawPassword
-        );
+        //        setUpContext(customerAdmin);
 
         final String accountNumber = "US99 0000 1111 1122 3333 4444";
 
@@ -295,8 +291,7 @@ public class BankingAccountServiceTest {
         when(bankingAccountRepository.save(any(BankingAccount.class))).thenReturn(givenBankingAccount);
 
         BankingAccount savedAccount = bankingAccountService.closeBankingAccount(
-                givenBankingAccount.getId(),
-                request
+                givenBankingAccount.getId()
         );
 
         // then
@@ -362,33 +357,32 @@ public class BankingAccountServiceTest {
     }
 
     @Test
-    @DisplayName("Should open a from logged customer BankingAccount")
-    void shouldOpenBankingAccountFromLoggedCustomer() {
+    @DisplayName("Should not open BankingAccount When is closed")
+    void shouldNotOpenBankingAccountWhenIsClosed() {
         // given
         setUpContext(customerA);
+
+        final String accountNumber = "US99 0000 1111 1122 3333 4444";
         BankingAccountOpenRequest request = new BankingAccountOpenRequest(
                 rawPassword
         );
 
         BankingAccount givenBankingAccount = new BankingAccount(customerA);
-        givenBankingAccount.setId(5L);
         givenBankingAccount.setAccountStatus(BankingAccountStatus.CLOSED);
         givenBankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
         givenBankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        givenBankingAccount.setAccountNumber("US9900001111112233334444");
+        givenBankingAccount.setAccountNumber(accountNumber);
 
         // when
         when(bankingAccountRepository.findById(givenBankingAccount.getId())).thenReturn(Optional.of(givenBankingAccount));
-        when(bankingAccountRepository.save(any(BankingAccount.class))).thenReturn(givenBankingAccount);
 
-        BankingAccount savedAccount = bankingAccountService.openBankingAccount(
-                givenBankingAccount.getId(),
-                request
+        BankingAccountAuthorizationException exception = assertThrows(
+                BankingAccountAuthorizationException.class,
+                () -> bankingAccountService.openBankingAccount(givenBankingAccount.getId(), request)
         );
 
         // then
-        assertThat(savedAccount.getAccountStatus()).isEqualTo(BankingAccountStatus.OPEN);
-        verify(bankingAccountRepository, times(1)).save(any(BankingAccount.class));
+        assertEquals(Exceptions.ACCOUNT.CLOSED, exception.getMessage());
     }
 
     @Test
@@ -417,6 +411,6 @@ public class BankingAccountServiceTest {
         );
 
         // then
-        assertTrue(exception.getMessage().contains("suspended"));
+        assertEquals(Exceptions.ACCOUNT.SUSPENDED, exception.getMessage());
     }
 }

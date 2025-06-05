@@ -76,7 +76,7 @@ public class BankingCard {
         this.id = id;
     }
 
-    public Customer getCardOwner() {
+    public Customer getOwner() {
         return bankingAccount.getOwner();
     }
 

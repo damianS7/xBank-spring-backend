@@ -59,7 +59,7 @@ public class Profile {
         this.customer = customer;
     }
 
-    public Customer getCustomer() {
+    public Customer getOwner() {
         return this.customer;
     }
 

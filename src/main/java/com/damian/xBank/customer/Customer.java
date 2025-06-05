@@ -146,7 +146,7 @@ public class Customer implements CustomerDetails {
     }
 
     public void setProfile(Profile profile) {
-        if (profile.getCustomer() != this) {
+        if (profile.getOwner() != this) {
             profile.setCustomer(this);
         }
 

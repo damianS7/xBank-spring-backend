@@ -1,8 +1,7 @@
-package com.damian.xBank.common.utils;
+package com.damian.xBank.customer.profile;
 
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.customer.Customer;
-import com.damian.xBank.customer.profile.Profile;
 import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
 
 public class ProfileAuthorizationHelper {

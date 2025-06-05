@@ -166,7 +166,7 @@ public class CustomerService {
         final Customer loggedCustomer = AuthHelper.getLoggedCustomer();
 
         // Before making any changes we check that the password sent by the customer matches the one in the entity
-        AuthHelper.validatePasswordOrElseThrow(loggedCustomer, request.currentPassword());
+        AuthHelper.validatePassword(loggedCustomer, request.currentPassword());
 
         return this.updateEmail(loggedCustomer.getId(), request.newEmail());
     }

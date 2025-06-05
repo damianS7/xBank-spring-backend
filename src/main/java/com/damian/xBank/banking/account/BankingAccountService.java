@@ -1,6 +1,5 @@
 package com.damian.xBank.banking.account;
 
-import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationException;
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
 import com.damian.xBank.banking.account.http.request.BankingAccountAliasUpdateRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountCloseRequest;
@@ -8,9 +7,9 @@ import com.damian.xBank.banking.account.http.request.BankingAccountCreateRequest
 import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthHelper;
+import com.damian.xBank.common.utils.BankingAccountAuthorizationHelper;
 import com.damian.xBank.customer.Customer;
 import com.damian.xBank.customer.CustomerRepository;
-import com.damian.xBank.customer.CustomerRole;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
 import net.datafaker.Faker;
 import org.springframework.stereotype.Service;
@@ -32,40 +31,6 @@ public class BankingAccountService {
         this.bankingAccountRepository = bankingAccountRepository;
         this.customerRepository = customerRepository;
         this.faker = faker;
-    }
-
-    private void validateAuthorizationOrThrow(BankingAccount account, Customer customer, String password) {
-        this.checkCustomerAuthorization(customer, account, password);
-    }
-
-    private void checkCustomerAuthorization(Customer customer, BankingAccount account, String password) {
-        // if the logged customer is not admin
-        if (!customer.getRole().equals(CustomerRole.ADMIN)) {
-            // check if the account to be closed belongs to this customer.
-            this.checkAccountOwnership(account, customer);
-
-            // check password
-            AuthHelper.validatePasswordOrElseThrow(password, customer);
-        }
-    }
-
-    // check ownership of a BankingAccount
-    private void checkAccountOwnership(BankingAccount bankingAccount, Customer customer) {
-        // check if the account to be closed belongs to this customer.
-        if (!bankingAccount.getOwner().getId().equals(customer.getId())) {
-            // banking account does not belong to this customer
-            throw new BankingAccountAuthorizationException(
-                    Exceptions.ACCOUNT.ACCESS_FORBIDDEN
-            );
-        }
-    }
-
-    // check account is not suspended
-    private void checkAccountNotSuspendedOrThrow(BankingAccount bankingAccount) {
-        // suspended accounts can only change status by admin
-        if (bankingAccount.getAccountStatus().equals(BankingAccountStatus.SUSPENDED)) {
-            throw new BankingAccountAuthorizationException(Exceptions.ACCOUNT.SUSPENDED);
-        }
     }
 
     // return all the BankingAccounts that belongs to the logged customer.
@@ -156,11 +121,13 @@ public class BankingAccountService {
                 ) // Banking account not found
         );
 
-        // validate authorization
-        this.validateAuthorizationOrThrow(bankingAccount, customerLogged, request.password());
+        // check if the account belongs to this customer.
+        BankingAccountAuthorizationHelper
+                .authorize(customerLogged, bankingAccount)
+                .checkOwner()
+                .checkAccountStatus();
 
-        // suspended accounts can only change status by admin
-        this.checkAccountNotSuspendedOrThrow(bankingAccount);
+        AuthHelper.validatePassword(customerLogged, request.password());
 
         return this.updateBankingAccountStatus(bankingAccount, BankingAccountStatus.OPEN);
     }
@@ -192,11 +159,13 @@ public class BankingAccountService {
                 ) // Banking account not found
         );
 
-        // validate authorization
-        this.validateAuthorizationOrThrow(bankingAccount, customerLogged, request.password());
+        // check if the account belongs to this customer.
+        BankingAccountAuthorizationHelper
+                .authorize(customerLogged, bankingAccount)
+                .checkOwner()
+                .checkAccountStatus();
 
-        // suspended accounts can only change status by admin
-        this.checkAccountNotSuspendedOrThrow(bankingAccount);
+        AuthHelper.validatePassword(customerLogged, request.password());
 
         return this.updateBankingAccountStatus(bankingAccount, BankingAccountStatus.CLOSED);
     }
@@ -244,8 +213,12 @@ public class BankingAccountService {
                 ) // Banking account not found
         );
 
-        // validate authorization
-        this.validateAuthorizationOrThrow(bankingAccount, customerLogged, request.password());
+        // check if the account belongs to this customer.
+        BankingAccountAuthorizationHelper
+                .authorize(customerLogged, bankingAccount)
+                .checkOwner();
+
+        AuthHelper.validatePassword(customerLogged, request.password());
 
         return this.setBankingAccountAlias(bankingAccount, request.alias());
     }

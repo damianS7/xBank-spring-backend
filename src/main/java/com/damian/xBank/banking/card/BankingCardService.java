@@ -8,6 +8,7 @@ import com.damian.xBank.banking.card.http.BankingCardSetLockStatusRequest;
 import com.damian.xBank.banking.card.http.BankingCardSetPinRequest;
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthHelper;
+import com.damian.xBank.common.utils.BankingCardAuthorizationHelper;
 import com.damian.xBank.customer.Customer;
 import net.datafaker.Faker;
 import org.springframework.stereotype.Service;
@@ -99,9 +100,6 @@ public class BankingCardService {
             Long bankingCardId,
             BankingCardSetLockStatusRequest request
     ) {
-        // Customer logged
-        final Customer customerLogged = AuthHelper.getLoggedCustomer();
-
         // Banking account to be closed
         final BankingCard bankingCard = bankingCardRepository.findById(bankingCardId).orElseThrow(
                 // Banking card not found
@@ -109,12 +107,15 @@ public class BankingCardService {
                         Exceptions.CARD.NOT_FOUND
                 ));
 
-        // check if customer has authorization to do any action over this card.
-        AuthHelper.authorizedOrElseThrow(
-                customerLogged,
-                bankingCard,
-                request.password()
-        );
+        // Customer logged
+        final Customer customerLogged = AuthHelper.getLoggedCustomer();
+
+        // check if customer is the owner
+        BankingCardAuthorizationHelper
+                .authorize(customerLogged, bankingCard)
+                .checkOwner();
+
+        AuthHelper.validatePassword(customerLogged, request.password());
 
         return this.setCardLockStatus(bankingCard, request.lockStatus());
     }
@@ -164,12 +165,12 @@ public class BankingCardService {
                         Exceptions.CARD.NOT_FOUND
                 ));
 
-        // check if customer has authorization to do any action over this card.
-        AuthHelper.authorizedOrElseThrow(
-                customerLogged,
-                bankingCard,
-                request.password()
-        );
+        // check if customer is the owner
+        BankingCardAuthorizationHelper
+                .authorize(customerLogged, bankingCard)
+                .checkOwner();
+
+        AuthHelper.validatePassword(customerLogged, request.password());
 
         return this.setDailyLimit(bankingCard, request.dailyLimit());
     }
@@ -213,12 +214,12 @@ public class BankingCardService {
                         Exceptions.CARD.NOT_FOUND
                 ));
 
-        // check if customer has authorization to do any action over this card.
-        AuthHelper.authorizedOrElseThrow(
-                customerLogged,
-                bankingCard,
-                request.password()
-        );
+        // check if customer is the owner
+        BankingCardAuthorizationHelper
+                .authorize(customerLogged, bankingCard)
+                .checkOwner();
+
+        AuthHelper.validatePassword(customerLogged, request.password());
 
         return this.cancelCard(bankingCard);
     }
@@ -259,12 +260,12 @@ public class BankingCardService {
                         Exceptions.CARD.NOT_FOUND
                 ));
 
-        // check if customer has authorization to do any action over this card.
-        AuthHelper.authorizedOrElseThrow(
-                customerLogged,
-                bankingCard,
-                request.password()
-        );
+        // check if customer is the owner
+        BankingCardAuthorizationHelper
+                .authorize(customerLogged, bankingCard)
+                .checkOwner();
+
+        AuthHelper.validatePassword(customerLogged, request.password());
 
         return this.setBankingCardPin(bankingCard, request.pin());
     }

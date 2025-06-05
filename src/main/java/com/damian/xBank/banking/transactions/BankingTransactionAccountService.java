@@ -2,13 +2,13 @@ package com.damian.xBank.banking.transactions;
 
 import com.damian.xBank.banking.account.BankingAccount;
 import com.damian.xBank.banking.account.BankingAccountRepository;
-import com.damian.xBank.banking.account.BankingAccountStatus;
 import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationException;
 import com.damian.xBank.banking.account.exception.BankingAccountNotFoundException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionException;
 import com.damian.xBank.banking.transactions.http.BankingAccountTransactionRequest;
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthHelper;
+import com.damian.xBank.common.utils.BankingAccountAuthorizationHelper;
 import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
 
@@ -54,25 +54,6 @@ public class BankingTransactionAccountService {
         };
     }
 
-    // security checks before account operations
-    public void validateCustomerAuthorization(
-            BankingAccount bankingAccount,
-            String password
-    ) {
-        // Customer logged
-        final Customer customerLogged = AuthHelper.getLoggedCustomer();
-
-        // if the owner of the card is not the current logged customer.
-        if (!bankingAccount.getOwner().getId().equals(customerLogged.getId())) {
-            throw new BankingAccountAuthorizationException(
-                    Exceptions.ACCOUNT.ACCESS_FORBIDDEN
-            );
-        }
-
-        // check password
-        AuthHelper.validatePasswordOrElseThrow(password, customerLogged);
-    }
-
     // validates all security checks before transfer
     public void validateTransferOrElseThrow(
             BankingAccount fromBankingAccount,
@@ -93,30 +74,15 @@ public class BankingTransactionAccountService {
         this.checkFunds(fromBankingAccount, amount);
 
         // check the account status and see if can be used to operate
-        this.checkAccountStatus(fromBankingAccount);
-        this.checkAccountStatus(toBankingAccount);
+        BankingAccountAuthorizationHelper
+                .authorize(null, fromBankingAccount)
+                .checkAccountStatus();
+
+        BankingAccountAuthorizationHelper
+                .authorize(null, toBankingAccount)
+                .checkAccountStatus();
     }
 
-    // its check the status of the account and throws if closed or suspended
-    private void checkAccountStatus(
-            BankingAccount bankingAccount
-    ) {
-        // check account status
-        final boolean isAccountClosed = bankingAccount.getAccountStatus().equals(BankingAccountStatus.CLOSED);
-        final boolean isAccountSuspended = bankingAccount.getAccountStatus().equals(BankingAccountStatus.SUSPENDED);
-
-        if (isAccountClosed) {
-            throw new BankingAccountAuthorizationException(
-                    Exceptions.ACCOUNT.CLOSED
-            );
-        }
-
-        if (isAccountSuspended) {
-            throw new BankingAccountAuthorizationException(
-                    Exceptions.ACCOUNT.SUSPENDED
-            );
-        }
-    }
 
     // check the funds from the account
     private void checkFunds(BankingAccount bankingAccount, BigDecimal amount) {
@@ -155,8 +121,15 @@ public class BankingTransactionAccountService {
                         )
                 );
 
-        // check customer authorization
-        this.validateCustomerAuthorization(fromBankingAccount, password);
+        final Customer customer = AuthHelper.getLoggedCustomer();
+
+        // check if the account belongs to this customer.
+        BankingAccountAuthorizationHelper
+                .authorize(customer, fromBankingAccount)
+                .checkOwner()
+                .checkAccountStatus();
+
+        AuthHelper.validatePassword(customer, password);
 
         // check transfer is valid
         this.validateTransferOrElseThrow(fromBankingAccount, toBankingAccount, amount);
@@ -209,11 +182,13 @@ public class BankingTransactionAccountService {
                 "DEPOSIT"
         );
 
-        // check customer authorization
-        this.validateCustomerAuthorization(account, password);
+        final Customer customer = AuthHelper.getLoggedCustomer();
 
-        // check account authorization
-        this.checkAccountStatus(account);
+        // check if the account belongs to this customer.
+        BankingAccountAuthorizationHelper
+                .authorize(customer, account)
+                .checkOwner()
+                .checkAccountStatus();
 
         // if the transaction is created, deduce the amount from balance
         account.deposit(amount);

@@ -1,15 +1,14 @@
 package com.damian.xBank.banking.transactions;
 
 import com.damian.xBank.banking.card.BankingCard;
-import com.damian.xBank.banking.card.BankingCardLockStatus;
 import com.damian.xBank.banking.card.BankingCardRepository;
-import com.damian.xBank.banking.card.BankingCardStatus;
 import com.damian.xBank.banking.card.exception.BankingCardAuthorizationException;
 import com.damian.xBank.banking.card.exception.BankingCardNotFoundException;
 import com.damian.xBank.banking.transactions.exception.BankingTransactionException;
 import com.damian.xBank.banking.transactions.http.BankingCardTransactionRequest;
 import com.damian.xBank.common.exception.Exceptions;
 import com.damian.xBank.common.utils.AuthHelper;
+import com.damian.xBank.common.utils.BankingCardAuthorizationHelper;
 import com.damian.xBank.customer.Customer;
 import org.springframework.stereotype.Service;
 
@@ -50,51 +49,25 @@ public class BankingTransactionCardService {
         };
     }
 
-    // security checks before card operations
-    public void validateCustomerAuthorization(
-            BankingCard bankingCard
+    private void canCarryOperationOrElseThrow(
+            BankingCard card,
+            Customer customerLogged,
+            String cardPIN,
+            BigDecimal amount
     ) {
-        // Customer logged
-        final Customer customerLogged = AuthHelper.getLoggedCustomer();
+        BankingCardAuthorizationHelper
+                .authorize(customerLogged, card)
+                // check customer authorization
+                .checkOwner()
+                // check if card is not disabled or locked
+                .checkStatus()
+                .checkPIN(cardPIN);
 
-        // if the owner of the card is not the current logged customer.
-        if (!bankingCard.getCardOwner().getId().equals(customerLogged.getId())) {
-            throw new BankingCardAuthorizationException(
-                    Exceptions.CARD.ACCESS_FORBIDDEN
-            );
-        }
+        // check balance
+        this.checkFunds(card, amount);
     }
 
-    // security checks before card operations
-    public void validateCardAuthorization(
-            BankingCard bankingCard,
-            String cardPIN
-    ) {
-        // check card pin
-        if (!bankingCard.getCardPin().equals(cardPIN)) {
-            throw new BankingCardAuthorizationException(
-                    Exceptions.CARD.INVALID_PIN
-            );
-        }
-
-        // check card status
-        final boolean isCardDisabled = bankingCard.getCardStatus().equals(BankingCardStatus.DISABLED);
-        final boolean isCardLocked = bankingCard.getLockStatus().equals(BankingCardLockStatus.LOCKED);
-
-        if (isCardDisabled) {
-            throw new BankingCardAuthorizationException(
-                    Exceptions.CARD.DISABLED
-            );
-        }
-
-        if (isCardLocked) {
-            throw new BankingCardAuthorizationException(
-                    Exceptions.CARD.LOCKED
-            );
-        }
-    }
-
-    public void validateCardFunds(BankingCard card, BigDecimal amount) {
+    public void checkFunds(BankingCard card, BigDecimal amount) {
         if (!card.hasEnoughFundsToSpend(amount)) {
             throw new BankingCardAuthorizationException(
                     Exceptions.CARD.INSUFFICIENT_FUNDS
@@ -115,15 +88,10 @@ public class BankingTransactionCardService {
                 amount,
                 description
         );
+        final Customer customerLogged = AuthHelper.getLoggedCustomer();
 
-        // check customer authorization
-        this.validateCustomerAuthorization(card);
-
-        // check card authorization
-        this.validateCardAuthorization(card, cardPIN);
-
-        // check balance
-        this.validateCardFunds(card, amount);
+        // run validations and throw if any throw exception
+        this.canCarryOperationOrElseThrow(card, customerLogged, cardPIN, amount);
 
         // if the transaction is created, deduce the amount from balance
         card.chargeAmount(amount);
@@ -148,14 +116,11 @@ public class BankingTransactionCardService {
                 "ATM withdrawal."
         );
 
-        // check customer authorization
-        this.validateCustomerAuthorization(card);
-
-        // check card authorization
-        this.validateCardAuthorization(card, cardPIN);
+        final Customer customerLogged = AuthHelper.getLoggedCustomer();
+        this.canCarryOperationOrElseThrow(card, customerLogged, cardPIN, amount);
 
         // check balance
-        this.validateCardFunds(card, amount);
+        this.checkFunds(card, amount);
 
         // if the transaction is created, deduce the amount from balance
         card.chargeAmount(amount);

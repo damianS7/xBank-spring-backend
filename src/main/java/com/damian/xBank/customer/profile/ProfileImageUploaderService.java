@@ -94,8 +94,6 @@ public class ProfileImageUploaderService {
             resource = new UrlResource(path.toUri());
         } catch (MalformedURLException e) {
             throw new ProfileException(Exceptions.PROFILE.IMAGE.NOT_FOUND);
-        } catch (IOException e) {
-            throw new ProfileException(Exceptions.PROFILE.IMAGE.NOT_FOUND);
         }
 
         return resource;

@@ -9,7 +9,9 @@ public record BankingCardSetDailyLimitRequest(
         @NotNull(
                 message = "Daily limit must not be null"
         )
-        @Positive
+        @Positive(
+                message = "Daily limit must be positive"
+        )
         BigDecimal dailyLimit,
         @NotNull(
                 message = "Password must not be null"

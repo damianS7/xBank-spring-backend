@@ -1,6 +1,7 @@
 package com.damian.xBank.banking.account;
 
 import com.damian.xBank.banking.card.BankingCardDTO;
+import com.damian.xBank.banking.transactions.BankingTransactionDTO;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -14,7 +15,8 @@ public record BankingAccountDTO(
         BankingAccountType accountType,
         BankingAccountCurrency accountCurrency,
         BankingAccountStatus accountStatus,
-        Set<BankingCardDTO> bankingCards,
+        Set<BankingTransactionDTO> accountTransactions,
+        Set<BankingCardDTO> accountCards,
         Instant createdAt,
         Instant updatedAt
 ) {

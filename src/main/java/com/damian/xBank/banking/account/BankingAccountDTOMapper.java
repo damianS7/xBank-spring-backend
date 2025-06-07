@@ -3,7 +3,6 @@ package com.damian.xBank.banking.account;
 import com.damian.xBank.banking.card.BankingCardDTO;
 import com.damian.xBank.banking.card.BankingCardDTOMapper;
 import com.damian.xBank.banking.transactions.BankingTransactionDTO;
-import com.damian.xBank.banking.transactions.BankingTransactionDTOMapper;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -19,12 +18,13 @@ public class BankingAccountDTOMapper {
                 .map(BankingCardDTOMapper::toBankingCardDTO)
                 .collect(Collectors.toSet());
 
-        Set<BankingTransactionDTO> bankingTransactionsDTO = Optional
-                .ofNullable(bankingAccount.getAccountTransactions())
-                .orElseGet(Collections::emptySet)
-                .stream()
-                .map(BankingTransactionDTOMapper::toBankingTransactionDTO)
-                .collect(Collectors.toSet());
+        Set<BankingTransactionDTO> bankingTransactionsDTO = Collections.emptySet();
+        //                Optional
+        //                .ofNullable(bankingAccount.getAccountTransactions())
+        //                .orElseGet(Collections::emptySet)
+        //                .stream()
+        //                .map(BankingTransactionDTOMapper::toBankingTransactionDTO)
+        //                .collect(Collectors.toSet());
 
         return new BankingAccountDTO(
                 bankingAccount.getId(),
@@ -34,6 +34,7 @@ public class BankingAccountDTOMapper {
                 bankingAccount.getAccountType(),
                 bankingAccount.getAccountCurrency(),
                 bankingAccount.getAccountStatus(),
+                bankingTransactionsDTO,
                 bankingCardsDTO,
                 bankingAccount.getCreatedAt(),
                 bankingAccount.getUpdatedAt()

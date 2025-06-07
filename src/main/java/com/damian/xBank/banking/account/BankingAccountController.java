@@ -1,9 +1,7 @@
 package com.damian.xBank.banking.account;
 
 import com.damian.xBank.banking.account.http.request.BankingAccountAliasUpdateRequest;
-import com.damian.xBank.banking.account.http.request.BankingAccountCloseRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountCreateRequest;
-import com.damian.xBank.banking.account.http.request.BankingAccountOpenRequest;
 import com.damian.xBank.banking.card.BankingCard;
 import com.damian.xBank.banking.card.BankingCardDTO;
 import com.damian.xBank.banking.card.BankingCardDTOMapper;
@@ -58,37 +56,6 @@ public class BankingAccountController {
                 .body(bankingAccountDTO);
     }
 
-    // endpoint for logged customer to re-open an existing BankingAccount
-    @PatchMapping("/customers/me/banking/accounts/{id}/open")
-    public ResponseEntity<?> customerOpenBankingAccount(
-            @PathVariable @NotNull @Positive
-            Long id,
-            @Validated @RequestBody
-            BankingAccountOpenRequest request
-    ) {
-        BankingAccount bankingAccount = bankingAccountService.openBankingAccount(id, request);
-        BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(bankingAccountDTO);
-    }
-
-    // endpoint for logged customer to close a BankingAccount
-    @PatchMapping("/customers/me/banking/accounts/{id}/close")
-    public ResponseEntity<?> customerCloseBankingAccount(
-            @PathVariable @NotNull @Positive
-            Long id,
-            @Validated @RequestBody
-            BankingAccountCloseRequest request
-    ) {
-        BankingAccount bankingAccount = bankingAccountService.closeBankingAccount(id, request);
-        BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(bankingAccountDTO);
-    }
 
     // endpoint to set an alias for an account
     @PatchMapping("/customers/me/banking/accounts/{id}/alias")

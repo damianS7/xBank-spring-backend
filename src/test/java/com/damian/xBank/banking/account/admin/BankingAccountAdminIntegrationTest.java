@@ -119,8 +119,44 @@ public class BankingAccountAdminIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should close an account")
-    void shouldCloseBankingAccount() throws Exception {
+    @DisplayName("Should set status of to OPEN")
+    void shouldSetAccountStatusToOpen() throws Exception {
+        // given
+        loginWithCustomer(customerAdmin);
+        BankingAccountCloseRequest request = new BankingAccountCloseRequest(
+                RAW_PASSWORD
+        );
+
+        BankingAccount givenBankingAccount = new BankingAccount(customerB);
+        givenBankingAccount.setAccountNumber("US0011111111222222223333");
+        givenBankingAccount.setAccountType(BankingAccountType.SAVINGS);
+        givenBankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
+        bankingAccountRepository.save(givenBankingAccount);
+
+        // when
+        MvcResult result = mockMvc
+                .perform(
+                        patch("/api/v1/admin/banking/accounts/{id}/open", givenBankingAccount.getId())
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().is(200))
+                .andReturn();
+
+        BankingAccountDTO bankingAccount = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                BankingAccountDTO.class
+        );
+
+        // then
+        assertThat(bankingAccount).isNotNull();
+        assertThat(bankingAccount.accountStatus()).isEqualTo(BankingAccountStatus.OPEN);
+    }
+
+    @Test
+    @DisplayName("Should set status of to CLOSED")
+    void shouldSetAccountStatusToClose() throws Exception {
         // given
         loginWithCustomer(customerAdmin);
         BankingAccountCloseRequest request = new BankingAccountCloseRequest(

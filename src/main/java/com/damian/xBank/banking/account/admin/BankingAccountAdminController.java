@@ -58,9 +58,23 @@ public class BankingAccountAdminController {
                 .body(bankingAccountDTO);
     }
 
+    // endpoint for logged customer to re-open an existing BankingAccount
+    @PatchMapping("/admin/banking/accounts/{id}/open")
+    public ResponseEntity<?> openBankingAccount(
+            @PathVariable @NotNull @Positive
+            Long id
+    ) {
+        BankingAccount bankingAccount = bankingAccountService.openBankingAccount(id);
+        BankingAccountDTO bankingAccountDTO = BankingAccountDTOMapper.toBankingAccountDTO(bankingAccount);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(bankingAccountDTO);
+    }
+
     // endpoint to close a BankingAccount
     @PatchMapping("/admin/banking/accounts/{id}/close")
-    public ResponseEntity<?> customerCloseBankingAccount(
+    public ResponseEntity<?> closeBankingAccount(
             @PathVariable @NotNull @Positive
             Long id
     ) {

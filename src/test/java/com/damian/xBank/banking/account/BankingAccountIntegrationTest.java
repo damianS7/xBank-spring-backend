@@ -3,7 +3,6 @@ package com.damian.xBank.banking.account;
 import com.damian.xBank.auth.http.AuthenticationRequest;
 import com.damian.xBank.auth.http.AuthenticationResponse;
 import com.damian.xBank.banking.account.http.request.BankingAccountAliasUpdateRequest;
-import com.damian.xBank.banking.account.http.request.BankingAccountCloseRequest;
 import com.damian.xBank.banking.account.http.request.BankingAccountCreateRequest;
 import com.damian.xBank.banking.card.BankingCardDTO;
 import com.damian.xBank.banking.card.BankingCardType;
@@ -158,8 +157,8 @@ public class BankingAccountIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should open banking account")
-    void shouldOpenBankingAccount() throws Exception {
+    @DisplayName("Should request banking account")
+    void shouldRequestBankingAccount() throws Exception {
         // given
         loginWithCustomer(customerA);
         BankingAccountCreateRequest request = new BankingAccountCreateRequest(
@@ -188,41 +187,6 @@ public class BankingAccountIntegrationTest {
         assertThat(bankingAccount.accountCurrency()).isEqualTo(request.accountCurrency());
         assertThat(bankingAccount.balance()).isEqualTo(BigDecimal.ZERO);
         assertThat(bankingAccount.accountType()).isEqualTo(request.accountType());
-    }
-
-    @Test
-    @DisplayName("Should close your own banking account")
-    void shouldCloseBankingAccount() throws Exception {
-        // given
-        loginWithCustomer(customerA);
-        BankingAccountCloseRequest request = new BankingAccountCloseRequest(
-                rawPassword
-        );
-
-        BankingAccount givenBankingAccount = new BankingAccount(customerA);
-        givenBankingAccount.setAccountNumber("US0011111111222222223333");
-        givenBankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        givenBankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccountRepository.save(givenBankingAccount);
-
-        // when
-        MvcResult result = mockMvc
-                .perform(patch("/api/v1/customers/me/banking/accounts/{id}/close", givenBankingAccount.getId())
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().is(200))
-                .andReturn();
-
-        BankingAccountDTO bankingAccount = objectMapper.readValue(
-                result.getResponse().getContentAsString(),
-                BankingAccountDTO.class
-        );
-
-        // then
-        assertThat(bankingAccount).isNotNull();
-        assertThat(bankingAccount.accountStatus()).isEqualTo(BankingAccountStatus.CLOSED);
     }
 
     @Test
@@ -259,29 +223,5 @@ public class BankingAccountIntegrationTest {
         // then
         assertThat(bankingAccount).isNotNull();
         assertThat(bankingAccount.alias()).isEqualTo(request.alias());
-    }
-
-    @Test
-    @DisplayName("Should not close account if you are not the owner and you are not admin either")
-    void shouldNotCloseBankingAccountWhenItsNotYoursAndYouAreNotAdmin() throws Exception {
-        // given
-        loginWithCustomer(customerA);
-        BankingAccountCloseRequest request = new BankingAccountCloseRequest(
-                rawPassword
-        );
-
-        BankingAccount givenBankingAccount = new BankingAccount(customerB);
-        givenBankingAccount.setAccountNumber("US0011111111222222223333");
-        givenBankingAccount.setAccountType(BankingAccountType.SAVINGS);
-        givenBankingAccount.setAccountCurrency(BankingAccountCurrency.EUR);
-        bankingAccountRepository.save(givenBankingAccount);
-
-        // when
-        mockMvc.perform(patch("/api/v1/customers/me/banking/accounts/{id}/close", givenBankingAccount.getId())
-                       .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                       .contentType(MediaType.APPLICATION_JSON)
-                       .content(objectMapper.writeValueAsString(request)))
-               .andDo(print())
-               .andExpect(status().is(403));
     }
 }

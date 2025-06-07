@@ -1,9 +1,6 @@
 package com.damian.xBank.common.exception;
 
-import com.damian.xBank.auth.exception.AccountDisabledException;
-import com.damian.xBank.auth.exception.AuthenticationBadCredentialsException;
-import com.damian.xBank.auth.exception.AuthenticationException;
-import com.damian.xBank.auth.exception.AuthorizationException;
+import com.damian.xBank.auth.exception.*;
 import com.damian.xBank.banking.account.exception.BankingAccountAuthorizationException;
 import com.damian.xBank.banking.account.exception.BankingAccountException;
 import com.damian.xBank.banking.account.exception.BankingAccountInsufficientFundsException;
@@ -19,6 +16,7 @@ import com.damian.xBank.common.utils.ApiResponse;
 import com.damian.xBank.customer.exception.CustomerEmailTakenException;
 import com.damian.xBank.customer.exception.CustomerException;
 import com.damian.xBank.customer.exception.CustomerNotFoundException;
+import com.damian.xBank.customer.profile.exception.ProfileAuthorizationException;
 import com.damian.xBank.customer.profile.exception.ProfileException;
 import com.damian.xBank.customer.profile.exception.ProfileNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
@@ -50,6 +48,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(
             {
                     AuthenticationException.class,
+                    JwtAuthenticationException.class,
                     AuthenticationBadCredentialsException.class,
                     AccountDisabledException.class
             }
@@ -115,6 +114,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(
             {
                     AuthorizationException.class,
+                    ProfileAuthorizationException.class,
+                    BankingCardAuthorizationException.class,
                     BankingAccountAuthorizationException.class,
                     BankingTransactionAuthorizationException.class,
                     BankingCardAuthorizationException.class,

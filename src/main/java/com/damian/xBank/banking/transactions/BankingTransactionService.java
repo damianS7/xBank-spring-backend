@@ -56,6 +56,7 @@ public class BankingTransactionService {
     ) {
         BankingTransaction transaction = new BankingTransaction(bankingAccount);
         transaction.setTransactionType(transactionType);
+        transaction.setAccountBalance(bankingAccount.getBalance());
         transaction.setAmount(amount);
         transaction.setDescription(description);
         return transaction;

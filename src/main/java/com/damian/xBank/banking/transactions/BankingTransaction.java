@@ -25,6 +25,9 @@ public class BankingTransaction {
     @Column(precision = 15, scale = 2)
     private BigDecimal amount;
 
+    @Column(precision = 15, scale = 2)
+    private BigDecimal accountBalance;
+
     @Column
     private String description;
 
@@ -131,5 +134,13 @@ public class BankingTransaction {
 
     public void setBankingCard(BankingCard bankingCard) {
         this.bankingCard = bankingCard;
+    }
+
+    public BigDecimal getAccountBalance() {
+        return accountBalance;
+    }
+
+    public void setAccountBalance(BigDecimal accountBalance) {
+        this.accountBalance = accountBalance;
     }
 }

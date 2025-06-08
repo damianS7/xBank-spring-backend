@@ -176,6 +176,7 @@ CREATE TABLE public.banking_transactions (
 	id int4 GENERATED ALWAYS AS IDENTITY NOT NULL,
 	banking_account_id int4 NOT NULL,
 	banking_card_id int4 NULL,
+	account_balance numeric(15, 2) NOT NULL,
 	transaction_type public."banking_transaction_type" NOT NULL,
 	amount numeric(15, 2) NOT NULL,
 	description text NULL,

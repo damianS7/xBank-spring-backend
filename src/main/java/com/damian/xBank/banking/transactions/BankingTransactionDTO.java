@@ -8,6 +8,7 @@ public record BankingTransactionDTO(
         Long bankingAccountId,
         Long bankingCardId,
         BigDecimal amount,
+        BigDecimal accountBalance,
         BankingTransactionType transactionType,
         BankingTransactionStatus transactionStatus,
         String description,
